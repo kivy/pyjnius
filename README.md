@@ -26,9 +26,9 @@ hello
 Usage with python-for-android
 -----------------------------
 
-#. Get http://github.com/kivy/python-for-android
-#. Compile a distribution with `-m "pyjnius kivy"`
-#. Then, you can do this kind of things:
+* Get http://github.com/kivy/python-for-android
+* Compile a distribution with `-m "pyjnius kivy"`
+* Then, you can do this kind of things:
 
 ```python
 from time import sleep
