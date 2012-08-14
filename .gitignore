@@ -1,6 +1,6 @@
 *.pyo
 *.pyc
-src/*.c
+jnius/*.c
 build
 jnius.so
 .*.swp

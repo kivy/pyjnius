@@ -53,16 +53,18 @@ else:
     libraries = ['jvm']
 
 # generate the config.pxi
-with open(join(dirname(__file__), 'src', 'config.pxi'), 'w') as fd:
+with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
     fd.write('DEF JNIUS_PLATFORM = {0!r}'.format(platform))
 
 # create the extension
 setup(name='jnius',
       version='1.0',
       cmdclass={'build_ext': build_ext},
+      packages=['jnius'],
+      ext_package='jnius',
       ext_modules=[
           Extension(
-              'jnius', ['src/jnius.' + ext],
+              'jnius', ['jnius/jnius.' + ext],
               libraries=libraries,
               library_dirs=library_dirs,
               include_dirs=include_dirs,
