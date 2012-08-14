@@ -292,7 +292,7 @@ cdef void populate_args(JNIEnv *j_env, list definition_args, jvalue *j_args, arg
                         j_env, <char *><bytes>py_arg)
             elif isinstance(py_arg, JavaClass):
                 jc = py_arg
-                if jc.__javaclass__ != argtype[1:-1]:
+                if argtype != 'Ljava/lang/Object;' and jc.__javaclass__ != argtype[1:-1]:
                     raise JavaException('Invalid class argument, want '
                             '{0!r}, got {1!r}'.format(
                                 argtype[1:-1], jc.__javaclass__))
