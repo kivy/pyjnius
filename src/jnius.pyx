@@ -148,6 +148,7 @@ cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
     cdef char *c_str
     cdef bytes py_str
     cdef JavaObject ret_jobject
+    cdef JavaClass ret_jc
 
     if j_object == NULL:
         return None
@@ -221,8 +222,9 @@ cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
                     j_env, j_object, j_doubles, 0)
 
     elif r == 'L':
+        r = definition[1:-1]
         ret = []
-        if definition == 'Ljava/lang/String;':
+        if r == 'java/lang/String':
             for i in range(array_size):
                 obj = j_env[0].GetObjectArrayElement(
                         j_env, j_object, i)
@@ -235,6 +237,13 @@ cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
                 j_env[0].ReleaseStringUTFChars(
                         j_env, j_object, c_str)
                 ret.append(py_str)
+        elif r in jclass_register:
+            for i in range(array_size):
+                obj = j_env[0].GetObjectArrayElement(
+                        j_env, j_object, i)
+                ret_jc = jclass_register[r](noinstance=True)
+                ret_jc.instanciate_from(obj)
+                ret.append(ret_jc)
         else:
             for i in range(array_size):
                 obj = j_env[0].GetObjectArrayElement(
@@ -251,7 +260,7 @@ cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
     return ret
 
 
-cdef void populate_args(JNIEnv *j_env, list definition_args, jvalue *j_args, args):
+cdef void populate_args(JNIEnv *j_env, list definition_args, jvalue *j_args, args) except *:
     # do the conversion from a Python object to Java from a Java definition
     cdef JavaObject jo
     cdef JavaClass jc
@@ -278,7 +287,7 @@ cdef void populate_args(JNIEnv *j_env, list definition_args, jvalue *j_args, arg
             if py_arg is None:
                 j_args[index].l = NULL
             elif isinstance(py_arg, basestring) and \
-                    argtype == 'Ljava/lang/String;':
+                    argtype in ('Ljava/lang/String;', 'Ljava/lang/Object;'):
                 j_args[index].l = j_env[0].NewStringUTF(
                         j_env, <char *><bytes>py_arg)
             elif isinstance(py_arg, JavaClass):
@@ -419,6 +428,22 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray):
 
     return <jobject>ret
 
+cdef void check_exception(JNIEnv *j_env):
+    cdef jthrowable exc = j_env[0].ExceptionOccurred(j_env)
+    if exc:
+        j_env[0].ExceptionDescribe(j_env)
+        j_env[0].ExceptionClear(j_env)
+
+cdef bytes lookup_java_object_name(jobject j_obj):
+    from reflect import ensureclass, autoclass
+    ensureclass('java.lang.Object')
+    ensureclass('java.lang.Class')
+    cdef JavaClass obj = autoclass('java.lang.Object')(noinstance=True)
+    obj.instanciate_from(j_obj)
+    name = obj.getClass().getName()
+    ensureclass(name)
+    return name.replace('.', '/')
+
 
 class JavaException(Exception):
     '''Can be a real java exception, or just an exception from the wrapper.
@@ -445,10 +470,19 @@ cdef class JavaClassStorage:
         self.j_cls = NULL
 
 
+cdef dict jclass_register = {}
+
 class MetaJavaClass(type):
     def __new__(meta, classname, bases, classDict):
         meta.resolve_class(classDict)
-        return type.__new__(meta, classname, bases, classDict)
+        tp = type.__new__(meta, classname, bases, classDict)
+        jclass_register[classDict['__javaclass__']] = tp
+        #print 'REGISTER', classDict['__javaclass__'], tp
+        return tp
+
+    @staticmethod
+    def get_javaclass(name):
+        return jclass_register.get(name)
 
     @classmethod
     def resolve_class(meta, classDict):
@@ -500,19 +534,25 @@ cdef class JavaClass(object):
     cdef jclass j_cls
     cdef jobject j_self
 
-    def __cinit__(self, *args):
+    def __cinit__(self, *args, **kwargs):
         self.j_env = NULL
         self.j_cls = NULL
         self.j_self = NULL
 
-    def __init__(self, *args):
+    def __init__(self, *args, **kwargs):
         super(JavaClass, self).__init__()
         # copy the current attribute in the storage to our class
         cdef JavaClassStorage jcs = self.__cls_storage
         self.j_env = jcs.j_env
         self.j_cls = jcs.j_cls
 
-        self.call_constructor(args)
+        if 'noinstance' not in kwargs:
+            self.call_constructor(args)
+            self.resolve_methods()
+            self.resolve_fields()
+
+    cdef void instanciate_from(self, jobject j_self):
+        self.j_self = j_self
         self.resolve_methods()
         self.resolve_fields()
 
@@ -580,6 +620,13 @@ cdef class JavaClass(object):
                 continue
             jf.resolve_field(self, name)
 
+    def __repr__(self):
+        return '<{0} at 0x{1:x} jclass={2} jself={3}>'.format(
+                self.__class__.__name__,
+                id(self),
+                self.__javaclass__,
+                <long>self.j_self)
+
 
 cdef class JavaField(object):
     cdef jfieldID j_field
@@ -646,6 +693,7 @@ cdef class JavaField(object):
         cdef bytes py_str
         cdef object ret = None
         cdef JavaObject ret_jobject
+        cdef JavaClass ret_jc
 
         # return type of the java method
         r = self.definition[0]
@@ -688,13 +736,20 @@ cdef class JavaField(object):
                     self.j_env, self.j_self, self.j_field)
             if j_object == NULL:
                 return None
-            if self.definition == 'Ljava/lang/String;':
+            r = self.definition[1:-1]
+            if r == 'java/lang/Object':
+                r = lookup_java_object_name(j_object)
+            if r == 'java/lang/String':
                 c_str = <char *>self.j_env[0].GetStringUTFChars(
                         self.j_env, j_object, NULL)
                 py_str = <bytes>c_str
                 self.j_env[0].ReleaseStringUTFChars(
                         self.j_env, j_object, c_str)
                 ret = py_str
+            elif r in jclass_register:
+                ret_jc = jclass_register[r](noinstance=True)
+                ret_jc.instanciate_from(j_object)
+                ret = ret_jc
             else:
                 ret_jobject = JavaObject()
                 ret_jobject.obj = j_object
@@ -707,6 +762,7 @@ cdef class JavaField(object):
         else:
             raise Exception('Invalid field definition')
 
+        check_exception(self.j_env)
         return ret
 
     cdef read_static_field(self):
@@ -723,6 +779,7 @@ cdef class JavaField(object):
         cdef bytes py_str
         cdef object ret = None
         cdef JavaObject ret_jobject
+        cdef JavaClass ret_jc
 
         # return type of the java method
         r = self.definition[0]
@@ -765,13 +822,20 @@ cdef class JavaField(object):
                     self.j_env, self.j_self, self.j_field)
             if j_object == NULL:
                 return None
-            if self.definition == 'Ljava/lang/String;':
+            r = self.definition[1:-1]
+            if r == 'java/lang/Object':
+                r = lookup_java_object_name(j_object)
+            if r == 'java/lang/String':
                 c_str = <char *>self.j_env[0].GetStringUTFChars(
                         self.j_env, j_object, NULL)
                 py_str = <bytes>c_str
                 self.j_env[0].ReleaseStringUTFChars(
                         self.j_env, j_object, c_str)
                 ret = py_str
+            elif r in jclass_register:
+                ret_jc = jclass_register[r](noinstance=True)
+                ret_jc.instanciate_from(j_object)
+                ret = ret_jc
             else:
                 ret_jobject = JavaObject()
                 ret_jobject.obj = j_object
@@ -784,6 +848,7 @@ cdef class JavaField(object):
         else:
             raise Exception('Invalid field definition')
 
+        check_exception(self.j_env)
         return ret
 
 
@@ -794,6 +859,7 @@ cdef class JavaMethod(object):
     cdef JNIEnv *j_env
     cdef jclass j_cls
     cdef jobject j_self
+    cdef bytes name
     cdef bytes definition
     cdef object is_static
     cdef object definition_return
@@ -815,6 +881,7 @@ cdef class JavaMethod(object):
     cdef void resolve_method(self, JavaClass jc, bytes name):
         # called by JavaClass when we want to resolve the method name
         assert(self.is_static is False)
+        self.name = name
         self.j_env = jc.j_env
         self.j_cls = jc.j_cls
         self.j_self = jc.j_self
@@ -839,12 +906,24 @@ cdef class JavaMethod(object):
             raise JavaException('Unable to found the method'
                     ' {0}'.format(name))
 
+    def __get__(self, obj, objtype):
+        if obj is None:
+            return self
+        # XXX FIXME we MUST not change our own j_self, but return an "bounded"
+        # method here, as python does!
+        cdef JavaClass jc = obj
+        self.j_self = jc.j_self
+        return self
+
     def __call__(self, *args):
         # argument array to pass to the method
         cdef jvalue *j_args = NULL
         cdef list d_args = self.definition_args
         if len(args) != len(d_args):
             raise JavaException('Invalid call, number of argument mismatch')
+
+        if not self.is_static and self.j_env == NULL:
+            raise JavaException('Cannot call instance method on a un-instanciated class')
 
         try:
             # convert python argument if necessary
@@ -877,6 +956,7 @@ cdef class JavaMethod(object):
         cdef bytes py_str
         cdef object ret = None
         cdef JavaObject ret_jobject
+        cdef JavaClass ret_jc
 
         # return type of the java method
         r = self.definition_return[0]
@@ -922,13 +1002,20 @@ cdef class JavaMethod(object):
                     self.j_env, self.j_self, self.j_method, j_args)
             if j_object == NULL:
                 return None
-            if self.definition_return == 'Ljava/lang/String;':
+            r = self.definition_return[1:-1]
+            if r == 'java/lang/Object':
+                r = lookup_java_object_name(j_object)
+            if r == 'java/lang/String':
                 c_str = <char *>self.j_env[0].GetStringUTFChars(
                         self.j_env, j_object, NULL)
                 py_str = <bytes>c_str
                 self.j_env[0].ReleaseStringUTFChars(
                         self.j_env, j_object, c_str)
                 ret = py_str
+            elif r in jclass_register:
+                ret_jc = jclass_register[r](noinstance=True)
+                ret_jc.instanciate_from(j_object)
+                ret = ret_jc
             else:
                 ret_jobject = JavaObject()
                 ret_jobject.obj = j_object
@@ -941,6 +1028,7 @@ cdef class JavaMethod(object):
         else:
             raise Exception('Invalid return definition?')
 
+        check_exception(self.j_env)
         return ret
 
     cdef call_staticmethod(self, jvalue *j_args):
@@ -957,6 +1045,7 @@ cdef class JavaMethod(object):
         cdef bytes py_str
         cdef object ret = None
         cdef JavaObject ret_jobject
+        cdef JavaClass ret_jc
 
         # return type of the java method
         r = self.definition_return[0]
@@ -1001,13 +1090,20 @@ cdef class JavaMethod(object):
             # accept only string for the moment
             j_object = self.j_env[0].CallStaticObjectMethodA(
                     self.j_env, self.j_cls, self.j_method, j_args)
-            if self.definition_return == 'Ljava/lang/String;':
+            r = self.definition_return[1:-1]
+            if r == 'java/lang/Object':
+                r = lookup_java_object_name(j_object)
+            if r == 'java/lang/String':
                 c_str = <char *>self.j_env[0].GetStringUTFChars(
                         self.j_env, j_object, NULL)
                 py_str = <bytes>c_str
                 self.j_env[0].ReleaseStringUTFChars(
                         self.j_env, j_object, c_str)
                 ret = py_str
+            elif r in jclass_register:
+                ret_jc = jclass_register[r](noinstance=True)
+                ret_jc.instanciate_from(j_object)
+                ret = ret_jc
             else:
                 ret_jobject = JavaObject()
                 ret_jobject.obj = j_object
@@ -1020,6 +1116,7 @@ cdef class JavaMethod(object):
         else:
             raise Exception('Invalid return definition?')
 
+        check_exception(self.j_env)
         return ret
 
 class JavaStaticMethod(JavaMethod):
