@@ -1,0 +1,7 @@
+*.pyo
+*.pyc
+src/*.c
+build
+jnius.so
+.*.swp
+*.class

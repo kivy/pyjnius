@@ -1,0 +1,1 @@
+DEF JNIUS_PLATFORM = 'linux2'
