@@ -1,1 +1,1 @@
-DEF JNIUS_PLATFORM = 'linux2'
+DEF JNIUS_PLATFORM = 'android'

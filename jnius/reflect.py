@@ -65,7 +65,10 @@ def get_signature(cls_tp):
     ret = signatures.get(tp)
     if ret:
         return ret
-    ensureclass(tp)
+    # don't do it in recursive way for the moment,
+    # error on the JNI/android: JNI ERROR (app bug): local reference table overflow (max=512)
+    #
+    #ensureclass(tp)
     return 'L{0};'.format(tp.replace('.', '/'))
 
 

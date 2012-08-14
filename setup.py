@@ -6,7 +6,7 @@ import sys
 libraries = []
 library_dirs = []
 extra_link_args = []
-includes_dirs = []
+include_dirs = []
 
 # detect Python for android
 platform = sys.platform
