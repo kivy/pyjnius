@@ -23,6 +23,19 @@ world
 hello
 ```
 
+Usage on desktop
+----------------
+
+You need java JDK installed (openjdk will do), cython, and make to build it
+
+    make
+
+That's it! you can run the tests with
+
+    make tests
+
+To make sure everything is running right.
+
 Usage with python-for-android
 -----------------------------
 
@@ -75,7 +88,7 @@ Advanced example
 ----------------
 
 When you use autoclass, it will discover all the methods and fields within the object, and resolve it.
-It's better to declare and use only what you need (for the moment).
+For now, it can be better to declare and use only what you need.
 The previous example can be done manually:
 
 ```python
