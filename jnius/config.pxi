@@ -1,1 +1,0 @@
-DEF JNIUS_PLATFORM = 'android'
