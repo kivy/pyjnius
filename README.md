@@ -70,3 +70,31 @@ I/python  ( 5983): [-0.1149216815829277, 9.3852710723876953, 2.31758713722229]
 I/python  ( 5983): [-0.038307227194309235, 9.41400146484375, 1.8674772977828979]
 I/python  ( 5983): [0.13407529890537262, 9.4235782623291016, 2.2026655673980713]
 ```
+
+Advanced example
+----------------
+
+When you use autoclass, it will discover all the methods and fields within the object, and resolve it.
+It's better to declare and use only what you need (for the moment).
+The previous example can be done manually:
+
+```python
+from time import sleep
+from java import MetaJavaClass, JavaClass, JavaMethod, JavaStaticMethod
+
+class Hardware(JavaClass):
+    __metaclass__ = MetaJavaClass
+    __javaclass__ = 'org/renpy/android/Hardware'
+    vibrate = JavaStaticMethod('(D)V')
+    accelerometerEnable = JavaStaticMethod('(Z)V')
+    accelerometerReading = JavaStaticMethod('()[F')
+    getDPI = JavaStaticMethod('()I')
+    
+# use that new class!
+print 'DPI is', Hardware.getDPI()
+
+Hardware.accelerometerEnable()
+for x in xrange(20):
+    print Hardware.accelerometerReading()
+    sleep(.1)
+```
