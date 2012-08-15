@@ -22,7 +22,7 @@ cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object
 
     if r not in jclass_register:
         from reflect import autoclass
-        ret_jc = autoclass(r)(noinstance=True)
+        ret_jc = autoclass(r.replace('/', '.'))(noinstance=True)
     else:
         ret_jc = jclass_register[r](noinstance=True)
     ret_jc.instanciate_from(j_object)
