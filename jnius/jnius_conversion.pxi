@@ -20,16 +20,13 @@ cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object
         j_env[0].ReleaseStringUTFChars(j_env, j_object, c_str)
         return py_str
 
-    # if the class is already in our register, use it
-    if r in jclass_register:
+    if r not in jclass_register:
+        from reflect import autoclass
+        ret_jc = autoclass(r)(noinstance=True)
+    else:
         ret_jc = jclass_register[r](noinstance=True)
-        ret_jc.instanciate_from(j_object)
-        return ret_jc
-
-    # otherwise, return a generic object, without any reflection.
-    ret_jobject = JavaObject()
-    ret_jobject.obj = j_env[0].NewLocalRef(j_env, j_object)
-    return ret_jobject
+    ret_jc.instanciate_from(j_object)
+    return ret_jc
 
 
 cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
