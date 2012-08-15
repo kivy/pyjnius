@@ -213,13 +213,16 @@ class MetaJavaClass(type):
 
         # search all the static JavaMethod within our class, and resolve them
         cdef JavaMethod jm
+        cdef JavaMethodMultiple jmm
         for name, value in classDict.iteritems():
-            if not isinstance(value, JavaMethod):
-                continue
-            jm = value
-            if not jm.is_static:
-                continue
-            jm.resolve_static_method(jcs.j_env, jcs.j_cls, name)
+            if isinstance(value, JavaMethod):
+                jm = value
+                if not jm.is_static:
+                    continue
+                jm.resolve_static_method(jcs.j_env, jcs.j_cls, name)
+            elif isinstance(value, JavaMethodMultiple):
+                jmm = value
+                jmm.resolve_static_method(jcs.j_env, jcs.j_cls, name)
 
         # search all the static JavaField within our class, and resolve them
         cdef JavaField jf
@@ -275,14 +278,34 @@ cdef class JavaClass(object):
         cdef jmethodID constructor = NULL
 
         # get the constructor definition if exist
-        definition = '()V'
+        definitions = ['()V']
         if hasattr(self, '__javaconstructor__'):
-            definition = self.__javaconstructor__
-        self.definition = definition
-        d_ret, d_args = parse_definition(definition)
-        if len(args) != len(d_args):
-            raise JavaException('Invalid call, number of argument'
-                    ' mismatch for constructor')
+            definitions = self.__javaconstructor__
+        if isinstance(definitions, basestring):
+            definitions = [definitions]
+
+        if len(definitions) == 0:
+            raise JavaException('No constructor available')
+        elif len(definitions) == 1:
+            definition = definitions[0]
+            d_ret, d_args = parse_definition(definition)
+            if len(args) != len(d_args):
+                raise JavaException('Invalid call, number of argument'
+                        ' mismatch for constructor')
+        else:
+            #print 'MULTIPLE DEFINITIONS AVAILABLE', args
+            scores = []
+            for definition in definitions:
+                d_ret, d_args = parse_definition(definition)
+                score = calculate_score(d_args, args)
+                #print score, '------>', definition
+                if score == -1:
+                    continue
+                scores.append((score, definition, d_ret, d_args))
+            if not scores:
+                raise JavaException('No constructor matching your arguments')
+            scores.sort()
+            score, definition, d_ret, d_args = scores[-1]
 
         try:
             # convert python arguments to java arguments
@@ -313,13 +336,16 @@ cdef class JavaClass(object):
     cdef void resolve_methods(self) except *:
         # search all the JavaMethod within our class, and resolve them
         cdef JavaMethod jm
+        cdef JavaMethodMultiple jmm
         for name, value in self.__class__.__dict__.iteritems():
-            if not isinstance(value, JavaMethod):
-                continue
-            jm = value
-            if jm.is_static:
-                continue
-            jm.resolve_method(self, name)
+            if isinstance(value, JavaMethod):
+                jm = value
+                if jm.is_static:
+                    continue
+                jm.resolve_method(self, name)
+            elif isinstance(value, JavaMethodMultiple):
+                jmm = value
+                jmm.resolve_method(self, name)
 
     cdef void resolve_fields(self) except *:
         # search all the JavaField within our class, and resolve them
@@ -571,11 +597,13 @@ cdef class JavaMethod(object):
 
         if self.j_method == NULL:
             raise JavaException('Unable to found the method'
-                    ' {0} in {1}'.format(name, jc.__javaclass__))
+                    ' {0}({2}) in {1}'.format(name, jc.__javaclass__,
+                        self.definition))
 
     cdef void resolve_static_method(self, JNIEnv *j_env, jclass j_cls, bytes name) except *:
         # called by JavaClass when we want to resolve the method name
         assert(self.is_static is True)
+        self.name = name
         self.j_env = j_env
         self.j_cls = j_cls
         self.j_method = self.j_env[0].GetStaticMethodID(
@@ -775,12 +803,84 @@ cdef class JavaMethod(object):
         check_exception(self.j_env)
         return ret
 
+
 class JavaStaticMethod(JavaMethod):
     def __init__(self, definition, **kwargs):
         kwargs['static'] = True
         super(JavaStaticMethod, self).__init__(definition, **kwargs)
 
+
 class JavaStaticField(JavaField):
     def __init__(self, definition, **kwargs):
         kwargs['static'] = True
         super(JavaStaticField, self).__init__(definition, **kwargs)
+
+
+cdef class JavaMethodMultiple(object):
+
+    cdef jobject j_self
+    cdef list definitions
+    cdef dict methods
+    cdef bytes name
+
+    def __cinit__(self, definition, **kwargs):
+        self.j_self = NULL
+
+    def __init__(self, definitions, **kwargs):
+        super(JavaMethodMultiple, self).__init__()
+        self.definitions = definitions
+        self.methods = {}
+        self.name = None
+
+    def __get__(self, obj, objtype):
+        if obj is None:
+            return self
+        # XXX FIXME we MUST not change our own j_self, but return an "bounded"
+        # method here, as python does!
+        cdef JavaClass jc = obj
+        self.j_self = jc.j_self
+        return self
+
+    cdef void resolve_method(self, JavaClass jc, bytes name) except *:
+        cdef JavaMethod jm
+        self.name = name
+
+        for signature, static in self.definitions:
+            if static:
+                continue
+            jm = JavaMethod(signature)
+            jm.resolve_method(jc, name)
+            self.methods[signature] = jm
+
+    cdef void resolve_static_method(self, JNIEnv *j_env, jclass j_cls, bytes name) except *:
+        cdef JavaMethod jm
+        self.name = name
+
+        for signature, static in self.definitions:
+            if not static:
+                continue
+            jm = JavaStaticMethod(signature)
+            jm.resolve_static_method(j_env, j_cls, name)
+            self.methods[signature] = jm
+
+    def __call__(self, *args):
+        # try to match our args to a signature
+        cdef JavaMethod jm
+        cdef list scores = []
+
+        for signature in self.methods:
+            sign_ret, sign_args = parse_definition(signature)
+            score = calculate_score(sign_args, args)
+            if score <= 0:
+                continue
+            scores.append((score, signature))
+
+        if not scores:
+            raise JavaException('No methods matching your arguments')
+        scores.sort()
+        score, signature = scores[-1]
+
+        jm = self.methods[signature]
+        jm.j_self = self.j_self
+        return jm.__call__(*args)
+
