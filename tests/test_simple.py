@@ -1,10 +1,14 @@
+import unittest
 from jnius import JavaClass, MetaJavaClass, JavaMethod
 
-class HelloWorld(JavaClass):
-    __metaclass__ = MetaJavaClass
-    __javaclass__ = 'org/jnius/HelloWorld'
+class HelloWorldTest(unittest.TestCase):
 
-    hello = JavaMethod('()V')
+    def test(self):
 
-a = HelloWorld()
-a.hello()
+        class HelloWorld(JavaClass):
+            __metaclass__ = MetaJavaClass
+            __javaclass__ = 'org/jnius/HelloWorld'
+            hello = JavaMethod('()Ljava/lang/String;')
+
+        a = HelloWorld()
+        self.assertEqual(a.hello(), 'world')

@@ -86,7 +86,7 @@ Python::
 '''
 
 __all__ = ('JavaObject', 'JavaClass', 'JavaMethod', 'JavaStaticMethod',
-    'JavaField', 'JavaStaticField', 'MetaJavaClass')
+    'JavaField', 'JavaStaticField', 'MetaJavaClass', 'JavaException')
 
 from libc.stdlib cimport malloc, free
 
@@ -332,7 +332,7 @@ cdef void populate_args(JNIEnv *j_env, list definition_args, jvalue *j_args, arg
             j_args[index].l = convert_pyarray_to_java(
                     j_env, argtype[1:], py_arg)
 
-cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray):
+cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except *:
     cdef jobject ret = NULL
     cdef int array_size = len(pyarray)
     cdef int i
@@ -445,11 +445,12 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray):
 
     return <jobject>ret
 
-cdef void check_exception(JNIEnv *j_env):
+cdef void check_exception(JNIEnv *j_env) except *:
     cdef jthrowable exc = j_env[0].ExceptionOccurred(j_env)
     if exc:
         j_env[0].ExceptionDescribe(j_env)
         j_env[0].ExceptionClear(j_env)
+        raise JavaException('JVM exception occured')
 
 cdef bytes lookup_java_object_name(JNIEnv *j_env, jobject j_obj):
     from reflect import ensureclass, autoclass
@@ -574,13 +575,13 @@ cdef class JavaClass(object):
             self.resolve_methods()
             self.resolve_fields()
 
-    cdef void instanciate_from(self, jobject j_self):
+    cdef void instanciate_from(self, jobject j_self) except *:
         j_self = self.j_env[0].NewLocalRef(self.j_env, j_self)
         self.j_self = j_self
         self.resolve_methods()
         self.resolve_fields()
 
-    cdef void call_constructor(self, args):
+    cdef void call_constructor(self, args) except *:
         # the goal is to found the class constructor, and call it with the
         # correct arguments.
         cdef jvalue *j_args = NULL
@@ -622,7 +623,7 @@ cdef class JavaClass(object):
             if j_args != NULL:
                 free(j_args)
 
-    cdef void resolve_methods(self):
+    cdef void resolve_methods(self) except *:
         # search all the JavaMethod within our class, and resolve them
         cdef JavaMethod jm
         for name, value in self.__class__.__dict__.iteritems():
@@ -633,7 +634,7 @@ cdef class JavaClass(object):
                 continue
             jm.resolve_method(self, name)
 
-    cdef void resolve_fields(self):
+    cdef void resolve_fields(self) except *:
         # search all the JavaField within our class, and resolve them
         cdef JavaField jf
         for name, value in self.__class__.__dict__.iteritems():
@@ -671,7 +672,7 @@ cdef class JavaField(object):
         self.definition = definition
         self.is_static = kwargs.get('static', False)
 
-    cdef void resolve_field(self, JavaClass jc, bytes name):
+    cdef void resolve_field(self, JavaClass jc, bytes name) except *:
         # called by JavaClass when we want to resolve the field name
         assert(self.is_static is False)
         self.j_env = jc.j_env
@@ -685,7 +686,7 @@ cdef class JavaField(object):
             raise JavaException('Unable to found the field'
                     ' {0} in {1}'.format(name, jc.__javaclass__))
 
-    cdef void resolve_static_field(self, JNIEnv *j_env, jclass j_cls, bytes name):
+    cdef void resolve_static_field(self, JNIEnv *j_env, jclass j_cls, bytes name) except *:
         # called by JavaClass when we want to resolve the field name
         assert(self.is_static is True)
         self.j_env = j_env
@@ -906,7 +907,7 @@ cdef class JavaMethod(object):
                 parse_definition(definition)
         self.is_static = kwargs.get('static', False)
 
-    cdef void resolve_method(self, JavaClass jc, bytes name):
+    cdef void resolve_method(self, JavaClass jc, bytes name) except *:
         # called by JavaClass when we want to resolve the method name
         assert(self.is_static is False)
         self.name = name
@@ -921,7 +922,7 @@ cdef class JavaMethod(object):
             raise JavaException('Unable to found the method'
                     ' {0} in {1}'.format(name, jc.__javaclass__))
 
-    cdef void resolve_static_method(self, JNIEnv *j_env, jclass j_cls, bytes name):
+    cdef void resolve_static_method(self, JNIEnv *j_env, jclass j_cls, bytes name) except *:
         # called by JavaClass when we want to resolve the method name
         assert(self.is_static is True)
         self.j_env = j_env
