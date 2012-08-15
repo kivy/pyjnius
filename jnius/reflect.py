@@ -1,3 +1,5 @@
+__all__ = ('autoclass', 'ensureclass')
+
 from jnius import JavaClass, MetaJavaClass, JavaMethod, JavaStaticMethod, \
         JavaField, JavaStaticField, JavaMethodMultiple
 
@@ -169,4 +171,3 @@ def autoclass(clsname):
             clsname,#.replace('.', '_'),
             (JavaClass, ),
             classDict)
-

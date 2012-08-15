@@ -86,7 +86,7 @@ Python::
 '''
 
 __all__ = ('JavaObject', 'JavaClass', 'JavaMethod', 'JavaStaticMethod',
-    'JavaField', 'JavaStaticField', 'MetaJavaClass', 'JavaException')
+    'JavaField', 'JavaStaticField', 'MetaJavaClass', 'JavaException', 'cast')
 
 from libc.stdlib cimport malloc, free
 
@@ -894,4 +894,16 @@ cdef class JavaMethodMultiple(object):
         jm = methods[signature]
         jm.j_self = self.j_self
         return jm.__call__(*args)
+
+
+def cast(destclass, obj):
+    cdef JavaClass jc
+    cdef JavaClass jobj = obj
+    from reflect import autoclass
+    if isinstance(destclass, basestring):
+        jc = autoclass(destclass)(noinstance=True)
+    else:
+        jc = destclass(noinstance=True)
+    jc.instanciate_from(jobj.j_self)
+    return jc
 
