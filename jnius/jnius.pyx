@@ -197,14 +197,14 @@ class MetaJavaClass(type):
             raise JavaException('__javaclass__ definition missing')
 
         cdef JavaClassStorage jcs = JavaClassStorage()
-        cdef str __javaclass__ = classDict['__javaclass__']
+        cdef bytes __javaclass__ = <bytes>classDict['__javaclass__']
 
         jcs.j_env = get_jnienv()
         if jcs.j_env == NULL:
             raise JavaException('Unable to get the Android JNI Environment')
 
         jcs.j_cls = jcs.j_env[0].FindClass(jcs.j_env,
-                <char *><bytes>__javaclass__)
+                <char *>__javaclass__)
         if jcs.j_cls == NULL:
             raise JavaException('Unable to found the class'
                     ' {0}'.format(__javaclass__))
@@ -219,10 +219,12 @@ class MetaJavaClass(type):
                 jm = value
                 if not jm.is_static:
                     continue
-                jm.resolve_static_method(jcs.j_env, jcs.j_cls, name)
+                jm.set_resolve_info(jcs.j_env, jcs.j_cls, NULL,
+                    name, __javaclass__)
             elif isinstance(value, JavaMethodMultiple):
                 jmm = value
-                jmm.resolve_static_method(jcs.j_env, jcs.j_cls, name)
+                jmm.set_resolve_info(jcs.j_env, jcs.j_cls, NULL,
+                    name, __javaclass__)
 
         # search all the static JavaField within our class, and resolve them
         cdef JavaField jf
@@ -232,7 +234,8 @@ class MetaJavaClass(type):
             jf = value
             if not jf.is_static:
                 continue
-            jf.resolve_static_field(jcs.j_env, jcs.j_cls, name)
+            jf.set_resolve_info(jcs.j_env, jcs.j_cls, NULL,
+                name, __javaclass__)
 
 
 cdef class JavaClass(object):
@@ -342,10 +345,12 @@ cdef class JavaClass(object):
                 jm = value
                 if jm.is_static:
                     continue
-                jm.resolve_method(self, name)
+                jm.set_resolve_info(self.j_env, self.j_cls, self.j_self,
+                    name, self.__javaclass__)
             elif isinstance(value, JavaMethodMultiple):
                 jmm = value
-                jmm.resolve_method(self, name)
+                jmm.set_resolve_info(self.j_env, self.j_cls, self.j_self,
+                    name, self.__javaclass__)
 
     cdef void resolve_fields(self) except *:
         # search all the JavaField within our class, and resolve them
@@ -356,7 +361,8 @@ cdef class JavaClass(object):
             jf = value
             if jf.is_static:
                 continue
-            jf.resolve_field(self, name)
+            jf.set_resolve_info(self.j_env, self.j_cls, self.j_self,
+                name, self.__javaclass__)
 
     def __repr__(self):
         return '<{0} at 0x{1:x} jclass={2} jself={3}>'.format(
@@ -373,6 +379,8 @@ cdef class JavaField(object):
     cdef jobject j_self
     cdef bytes definition
     cdef object is_static
+    cdef bytes name
+    cdef bytes classname
 
     def __cinit__(self, definition, **kwargs):
         self.j_field = NULL
@@ -385,34 +393,30 @@ cdef class JavaField(object):
         self.definition = definition
         self.is_static = kwargs.get('static', False)
 
-    cdef void resolve_field(self, JavaClass jc, bytes name) except *:
-        # called by JavaClass when we want to resolve the field name
-        assert(self.is_static is False)
-        self.j_env = jc.j_env
-        self.j_cls = jc.j_cls
-        self.j_self = jc.j_self
-        self.j_field = self.j_env[0].GetFieldID(
-                self.j_env, self.j_cls, <char *>name,
-                <char *>self.definition)
-
-        if self.j_field == NULL:
-            raise JavaException('Unable to found the field'
-                    ' {0} in {1}'.format(name, jc.__javaclass__))
-
-    cdef void resolve_static_field(self, JNIEnv *j_env, jclass j_cls, bytes name) except *:
-        # called by JavaClass when we want to resolve the field name
-        assert(self.is_static is True)
+    cdef void set_resolve_info(self, JNIEnv *j_env, jclass j_cls, jobject j_self,
+            bytes name, bytes classname):
+        self.name = name
+        self.classname = classname
         self.j_env = j_env
         self.j_cls = j_cls
-        self.j_field = self.j_env[0].GetStaticFieldID(
-                self.j_env, self.j_cls, <char *>name,
-                <char *>self.definition)
+        self.j_self = j_self
 
+    cdef void ensure_field(self) except *:
+        if self.j_field != NULL:
+            return
+        if self.is_static:
+            self.j_field = self.j_env[0].GetStaticFieldID(
+                    self.j_env, self.j_cls, <char *>self.name,
+                    <char *>self.definition)
+        else:
+            self.j_field = self.j_env[0].GetFieldID(
+                    self.j_env, self.j_cls, <char *>self.name,
+                    <char *>self.definition)
         if self.j_field == NULL:
-            raise JavaException('Unable to found the field'
-                    ' {0}'.format(name))
+            raise JavaException('Unable to found the field {0}'.format(self.name))
 
     def __get__(self, obj, objtype):
+        self.ensure_field()
         if obj is None:
             return self.read_static_field()
         return self.read_field()
@@ -566,6 +570,7 @@ cdef class JavaMethod(object):
     cdef jclass j_cls
     cdef jobject j_self
     cdef bytes name
+    cdef bytes classname
     cdef bytes definition
     cdef object is_static
     cdef object definition_return
@@ -584,35 +589,29 @@ cdef class JavaMethod(object):
                 parse_definition(definition)
         self.is_static = kwargs.get('static', False)
 
-    cdef void resolve_method(self, JavaClass jc, bytes name) except *:
-        # called by JavaClass when we want to resolve the method name
-        assert(self.is_static is False)
-        self.name = name
-        self.j_env = jc.j_env
-        self.j_cls = jc.j_cls
-        self.j_self = jc.j_self
-        self.j_method = self.j_env[0].GetMethodID(
-                self.j_env, self.j_cls, <char *>name,
-                <char *>self.definition)
+    cdef void ensure_method(self) except *:
+        if self.j_method != NULL:
+            return
+        if self.is_static:
+            self.j_method = self.j_env[0].GetStaticMethodID(
+                    self.j_env, self.j_cls, <char *>self.name,
+                    <char *>self.definition)
+        else:
+            self.j_method = self.j_env[0].GetMethodID(
+                    self.j_env, self.j_cls, <char *>self.name,
+                    <char *>self.definition)
 
         if self.j_method == NULL:
             raise JavaException('Unable to found the method'
-                    ' {0}({2}) in {1}'.format(name, jc.__javaclass__,
-                        self.definition))
+                    ' {0}({1})'.format(self.name, self.definition))
 
-    cdef void resolve_static_method(self, JNIEnv *j_env, jclass j_cls, bytes name) except *:
-        # called by JavaClass when we want to resolve the method name
-        assert(self.is_static is True)
+    cdef void set_resolve_info(self, JNIEnv *j_env, jclass j_cls,
+            jobject j_self, bytes name, bytes classname):
         self.name = name
+        self.classname = classname
         self.j_env = j_env
         self.j_cls = j_cls
-        self.j_method = self.j_env[0].GetStaticMethodID(
-                self.j_env, self.j_cls, <char *>name,
-                <char *>self.definition)
-
-        if self.j_method == NULL:
-            raise JavaException('Unable to found the method'
-                    ' {0}'.format(name))
+        self.j_self = j_self
 
     def __get__(self, obj, objtype):
         if obj is None:
@@ -632,6 +631,8 @@ cdef class JavaMethod(object):
 
         if not self.is_static and self.j_env == NULL:
             raise JavaException('Cannot call instance method on a un-instanciated class')
+
+        self.ensure_method()
 
         try:
             # convert python argument if necessary
@@ -820,8 +821,10 @@ cdef class JavaMethodMultiple(object):
 
     cdef jobject j_self
     cdef list definitions
-    cdef dict methods
+    cdef dict static_methods
+    cdef dict instance_methods
     cdef bytes name
+    cdef bytes classname
 
     def __cinit__(self, definition, **kwargs):
         self.j_self = NULL
@@ -829,11 +832,13 @@ cdef class JavaMethodMultiple(object):
     def __init__(self, definitions, **kwargs):
         super(JavaMethodMultiple, self).__init__()
         self.definitions = definitions
-        self.methods = {}
+        self.static_methods = {}
+        self.instance_methods = {}
         self.name = None
 
     def __get__(self, obj, objtype):
         if obj is None:
+            self.j_self = NULL
             return self
         # XXX FIXME we MUST not change our own j_self, but return an "bounded"
         # method here, as python does!
@@ -841,34 +846,40 @@ cdef class JavaMethodMultiple(object):
         self.j_self = jc.j_self
         return self
 
-    cdef void resolve_method(self, JavaClass jc, bytes name) except *:
+    cdef void set_resolve_info(self, JNIEnv *j_env, jclass j_cls,
+            jobject j_self, bytes name, bytes classname):
         cdef JavaMethod jm
         self.name = name
+        self.classname = classname
 
         for signature, static in self.definitions:
-            if static:
-                continue
-            jm = JavaMethod(signature)
-            jm.resolve_method(jc, name)
-            self.methods[signature] = jm
+            jm = None
+            if j_self == NULL and static:
+                if signature in self.static_methods:
+                    continue
+                jm = JavaStaticMethod(signature)
+                jm.set_resolve_info(j_env, j_cls, j_self, name, classname)
+                self.static_methods[signature] = jm
 
-    cdef void resolve_static_method(self, JNIEnv *j_env, jclass j_cls, bytes name) except *:
-        cdef JavaMethod jm
-        self.name = name
-
-        for signature, static in self.definitions:
-            if not static:
-                continue
-            jm = JavaStaticMethod(signature)
-            jm.resolve_static_method(j_env, j_cls, name)
-            self.methods[signature] = jm
+            elif j_self != NULL and not static:
+                if signature in self.instance_methods:
+                    continue
+                jm = JavaMethod(signature)
+                jm.set_resolve_info(j_env, j_cls, NULL, name, classname)
+                self.instance_methods[signature] = jm
 
     def __call__(self, *args):
         # try to match our args to a signature
         cdef JavaMethod jm
         cdef list scores = []
+        cdef dict methods
 
-        for signature in self.methods:
+        if self.j_self:
+            methods = self.instance_methods
+        else:
+            methods = self.static_methods
+
+        for signature in methods:
             sign_ret, sign_args = parse_definition(signature)
             score = calculate_score(sign_args, args)
             if score <= 0:
@@ -880,7 +891,7 @@ cdef class JavaMethodMultiple(object):
         scores.sort()
         score, signature = scores[-1]
 
-        jm = self.methods[signature]
+        jm = methods[signature]
         jm.j_self = self.j_self
         return jm.__call__(*args)
 
