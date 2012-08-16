@@ -12,7 +12,7 @@ Get the DPI
 -----------
 
 The `DisplayMetrics
-<http://developer.android.com/reference/android/util/DisplayMetrics.html>`_ contain multiple field that can return lot of information about the device screen::
+<http://developer.android.com/reference/android/util/DisplayMetrics.html>`_ contains multiple fields that can return a lot of information about the device's screen::
 
     from pyjnius.reflect import autoclass
     DisplayMetrics = autoclass('android.util.DisplayMetrics')
@@ -25,7 +25,7 @@ Recording an audio file
 
 By looking at the `Audio Capture
 <http://developer.android.com/guide/topics/media/audio-capture.html>`_ guide
-from Android, you can see the simple step to do for recording an audiofile.
+from Android, you can see the simple step to do for recording an audio file.
 Let's do in with Pyjnius::
 
     from pyjnius.reflect import autoclass
@@ -85,8 +85,8 @@ Accessing to the Activity
 -------------------------
 
 This example will show how to start a new Intent. Be careful, some Intent
-require you to setup some part in the `AndroidManifest.xml`, and have some
-action done within your own Activity. This is out of the scope of Pyjnius, but
+require you to setup some parts in the `AndroidManifest.xml`, and have some
+actions done within your own Activity. This is out of the scope of Pyjnius, but
 we'll show you what is the best approach for playing with it.
 
 On Python-for-android project, you can access to the default `PythonActivity`.

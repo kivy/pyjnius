@@ -5,3 +5,4 @@ build
 jnius.so
 .*.swp
 *.class
+.idea

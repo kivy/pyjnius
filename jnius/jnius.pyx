@@ -3,7 +3,7 @@
 Java wrapper
 ============
 
-With this module, you can create Python class that reflect a Java class, and use
+With this module, you can create Python class that reflects a Java class, and use
 it directly in Python.
 
 Example with static method

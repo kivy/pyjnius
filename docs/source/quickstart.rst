@@ -3,7 +3,7 @@
 Quickstart
 ==========
 
-Eager to get started? This page give a good introduction to Pyjnius. It assumes
+Eager to get started? This page will give you a good introduction to Pyjnius. It assumes
 you have already Pyjnius installed. If you do not, head over the
 :ref:`installation` section.
 
@@ -23,7 +23,7 @@ A minimal Pyjnius example looks something like this::
     print stack.pop() # --> 'hello'
 
 Just save it as `test.py` (or something similar) and run it with your Python
-interpreter. Make sure to not call your application `jnius.py` because it would
+interpreter. Make sure not to call your application `jnius.py` because it would
 conflict with Pyjnius itself::
 
     $ python test.py
@@ -33,7 +33,7 @@ conflict with Pyjnius itself::
 Automatic recursive inspection
 ------------------------------
 
-Pyjnius use Java reflection to give you a new autoclass() if the return type is
+Pyjnius uses Java reflection to give you a new autoclass() if the return type is
 not a native type. Let's see this example::
 
     System = autoclass('java.io.System')
@@ -50,5 +50,5 @@ fields and methods naturally. Let's go deeper::
     >>> System.out.println
     <jnius.JavaMethodMultiple object at 0x236adb8>
 
-The recursive reflection always give you an appropriate object that reflect the
+The recursive reflection always gives you an appropriate object that reflects the
 returned Java object.
