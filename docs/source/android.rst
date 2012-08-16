@@ -14,7 +14,7 @@ Get the DPI
 The `DisplayMetrics
 <http://developer.android.com/reference/android/util/DisplayMetrics.html>`_ contain multiple field that can return lot of information about the device screen::
 
-    from pyjnius.reflect import autoclass
+    from jnius.reflect import autoclass
     DisplayMetrics = autoclass('android.util.DisplayMetrics')
     metrics = DisplayMetrics()
     print 'DPI', metrics.densityDpi
@@ -28,7 +28,7 @@ By looking at the `Audio Capture
 from Android, you can see the simple step to do for recording an audiofile.
 Let's do in with Pyjnius::
 
-    from pyjnius.reflect import autoclass
+    from jnius.reflect import autoclass
     from time import sleep
 
     # get the needed Java class
@@ -60,7 +60,7 @@ Playing an audio file
 Following the previous section on how to record an audio file, you can read it
 using the Android Media Player too::
 
-    from pyjnius.reflect import autoclass
+    from jnius.reflect import autoclass
     from time import sleep
 
     # get the MediaPlayer java class
