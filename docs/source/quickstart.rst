@@ -36,13 +36,13 @@ Automatic recursive inspection
 Pyjnius uses Java reflection to give you a new autoclass() if the return type is
 not a native type. Let's see this example::
 
-    System = autoclass('java.io.System')
+    System = autoclass('java.lang.System')
     System.out.println('Hello World')
 
 We only declared the first System class, but we are able to use all the static
 fields and methods naturally. Let's go deeper::
 
-    >>> System = autoclass('java.io.System')
+    >>> System = autoclass('java.lang.System')
     >>> System
     <class 'jnius.reflect.java.lang.System'>
     >>> System.out
