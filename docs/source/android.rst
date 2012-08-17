@@ -17,7 +17,7 @@ The `DisplayMetrics
     from jnius.reflect import autoclass
     DisplayMetrics = autoclass('android.util.DisplayMetrics')
     metrics = DisplayMetrics()
-    print 'DPI', metrics.densityDpi
+    print 'DPI', metrics.getDeviceDensity()
 
 
 Recording an audio file
