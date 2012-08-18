@@ -86,7 +86,8 @@ Python::
 '''
 
 __all__ = ('JavaObject', 'JavaClass', 'JavaMethod', 'JavaStaticMethod',
-    'JavaField', 'JavaStaticField', 'MetaJavaClass', 'JavaException', 'cast')
+    'JavaField', 'JavaStaticField', 'MetaJavaClass', 'JavaException', 'cast',
+    'find_javaclass')
 
 from libc.stdlib cimport malloc, free
 
@@ -928,4 +929,20 @@ def cast(destclass, obj):
         jc = destclass(noinstance=True)
     jc.instanciate_from(jobj.j_self)
     return jc
+
+def find_javaclass(bytes name):
+    from reflect import Class
+    cdef JavaClass cls
+    cdef jclass jc
+    cdef JNIEnv *j_env = get_jnienv()
+
+    name = name.replace('.', '/')
+
+    jc = j_env[0].FindClass(j_env, name)
+    if jc == NULL:
+        raise JavaException('Class not found {0!r}'.format(name))
+
+    cls = Class(noinstance=True)
+    cls.instanciate_from(create_local_ref(j_env, jc))
+    return cls
 

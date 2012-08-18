@@ -9,15 +9,27 @@ cdef extern from "jni.h":
         jint version
         jint nOptions
         jboolean ignoreUnrecognized
+        JavaVMOption *options
+    ctypedef struct JavaVMOption:
+        char *optionString
+        void *extraInfo
 
 cdef JNIEnv *default_env = NULL
 
 cdef void create_jnienv():
     cdef JavaVM* jvm
     cdef JavaVMInitArgs args
+    cdef JavaVMOption options[1]
+    cdef bytes py_bytes
+
+    from os.path import realpath
+    py_bytes = <bytes>('-Djava.class.path={0}'.format(realpath('.')))
+    options[0].optionString = py_bytes
+    options[0].extraInfo = NULL
 
     args.version = JNI_VERSION_1_4
-    args.nOptions = 0
+    args.options = options
+    args.nOptions = 1
     args.ignoreUnrecognized = JNI_FALSE
 
     JNI_CreateJavaVM(&jvm, <void **>&default_env, &args)

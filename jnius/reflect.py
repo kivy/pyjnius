@@ -1,7 +1,7 @@
 __all__ = ('autoclass', 'ensureclass')
 
 from jnius import JavaClass, MetaJavaClass, JavaMethod, JavaStaticMethod, \
-        JavaField, JavaStaticField, JavaMethodMultiple
+        JavaField, JavaStaticField, JavaMethodMultiple, find_javaclass
 
 class Class(JavaClass):
     __metaclass__ = MetaJavaClass
@@ -100,7 +100,8 @@ def autoclass(clsname):
 
     classDict = {}
 
-    c = Class.forName(clsname)
+    #c = Class.forName(clsname)
+    c = find_javaclass(clsname)
     if c is None:
         raise Exception('Java class {0} not found'.format(c))
         return None

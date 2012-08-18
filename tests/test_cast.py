@@ -2,7 +2,7 @@ import unittest
 from jnius.reflect import autoclass
 from jnius import cast
 
-class MultipleSignature(unittest.TestCase):
+class MultipleSignatureTest(unittest.TestCase):
 
     def test_multiple_constructors(self):
         String = autoclass('java.lang.String')
