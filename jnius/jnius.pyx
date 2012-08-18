@@ -638,7 +638,7 @@ cdef class JavaMethod(object):
     def __get__(self, obj, objtype):
         if obj is None:
             return self
-        # XXX FIXME we MUST not change our own j_self, but return an "bounded"
+        # XXX FIXME we MUST not change our own j_self, but return a "bound"
         # method here, as python does!
         cdef JavaClass jc = obj
         self.j_self = jc.j_self
@@ -863,7 +863,7 @@ cdef class JavaMethodMultiple(object):
         if obj is None:
             self.j_self = None
             return self
-        # XXX FIXME we MUST not change our own j_self, but return an "bounded"
+        # XXX FIXME we MUST not change our own j_self, but return a "bound"
         # method here, as python does!
         cdef JavaClass jc = obj
         self.j_self = jc.j_self
