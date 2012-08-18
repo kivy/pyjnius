@@ -293,7 +293,7 @@ cdef class JavaClass(object):
         self.resolve_fields()
 
     cdef void call_constructor(self, args) except *:
-        # the goal is to found the class constructor, and call it with the
+        # the goal is to find the class constructor, and call it with the
         # correct arguments.
         cdef jvalue *j_args = NULL
         cdef jobject j_self = NULL
