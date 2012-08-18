@@ -3,7 +3,7 @@ from jnius import JavaClass, MetaJavaClass, JavaMethod
 
 class HelloWorldTest(unittest.TestCase):
 
-    def test(self):
+    def test_helloworld(self):
 
         class HelloWorld(JavaClass):
             __metaclass__ = MetaJavaClass

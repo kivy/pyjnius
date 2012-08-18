@@ -75,7 +75,7 @@ cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
     elif r == 'C':
         j_chars = j_env[0].GetCharArrayElements(
                 j_env, j_object, &iscopy)
-        ret = [(<char>j_chars[i]) for i in range(array_size)]
+        ret = [chr(<char>j_chars[i]) for i in range(array_size)]
         if iscopy:
             j_env[0].ReleaseCharArrayElements(
                     j_env, j_object, j_chars, 0)
