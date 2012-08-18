@@ -25,7 +25,7 @@ cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object
         ret_jc = autoclass(r.replace('/', '.'))(noinstance=True)
     else:
         ret_jc = jclass_register[r](noinstance=True)
-    ret_jc.instanciate_from(j_object)
+    ret_jc.instanciate_from(create_local_ref(j_env, j_object))
     return ret_jc
 
 
@@ -189,7 +189,7 @@ cdef void populate_args(JNIEnv *j_env, list definition_args, jvalue *j_args, arg
                     raise JavaException('Invalid class argument, want '
                             '{0!r}, got {1!r}'.format(
                                 argtype[1:-1], jc.__javaclass__))
-                j_args[index].l = jc.j_self
+                j_args[index].l = jc.j_self.obj
             elif isinstance(py_arg, JavaObject):
                 jo = py_arg
                 j_args[index].l = jo.obj
@@ -308,7 +308,7 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
                                 definition[1:-1],
                                 jc.__javaclass__))
                 j_env[0].SetObjectArrayElement(
-                        j_env, <jobjectArray>ret, i, jc.j_self)
+                        j_env, <jobjectArray>ret, i, jc.j_self.obj)
             elif isinstance(arg, JavaObject):
                 jo = arg
                 j_env[0].SetObjectArrayElement(
@@ -391,10 +391,11 @@ cdef int calculate_score(sign_args, args) except *:
             # if it's a generic object, accept python string, or any java
             # class/object
             if r == 'java/lang/Object':
-                if (isinstance(arg, basestring) or
-                        isinstance(arg, JavaClass) or
-                        isinstance(arg, JavaObject)):
+                if isinstance(arg, JavaClass) or isinstance(arg, JavaObject):
                     score += 10
+                    continue
+                elif isinstance(arg, basestring):
+                    score += 5
                     continue
                 return -1
 
