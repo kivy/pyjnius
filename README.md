@@ -9,7 +9,7 @@ Quick overview
 --------------
 
 ```python
->>> from jnius import autoclass
+>>> from jnius.reflect import autoclass
 >>> autoclass('java.lang.System').out.println('Hello world')
 Hello world
 

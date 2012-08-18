@@ -9,6 +9,8 @@ class Class(JavaClass):
 
     forName = JavaStaticMethod('(Ljava/lang/String;)Ljava/lang/Class;')
     getConstructors = JavaMethod('()[Ljava/lang/reflect/Constructor;')
+    getMethods = JavaMethod('()[Ljava/lang/reflect/Method;')
+    getFields = JavaMethod('()[Ljava/lang/reflect/Field;')
     getDeclaredMethods = JavaMethod('()[Ljava/lang/reflect/Method;')
     getDeclaredFields = JavaMethod('()[Ljava/lang/reflect/Field;')
     getName = JavaMethod('()Ljava/lang/String;')
@@ -112,7 +114,7 @@ def autoclass(clsname):
         constructors.append(sig)
     classDict['__javaconstructor__'] = constructors
 
-    methods = c.getDeclaredMethods()
+    methods = c.getMethods()
     methods_name = [x.getName() for x in methods]
     for index, method in enumerate(methods):
         name = methods_name[index]
@@ -159,7 +161,7 @@ def autoclass(clsname):
 
         classDict[name] = JavaMethodMultiple(signatures)
 
-    for field in c.getDeclaredFields():
+    for field in c.getFields():
         static = Modifier.isStatic(field.getModifiers())
         sig = get_signature(field.getType())
         cls = JavaStaticField if static else JavaField

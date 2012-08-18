@@ -623,7 +623,7 @@ cdef class JavaMethod(object):
                     <char *>self.definition)
 
         if self.j_method == NULL:
-            raise JavaException('Unable to found the method'
+            raise JavaException('Unable to find the method'
                     ' {0}({1})'.format(self.name, self.definition))
 
     cdef void set_resolve_info(self, JNIEnv *j_env, jclass j_cls,
