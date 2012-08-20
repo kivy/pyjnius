@@ -82,6 +82,8 @@ setup(name='jnius',
       url='http://pyjnius.readthedocs.org/',
       author='Mathieu Virbel and Gabriel Pettier',
       author_email='mat@kivy.org,gabriel@kivy.org',
+      license='LGPL',
+      description='Python library to access Java classes',
       install_requires=install_requires,
       ext_package='jnius',
       ext_modules=[
@@ -92,4 +94,15 @@ setup(name='jnius',
               include_dirs=include_dirs,
               extra_link_args=extra_link_args)
           ],
-      )
+      classifiers=[
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: GNU Library or Lesser '
+        'General Public License (LGPL)',
+        'Natural Language :: English',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Topic :: Software Development :: Libraries :: Application Frameworks'])
