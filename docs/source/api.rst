@@ -7,8 +7,8 @@ API
 
 This part of the documentation covers all the interfaces of Pyjnius.
 
-Java* Objects
--------------
+Reflection Classes
+------------------
 
 .. class:: JavaClass
 
@@ -19,7 +19,7 @@ Java* Objects
     You need to define at minimun the :data:`__javaclass__` attribute, and set
     the :data:`__metaclass__` to :class:`MetaJavaClass`.
 
-    So the minimun class definition would look like::
+    So the minimum class definition would look like::
 
         from jnius import JavaClass, MetaJavaClass
 
@@ -34,8 +34,8 @@ Java* Objects
 
     .. attribute:: __javaclass__
 
-        Represent the Java class name, in the format org/lang/Class. (eg:
-        'java/util/Stack')
+        Represent the Java class name, in the format 'org/lang/Class'. (eg:
+        'java/util/Stack'), not 'org.lang.Class'.
 
     .. attribute:: __javaconstructor__
 
@@ -94,9 +94,11 @@ Java* Objects
               Signature: (Ljava/lang/Object;)I
             }
 
+
 .. class:: JavaStaticMethod
 
     Reflection of a static Java method.
+
 
 .. class:: JavaField
 
@@ -115,4 +117,55 @@ Java* Objects
 
         The name associated to the method is automatically set from the
         declaration within the JavaClass itself.
+
+
+.. class:: JavaStaticField
+
+    Reflection of a static Java field
+
+
+.. class:: JavaMultipleMethod
+
+    Reflection of a Java method that can be called from multiple signatures.
+    For example, the method `getBytes` in the `String` class can be called
+    from::
+
+        public byte[] getBytes(java.lang.String)
+        public byte[] getBytes(java.nio.charset.Charset)
+        public byte[] getBytes()
+
+    Let's see how you could declare that method::
+
+        class System(JavaClass):
+            __javaclass__ = 'java/lang/String'
+            __metaclass__ = MetaJavaClass
+
+            getBytes = JavaMultipleMethod([
+                '(Ljava/lang/String;)[B',
+                '(Ljava/nio/charset/Charset;)[B',
+                '()[B'])
+
+    Then, when you will try to access to this method, we'll take the best
+    method available according to the type of the arguments you're using.
+    Internally, we are calculating a "match" score for each available
+    signature, and take the best one. Without going into the details, the score
+    calculation look like:
+
+    * a direct type match is +10
+    * a indirect type match (like using a `float` for an `int` argument) is +5
+    * object with unknown type (:class:`JavaObject`) is +1
+    * otherwise, it's considered as an error case, and return -1
+
+
+Reflection functions
+--------------------
+
+.. function:: autoclass(name)
+
+    Return a :class:`JavaClass` that represent the class passed from `name`.
+    The name must be written in the format: `a.b.c`, not `a/b/c`.
+
+    >>> from jnius import autoclass
+    >>> autoclass('java.lang.System')
+    <class 'jnius.reflect.java.lang.System'>
 
