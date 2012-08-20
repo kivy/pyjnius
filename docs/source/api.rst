@@ -136,7 +136,7 @@ Reflection Classes
 
     Let's see how you could declare that method::
 
-        class System(JavaClass):
+        class String(JavaClass):
             __javaclass__ = 'java/lang/String'
             __metaclass__ = MetaJavaClass
 
