@@ -169,10 +169,10 @@ cdef int calculate_score(sign_args, args) except *:
                 if jc.__javaclass__ == r:
                     score += 10
                 else:
-                    try:
-                        check_assignable_from(jc, r)
-                    except:
-                        return -1
+                    #try:
+                    #    check_assignable_from(jc, r)
+                    #except:
+                    #    return -1
                     score += 5
                 continue
 
