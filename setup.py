@@ -19,6 +19,7 @@ libraries = []
 library_dirs = []
 extra_link_args = []
 include_dirs = []
+install_requires = []
 
 # detect Python for android
 platform = sys.platform
@@ -29,6 +30,7 @@ if ndkplatform is not None and environ.get('LIBLINK'):
 # detect cython
 try:
     from Cython.Distutils import build_ext
+    install_requires.append('cython')
 except ImportError:
     from distutils.command.build_ext import build_ext
     if platform != 'android':
@@ -80,6 +82,7 @@ setup(name='jnius',
       url='http://pyjnius.readthedocs.org/',
       author='Mathieu Virbel and Gabriel Pettier',
       author_email='mat@kivy.org,gabriel@kivy.org',
+      install_requires=install_requires,
       ext_package='jnius',
       ext_modules=[
           Extension(
@@ -88,5 +91,5 @@ setup(name='jnius',
               library_dirs=library_dirs,
               include_dirs=include_dirs,
               extra_link_args=extra_link_args)
-          ]
+          ],
       )
