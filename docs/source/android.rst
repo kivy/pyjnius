@@ -14,7 +14,7 @@ Get the DPI
 The `DisplayMetrics
 <http://developer.android.com/reference/android/util/DisplayMetrics.html>`_ contains multiple fields that can return a lot of information about the device's screen::
 
-    from jnius.reflect import autoclass
+    from jnius import autoclass
     DisplayMetrics = autoclass('android.util.DisplayMetrics')
     metrics = DisplayMetrics()
     print 'DPI', metrics.getDeviceDensity()
@@ -28,7 +28,7 @@ By looking at the `Audio Capture
 from Android, you can see the simple step to do for recording an audio file.
 Let's do in with Pyjnius::
 
-    from jnius.reflect import autoclass
+    from jnius import autoclass
     from time import sleep
 
     # get the needed Java class
@@ -60,7 +60,7 @@ Playing an audio file
 Following the previous section on how to record an audio file, you can read it
 using the Android Media Player too::
 
-    from jnius.reflect import autoclass
+    from jnius import autoclass
     from time import sleep
 
     # get the MediaPlayer java class
@@ -93,7 +93,7 @@ On Python-for-android project, you can access to the default `PythonActivity`.
 Let's see an example that demonstrate the `Intent.ACTION_VIEW`::
 
     from jnius import cast
-    from jnius.reflect import autoclass
+    from jnius import autoclass
 
     # import the needed Java class
     PythonActivity = autoclass('org.renpy.android.PythonActivity')
@@ -179,7 +179,7 @@ listener. And we saved the last event received in `Hardware.lastEvent`.
 Now you can use it in Pyjnius::
 
     from time import sleep
-    from jnius.reflect import autoclass
+    from jnius import autoclass
 
     Hardware = autoclass('org.myapp.Hardware')
 

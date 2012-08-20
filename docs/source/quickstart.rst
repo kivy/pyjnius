@@ -12,7 +12,7 @@ A minimal example
 
 A minimal Pyjnius example looks something like this::
 
-    from jnius.reflect import autoclass
+    from jnius import autoclass
 
     Stack = autoclass('java.util.Stack')
     stack = Stack()
@@ -44,7 +44,7 @@ fields and methods naturally. Let's go deeper::
 
     >>> System = autoclass('java.lang.System')
     >>> System
-    <class 'jnius.reflect.java.lang.System'>
+    <class 'jnius.java.lang.System'>
     >>> System.out
     <java.io.PrintStream at 0x234df50 jclass=java/io/PrintStream jself=37921360>
     >>> System.out.println

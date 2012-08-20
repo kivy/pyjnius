@@ -167,5 +167,5 @@ Reflection functions
 
     >>> from jnius import autoclass
     >>> autoclass('java.lang.System')
-    <class 'jnius.reflect.java.lang.System'>
+    <class 'jnius.java.lang.System'>
 
