@@ -58,16 +58,19 @@ with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
 
 # create the extension
 setup(name='jnius',
-      version='1.0',
-      cmdclass={'build_ext': build_ext},
-      packages=['jnius'],
-      ext_package='jnius',
-      ext_modules=[
-          Extension(
-              'jnius', ['jnius/jnius.' + ext],
-              libraries=libraries,
-              library_dirs=library_dirs,
-              include_dirs=include_dirs,
-              extra_link_args=extra_link_args)
-          ]
-      )
+    version='1.0',
+    cmdclass={'build_ext': build_ext},
+    packages=['jnius'],
+    install_requires=[
+         "cython",
+    ],
+    ext_package='jnius',
+    ext_modules=[
+        Extension(
+            'jnius', ['jnius/jnius.' + ext],
+            libraries=libraries,
+            library_dirs=library_dirs,
+            include_dirs=include_dirs,
+            extra_link_args=extra_link_args)
+        ]
+    )
