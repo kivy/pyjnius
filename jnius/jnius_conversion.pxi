@@ -1,3 +1,75 @@
+cdef void release_args(JNIEnv *j_env, list definition_args, jvalue *j_args, args) except *:
+    # do the conversion from a Python object to Java from a Java definition
+    cdef JavaObject jo
+    cdef JavaClass jc
+    cdef int index
+    for index, argtype in enumerate(definition_args):
+        py_arg = args[index]
+        if argtype[0] == 'L':
+            if py_arg is None:
+                j_args[index].l = NULL
+            if isinstance(py_arg, basestring) and \
+                    argtype in ('Ljava/lang/String;', 'Ljava/lang/Object;'):
+                j_env[0].DeleteLocalRef(j_env, j_args[index].l)
+        elif argtype[0] == '[':
+            j_env[0].DeleteLocalRef(j_env, j_args[index].l)
+
+
+cdef void populate_args(JNIEnv *j_env, list definition_args, jvalue *j_args, args) except *:
+    # do the conversion from a Python object to Java from a Java definition
+    cdef JavaObject jo
+    cdef JavaClass jc
+    cdef int index
+    for index, argtype in enumerate(definition_args):
+        py_arg = args[index]
+        if argtype == 'Z':
+            j_args[index].z = py_arg
+        elif argtype == 'B':
+            j_args[index].b = py_arg
+        elif argtype == 'C':
+            j_args[index].c = ord(py_arg)
+        elif argtype == 'S':
+            j_args[index].s = py_arg
+        elif argtype == 'I':
+            j_args[index].i = py_arg
+        elif argtype == 'J':
+            j_args[index].j = py_arg
+        elif argtype == 'F':
+            j_args[index].f = py_arg
+        elif argtype == 'D':
+            j_args[index].d = py_arg
+        elif argtype[0] == 'L':
+            if py_arg is None:
+                j_args[index].l = NULL
+            elif isinstance(py_arg, basestring) and \
+                    argtype in ('Ljava/lang/String;', 'Ljava/lang/Object;'):
+                j_args[index].l = j_env[0].NewStringUTF(
+                        j_env, <char *><bytes>py_arg)
+            elif isinstance(py_arg, JavaClass):
+                jc = py_arg
+                if argtype != 'Ljava/lang/Object;' and jc.__javaclass__ != argtype[1:-1]:
+                    raise JavaException('Invalid class argument, want '
+                            '{0!r}, got {1!r}'.format(
+                                argtype[1:-1], jc.__javaclass__))
+                j_args[index].l = jc.j_self.obj
+            elif isinstance(py_arg, JavaObject):
+                jo = py_arg
+                j_args[index].l = jo.obj
+                raise JavaException('JavaObject needed for argument '
+                        '{0}'.format(index))
+            else:
+                raise JavaException('Invalid python object for this '
+                        'argument. Want {0!r}, got {1!r}'.format(
+                            argtype[1:-1], py_arg))
+        elif argtype[0] == '[':
+            if not isinstance(py_arg, list) and \
+                    not isinstance(py_arg, tuple):
+                raise JavaException('Expecting a python list/tuple, got '
+                        '{0!r}'.format(py_arg))
+
+            j_args[index].l = convert_pyarray_to_java(
+                    j_env, argtype[1:], py_arg)
+
 
 cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object):
     # Convert a Java Object to a Python object, according to the definition.
@@ -137,76 +209,6 @@ cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
 
     return ret
 
-cdef void release_args(JNIEnv *j_env, list definition_args, jvalue *j_args, args) except *:
-    # do the conversion from a Python object to Java from a Java definition
-    cdef JavaObject jo
-    cdef JavaClass jc
-    cdef int index
-    for index, argtype in enumerate(definition_args):
-        py_arg = args[index]
-        if argtype[0] == 'L':
-            if py_arg is None:
-                j_args[index].l = NULL
-            if isinstance(py_arg, basestring) and \
-                    argtype in ('Ljava/lang/String;', 'Ljava/lang/Object;'):
-                j_env[0].DeleteLocalRef(j_env, j_args[index].l)
-        elif argtype[0] == '[':
-            j_env[0].DeleteLocalRef(j_env, j_args[index].l)
-
-cdef void populate_args(JNIEnv *j_env, list definition_args, jvalue *j_args, args) except *:
-    # do the conversion from a Python object to Java from a Java definition
-    cdef JavaObject jo
-    cdef JavaClass jc
-    cdef int index
-    for index, argtype in enumerate(definition_args):
-        py_arg = args[index]
-        if argtype == 'Z':
-            j_args[index].z = py_arg
-        elif argtype == 'B':
-            j_args[index].b = py_arg
-        elif argtype == 'C':
-            j_args[index].c = ord(py_arg)
-        elif argtype == 'S':
-            j_args[index].s = py_arg
-        elif argtype == 'I':
-            j_args[index].i = py_arg
-        elif argtype == 'J':
-            j_args[index].j = py_arg
-        elif argtype == 'F':
-            j_args[index].f = py_arg
-        elif argtype == 'D':
-            j_args[index].d = py_arg
-        elif argtype[0] == 'L':
-            if py_arg is None:
-                j_args[index].l = NULL
-            elif isinstance(py_arg, basestring) and \
-                    argtype in ('Ljava/lang/String;', 'Ljava/lang/Object;'):
-                j_args[index].l = j_env[0].NewStringUTF(
-                        j_env, <char *><bytes>py_arg)
-            elif isinstance(py_arg, JavaClass):
-                jc = py_arg
-                if argtype != 'Ljava/lang/Object;' and jc.__javaclass__ != argtype[1:-1]:
-                    raise JavaException('Invalid class argument, want '
-                            '{0!r}, got {1!r}'.format(
-                                argtype[1:-1], jc.__javaclass__))
-                j_args[index].l = jc.j_self.obj
-            elif isinstance(py_arg, JavaObject):
-                jo = py_arg
-                j_args[index].l = jo.obj
-                raise JavaException('JavaObject needed for argument '
-                        '{0}'.format(index))
-            else:
-                raise JavaException('Invalid python object for this '
-                        'argument. Want {0!r}, got {1!r}'.format(
-                            argtype[1:-1], py_arg))
-        elif argtype[0] == '[':
-            if not isinstance(py_arg, list) and \
-                    not isinstance(py_arg, tuple):
-                raise JavaException('Expecting a python list/tuple, got '
-                        '{0!r}'.format(py_arg))
-
-            j_args[index].l = convert_pyarray_to_java(
-                    j_env, argtype[1:], py_arg)
 
 cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except *:
     cdef jobject ret = NULL
@@ -320,119 +322,3 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
         raise JavaException('Invalid array definition')
 
     return <jobject>ret
-
-
-cdef int calculate_score(sign_args, args) except *:
-    cdef int index
-    cdef int score = 0
-    cdef bytes r
-    cdef JavaClass jc
-
-    if len(args) != len(sign_args):
-        return -1
-
-    score += 10
-
-    for index in range(len(sign_args)):
-        r = sign_args[index]
-        arg = args[index]
-
-        if r == 'Z':
-            if not isinstance(arg, bool):
-                return -1
-            score += 10
-            continue
-
-        if r == 'B':
-            if not isinstance(arg, int):
-                return -1
-            score += 10
-            continue
-
-        if r == 'C':
-            if not isinstance(arg, str) or len(arg) != 1:
-                return -1
-            score += 10
-            continue
-
-        if r == 'S' or r == 'I' or r == 'J':
-            if isinstance(arg, int):
-                score += 10
-                continue
-            elif isinstance(arg, float):
-                score += 5
-                continue
-            else:
-                return -1
-
-        if r == 'F' or r == 'D':
-            if isinstance(arg, int):
-                score += 5
-                continue
-            elif isinstance(arg, float):
-                score += 10
-                continue
-            else:
-                return -1
-
-        if r[0] == 'L':
-
-            r = r[1:-1]
-
-            if arg is None:
-                score += 10
-                continue
-
-            # if it's a string, accept any python string
-            if r == 'java/lang/String' and isinstance(arg, basestring):
-                score += 10
-                continue
-
-            # if it's a generic object, accept python string, or any java
-            # class/object
-            if r == 'java/lang/Object':
-                if isinstance(arg, JavaClass) or isinstance(arg, JavaObject):
-                    score += 10
-                    continue
-                elif isinstance(arg, basestring):
-                    score += 5
-                    continue
-                return -1
-
-            # if we pass a JavaClass, ensure the definition is matching
-            # XXX FIXME what if we use a subclass or something ?
-            if isinstance(arg, JavaClass):
-                jc = arg
-                if jc.__javaclass__ == r:
-                    score += 10
-                else:
-                    # can be dangerous
-                    score += 1
-                continue
-
-            # always accept unknow object, but can be dangerous too.
-            if isinstance(arg, JavaObject):
-                score += 1
-                continue
-
-            # native type? not accepted
-            return -1
-
-        if r[0] == '[':
-
-            if arg is None:
-                return 10
-
-            if not isinstance(arg, tuple) and not isinstance(arg, list):
-                return -1
-
-            # calculate the score for our subarray
-            subscore = calculate_score([r[1:]] * len(arg), arg)
-            if subscore == -1:
-                return -1
-
-            # look like the array is matching, accept it.
-            score += 10
-            continue
-
-    return score

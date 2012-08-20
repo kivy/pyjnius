@@ -39,6 +39,7 @@ cdef void check_exception(JNIEnv *j_env) except *:
         j_env[0].ExceptionClear(j_env)
         raise JavaException('JVM exception occured')
 
+
 cdef bytes lookup_java_object_name(JNIEnv *j_env, jobject j_obj):
     from reflect import ensureclass, autoclass
     ensureclass('java.lang.Object')
@@ -51,3 +52,117 @@ cdef bytes lookup_java_object_name(JNIEnv *j_env, jobject j_obj):
     return name.replace('.', '/')
 
 
+cdef int calculate_score(sign_args, args) except *:
+    cdef int index
+    cdef int score = 0
+    cdef bytes r
+    cdef JavaClass jc
+
+    if len(args) != len(sign_args):
+        return -1
+
+    score += 10
+
+    for index in range(len(sign_args)):
+        r = sign_args[index]
+        arg = args[index]
+
+        if r == 'Z':
+            if not isinstance(arg, bool):
+                return -1
+            score += 10
+            continue
+
+        if r == 'B':
+            if not isinstance(arg, int):
+                return -1
+            score += 10
+            continue
+
+        if r == 'C':
+            if not isinstance(arg, str) or len(arg) != 1:
+                return -1
+            score += 10
+            continue
+
+        if r == 'S' or r == 'I' or r == 'J':
+            if isinstance(arg, int):
+                score += 10
+                continue
+            elif isinstance(arg, float):
+                score += 5
+                continue
+            else:
+                return -1
+
+        if r == 'F' or r == 'D':
+            if isinstance(arg, int):
+                score += 5
+                continue
+            elif isinstance(arg, float):
+                score += 10
+                continue
+            else:
+                return -1
+
+        if r[0] == 'L':
+
+            r = r[1:-1]
+
+            if arg is None:
+                score += 10
+                continue
+
+            # if it's a string, accept any python string
+            if r == 'java/lang/String' and isinstance(arg, basestring):
+                score += 10
+                continue
+
+            # if it's a generic object, accept python string, or any java
+            # class/object
+            if r == 'java/lang/Object':
+                if isinstance(arg, JavaClass) or isinstance(arg, JavaObject):
+                    score += 10
+                    continue
+                elif isinstance(arg, basestring):
+                    score += 5
+                    continue
+                return -1
+
+            # if we pass a JavaClass, ensure the definition is matching
+            # XXX FIXME what if we use a subclass or something ?
+            if isinstance(arg, JavaClass):
+                jc = arg
+                if jc.__javaclass__ == r:
+                    score += 10
+                else:
+                    # can be dangerous
+                    score += 1
+                continue
+
+            # always accept unknow object, but can be dangerous too.
+            if isinstance(arg, JavaObject):
+                score += 1
+                continue
+
+            # native type? not accepted
+            return -1
+
+        if r[0] == '[':
+
+            if arg is None:
+                return 10
+
+            if not isinstance(arg, tuple) and not isinstance(arg, list):
+                return -1
+
+            # calculate the score for our subarray
+            subscore = calculate_score([r[1:]] * len(arg), arg)
+            if subscore == -1:
+                return -1
+
+            # look like the array is matching, accept it.
+            score += 10
+            continue
+
+    return score
