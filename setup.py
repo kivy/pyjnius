@@ -3,6 +3,18 @@ from os import environ
 from os.path import dirname, join
 import sys
 
+files = [
+    'jni.pxi',
+    'jnius_conversion.pxi',
+    'jnius_export_class.pxi',
+    'jnius_export_func.pxi',
+    'jnius_jvm_android.pxi',
+    'jnius_jvm_desktop.pxi',
+    'jnius_localref.pxi',
+    'jnius.pyx',
+    'jnius_utils.pxi',
+]
+
 libraries = []
 library_dirs = []
 extra_link_args = []
@@ -17,12 +29,12 @@ if ndkplatform is not None and environ.get('LIBLINK'):
 # detect cython
 try:
     from Cython.Distutils import build_ext
-    have_cython = True
-    ext = 'pyx'
 except ImportError:
     from distutils.command.build_ext import build_ext
-    have_cython = False
-    ext = 'c'
+    if platform != 'android':
+        print '\n\nYou need Cython to compile Pyjnius.\n\n'
+        raise
+    files = [fn[:-3] + 'c' for fn in files in fn.endswith('pyx')]
 
 if platform == 'android':
     # for android, we use SDL...
@@ -56,15 +68,22 @@ else:
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
     fd.write('DEF JNIUS_PLATFORM = {0!r}'.format(platform))
 
+with open(join('jnius', '__init__.py')) as fd:
+    versionline = [x for x in fd.readlines() if x.startswith('__version__')]
+    version = versionline[0].split("'")[-2]
+
 # create the extension
 setup(name='jnius',
-      version='1.0',
+      version=version,
       cmdclass={'build_ext': build_ext},
       packages=['jnius'],
+      url='http://pyjnius.readthedocs.org/',
+      author='Mathieu Virbel and Gabriel Pettier',
+      author_email='mat@kivy.org,gabriel@kivy.org',
       ext_package='jnius',
       ext_modules=[
           Extension(
-              'jnius', ['jnius/jnius.' + ext],
+              'jnius', [join('jnius', x) for x in files],
               libraries=libraries,
               library_dirs=library_dirs,
               include_dirs=include_dirs,
