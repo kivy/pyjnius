@@ -47,10 +47,7 @@ cdef void populate_args(JNIEnv *j_env, list definition_args, jvalue *j_args, arg
                         j_env, <char *><bytes>py_arg)
             elif isinstance(py_arg, JavaClass):
                 jc = py_arg
-                if argtype != 'Ljava/lang/Object;' and jc.__javaclass__ != argtype[1:-1]:
-                    raise JavaException('Invalid class argument, want '
-                            '{0!r}, got {1!r}'.format(
-                                argtype[1:-1], jc.__javaclass__))
+                check_assignable_from(j_env, jc, argtype[1:-1])
                 j_args[index].l = jc.j_self.obj
             elif isinstance(py_arg, JavaObject):
                 jo = py_arg
@@ -304,11 +301,7 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
                         j_env, <jobjectArray>ret, i, j_string)
             elif isinstance(arg, JavaClass):
                 jc = arg
-                if jc.__javaclass__ != definition[1:-1]:
-                    raise JavaException('Invalid class argument, want '
-                            '{0!r}, got {1!r}'.format(
-                                definition[1:-1],
-                                jc.__javaclass__))
+                check_assignable_from(j_env, jc, definition[1:-1])
                 j_env[0].SetObjectArrayElement(
                         j_env, <jobjectArray>ret, i, jc.j_self.obj)
             elif isinstance(arg, JavaObject):

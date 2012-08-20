@@ -40,6 +40,39 @@ cdef void check_exception(JNIEnv *j_env) except *:
         raise JavaException('JVM exception occured')
 
 
+cdef dict assignable_from = {}
+cdef void check_assignable_from(JNIEnv *env, JavaClass jc, bytes signature) except *:
+    cdef jclass cls
+
+    # if we have a JavaObject, it's always ok.
+    if signature == 'java/lang/Object':
+        return
+
+    # if the signature is a direct match, it's ok too :)
+    if jc.__javaclass__ == signature:
+        return
+
+    # if we already did the test before, use the cache result!
+    result = assignable_from.get((jc.__javaclass__, signature), None)
+    if result is None:
+
+        # we got an object that doesn't match with the signature
+        # check if we can use it.
+        cls = env[0].FindClass(env, signature)
+        if cls == NULL:
+            raise JavaException('Unable to found the class for {0!r}'.format(
+                signature))
+
+        result = bool(env[0].IsAssignableFrom(env, jc.j_cls, cls))
+        env[0].ExceptionClear(env)
+        print 'CHECK FOR', jc.__javaclass__, signature, result
+        assignable_from[(jc.__javaclass__, signature)] = bool(result)
+
+    if result is False:
+        raise JavaException('Invalid instance of {0!r} passed for a {1!r}'.format(
+            jc.__javaclass__, signature))
+
+
 cdef bytes lookup_java_object_name(JNIEnv *j_env, jobject j_obj):
     from reflect import ensureclass, autoclass
     ensureclass('java.lang.Object')
