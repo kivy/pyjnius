@@ -60,7 +60,7 @@ class MetaJavaClass(type):
 
         # search all the static JavaMethod within our class, and resolve them
         cdef JavaMethod jm
-        cdef JavaMethodMultiple jmm
+        cdef JavaMultipleMethod jmm
         for name, value in classDict.iteritems():
             if isinstance(value, JavaMethod):
                 jm = value
@@ -68,7 +68,7 @@ class MetaJavaClass(type):
                     continue
                 jm.set_resolve_info(jcs.j_env, jcs.j_cls, None,
                     name, __javaclass__)
-            elif isinstance(value, JavaMethodMultiple):
+            elif isinstance(value, JavaMultipleMethod):
                 jmm = value
                 jmm.set_resolve_info(jcs.j_env, jcs.j_cls, None,
                     name, __javaclass__)
@@ -182,7 +182,7 @@ cdef class JavaClass(object):
     cdef void resolve_methods(self) except *:
         # search all the JavaMethod within our class, and resolve them
         cdef JavaMethod jm
-        cdef JavaMethodMultiple jmm
+        cdef JavaMultipleMethod jmm
         for name, value in self.__class__.__dict__.iteritems():
             if isinstance(value, JavaMethod):
                 jm = value
@@ -190,7 +190,7 @@ cdef class JavaClass(object):
                     continue
                 jm.set_resolve_info(self.j_env, self.j_cls, self.j_self,
                     name, self.__javaclass__)
-            elif isinstance(value, JavaMethodMultiple):
+            elif isinstance(value, JavaMultipleMethod):
                 jmm = value
                 jmm.set_resolve_info(self.j_env, self.j_cls, self.j_self,
                     name, self.__javaclass__)
@@ -650,7 +650,7 @@ cdef class JavaMethod(object):
         return ret
 
 
-cdef class JavaMethodMultiple(object):
+cdef class JavaMultipleMethod(object):
 
     cdef LocalRef j_self
     cdef list definitions
@@ -663,7 +663,7 @@ cdef class JavaMethodMultiple(object):
         self.j_self = None
 
     def __init__(self, definitions, **kwargs):
-        super(JavaMethodMultiple, self).__init__()
+        super(JavaMultipleMethod, self).__init__()
         self.definitions = definitions
         self.static_methods = {}
         self.instance_methods = {}

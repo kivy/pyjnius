@@ -1,7 +1,7 @@
 __all__ = ('autoclass', 'ensureclass')
 
 from jnius import JavaClass, MetaJavaClass, JavaMethod, JavaStaticMethod, \
-        JavaField, JavaStaticField, JavaMethodMultiple, find_javaclass
+        JavaField, JavaStaticField, JavaMultipleMethod, find_javaclass
 
 class Class(JavaClass):
     __metaclass__ = MetaJavaClass
@@ -160,7 +160,7 @@ def autoclass(clsname):
             '''
             signatures.append((sig, Modifier.isStatic(method.getModifiers())))
 
-        classDict[name] = JavaMethodMultiple(signatures)
+        classDict[name] = JavaMultipleMethod(signatures)
 
     for field in c.getFields():
         static = Modifier.isStatic(field.getModifiers())
