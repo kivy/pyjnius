@@ -7,7 +7,7 @@ API
 
 This part of the documentation covers all the interfaces of Pyjnius.
 
-Reflection Classes
+Reflection classes
 ------------------
 
 .. class:: JavaClass
