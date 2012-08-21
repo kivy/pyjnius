@@ -28,7 +28,7 @@ cdef dict jclass_register = {}
 
 class MetaJavaClass(type):
     def __new__(meta, classname, bases, classDict):
-        meta.resolve_class(classDict)
+        meta.resolve_class(classDict, bases)
         tp = type.__new__(meta, classname, bases, classDict)
         jclass_register[classDict['__javaclass__']] = tp
         return tp
@@ -38,10 +38,10 @@ class MetaJavaClass(type):
         return jclass_register.get(name)
 
     @classmethod
-    def resolve_class(meta, classDict):
+    def resolve_class(meta, classDict, bases):
         # search the Java class, and bind to our object
         if not '__javaclass__' in classDict:
-            raise JavaException('__javaclass__ definition missing')
+            classDict['__javaclass__'] = cls
 
         cdef JavaClassStorage jcs = JavaClassStorage()
         cdef bytes __javaclass__ = <bytes>classDict['__javaclass__']
