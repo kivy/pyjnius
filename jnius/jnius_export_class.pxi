@@ -39,18 +39,8 @@ class MetaJavaClass(type):
 
     @classmethod
     def resolve_class(meta, classDict, bases):
-        def find_javaclass(bases):
-            import inspect
-            for b in bases:
-                if hasattr(b, '__javaclass__'):
-                    return b.__javaclass__
-
         # search the Java class, and bind to our object
         if not '__javaclass__' in classDict:
-            # try base classes. This allows inheriting from Java classes.
-            cls = find_javaclass(bases)
-            if cls is None:             
-                raise JavaException('__javaclass__ definition missing')
             classDict['__javaclass__'] = cls
 
         cdef JavaClassStorage jcs = JavaClassStorage()
