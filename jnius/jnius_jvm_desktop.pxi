@@ -22,8 +22,10 @@ cdef void create_jnienv():
     cdef JavaVMOption options[1]
     cdef bytes py_bytes
 
+    from os import environ
     from os.path import realpath
-    py_bytes = <bytes>('-Djava.class.path={0}'.format(realpath('.')))
+    cp = environ.get('CLASSPATH') or realpath('.')
+    py_bytes = <bytes>('-Djava.class.path={0}'.format(cp))
     options[0].optionString = py_bytes
     options[0].extraInfo = NULL
 
