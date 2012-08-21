@@ -26,7 +26,7 @@ hello
 Usage on desktop
 ----------------
 
-You need java JDK installed (openjdk will do), cython, and make to build it
+You need a java JDK installed (openjdk will do), cython, and make to build it
 
     make
 
