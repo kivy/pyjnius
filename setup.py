@@ -36,7 +36,7 @@ except ImportError:
     if platform != 'android':
         print '\n\nYou need Cython to compile Pyjnius.\n\n'
         raise
-    files = [fn[:-3] + 'c' for fn in files in fn.endswith('pyx')]
+    files = [fn[:-3] + 'c' for fn in files if fn.endswith('pyx')]
 
 if platform == 'android':
     # for android, we use SDL...
