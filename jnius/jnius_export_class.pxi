@@ -48,12 +48,12 @@ class MetaJavaClass(type):
 
         jcs.j_env = get_jnienv()
         if jcs.j_env == NULL:
-            raise JavaException('Unable to get the Android JNI Environment')
+            raise JavaException('Unable to get the JNI Environment')
 
         jcs.j_cls = jcs.j_env[0].FindClass(jcs.j_env,
                 <char *>__javaclass__)
         if jcs.j_cls == NULL:
-            raise JavaException('Unable to found the class'
+            raise JavaException('Unable to find the class'
                     ' {0}'.format(__javaclass__))
 
         classDict['__cls_storage'] = jcs
