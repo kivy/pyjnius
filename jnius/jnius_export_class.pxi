@@ -740,16 +740,16 @@ cdef class JavaMultipleMethod(object):
 
             if score <= 0:
                 continue
-            scores.append((score, signature, args_))
+            scores.append((score, signature))
 
         if not scores:
             raise JavaException('No methods matching your arguments')
         scores.sort()
-        score, signature, args_ = scores[-1]
+        score, signature = scores[-1]
 
         jm = methods[signature]
         jm.j_self = self.j_self
-        return jm.__call__(*args_)
+        return jm.__call__(*args)
 
 
 class JavaStaticMethod(JavaMethod):

@@ -13,4 +13,4 @@ class ImplementationTest(unittest.TestCase):
     def test_printf(self):
         System = autoclass('java.lang.System')
         System.out.printf('hi\n')
-        System.out.printf('hi %s\n', 'jnius')
+        System.out.printf('hi %s %s\n', 'jnius', 'other string')
