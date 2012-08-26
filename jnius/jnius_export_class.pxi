@@ -134,13 +134,19 @@ cdef class JavaClass(object):
         elif len(definitions) == 1:
             definition = definitions[0]
             d_ret, d_args = parse_definition(definition)
+            print args, d_args
             if len(args) != len(d_args):
                 raise JavaException('Invalid call, number of argument'
                         ' mismatch for constructor')
         else:
             scores = []
-            for definition in definitions:
+            for definition, is_varargs in definitions:
                 d_ret, d_args = parse_definition(definition)
+                if is_varargs:
+                    args_ = args[:len(d_args) - 1] + (args[len(d_args) - 1:],)
+                else:
+                    args_ = args
+
                 score = calculate_score(d_args, args)
                 if score == -1:
                     continue
@@ -417,6 +423,7 @@ cdef class JavaMethod(object):
     cdef bytes classname
     cdef bytes definition
     cdef object is_static
+    cdef bint is_varargs
     cdef object definition_return
     cdef object definition_args
 
@@ -432,6 +439,8 @@ cdef class JavaMethod(object):
         self.definition_return, self.definition_args = \
                 parse_definition(definition)
         self.is_static = kwargs.get('static', False)
+        self.is_varargs = kwargs.get('varargs', False)
+        print self, self.is_varargs
 
     cdef void ensure_method(self) except *:
         if self.j_method != NULL:
@@ -456,6 +465,7 @@ cdef class JavaMethod(object):
         self.j_env = j_env
         self.j_cls = j_cls
         self.j_self = j_self
+        print "resolve", self, self.is_varargs
 
     def __get__(self, obj, objtype):
         if obj is None:
@@ -470,6 +480,9 @@ cdef class JavaMethod(object):
         # argument array to pass to the method
         cdef jvalue *j_args = NULL
         cdef list d_args = self.definition_args
+        if self.is_varargs:
+            args = args[:len(d_args) - 1] + (args[len(d_args) - 1:],)
+
         if len(args) != len(d_args):
             raise JavaException('Invalid call, number of argument mismatch')
 
@@ -685,19 +698,19 @@ cdef class JavaMultipleMethod(object):
         self.name = name
         self.classname = classname
 
-        for signature, static in self.definitions:
+        for signature, static, is_varargs in self.definitions:
             jm = None
             if j_self is None and static:
                 if signature in self.static_methods:
                     continue
-                jm = JavaStaticMethod(signature)
+                jm = JavaStaticMethod(signature, varargs=is_varargs)
                 jm.set_resolve_info(j_env, j_cls, j_self, name, classname)
                 self.static_methods[signature] = jm
 
             elif j_self is not None and not static:
                 if signature in self.instance_methods:
                     continue
-                jm = JavaMethod(signature)
+                jm = JavaMethod(signature, varargs=is_varargs)
                 jm.set_resolve_info(j_env, j_cls, None, name, classname)
                 self.instance_methods[signature] = jm
 
@@ -714,19 +727,26 @@ cdef class JavaMultipleMethod(object):
 
         for signature in methods:
             sign_ret, sign_args = parse_definition(signature)
-            score = calculate_score(sign_args, args)
+            print methods[signature]
+            if methods[signature].is_varargs:
+                args_ = args[:len(sign_args) - 1] + (args[len(sign_args) - 1:],)
+            else:
+                args_ = args
+
+            score = calculate_score(sign_args, args_)
+
             if score <= 0:
                 continue
-            scores.append((score, signature))
+            scores.append((score, signature, args_))
 
         if not scores:
             raise JavaException('No methods matching your arguments')
         scores.sort()
-        score, signature = scores[-1]
+        score, signature, args_ = scores[-1]
 
         jm = methods[signature]
         jm.j_self = self.j_self
-        return jm.__call__(*args)
+        return jm.__call__(*args_)
 
 
 class JavaStaticMethod(JavaMethod):
