@@ -123,7 +123,7 @@ cdef class JavaClass(object):
         cdef jmethodID constructor = NULL
 
         # get the constructor definition if exist
-        definitions = ['()V']
+        definitions = [('()V', False)]
         if hasattr(self, '__javaconstructor__'):
             definitions = self.__javaconstructor__
         if isinstance(definitions, basestring):
@@ -131,11 +131,16 @@ cdef class JavaClass(object):
 
         if len(definitions) == 0:
             raise JavaException('No constructor available')
+
         elif len(definitions) == 1:
-            definition = definitions[0]
+            definition, is_varargs = definitions[0]
             d_ret, d_args = parse_definition(definition)
-            print args, d_args
-            if len(args) != len(d_args):
+
+            if is_varargs:
+                args_ = args[:len(d_args) - 1] + (args[len(d_args) - 1:],)
+            else:
+                args_ = args
+            if len(args or ()) != len(d_args or ()):
                 raise JavaException('Invalid call, number of argument'
                         ' mismatch for constructor')
         else:
@@ -150,11 +155,11 @@ cdef class JavaClass(object):
                 score = calculate_score(d_args, args)
                 if score == -1:
                     continue
-                scores.append((score, definition, d_ret, d_args))
+                scores.append((score, definition, d_ret, d_args, args_))
             if not scores:
                 raise JavaException('No constructor matching your arguments')
             scores.sort()
-            score, definition, d_ret, d_args = scores[-1]
+            score, definition, d_ret, d_args, args_ = scores[-1]
 
         try:
             # convert python arguments to java arguments
@@ -162,7 +167,7 @@ cdef class JavaClass(object):
                 j_args = <jvalue *>malloc(sizeof(jvalue) * len(d_args))
                 if j_args == NULL:
                     raise MemoryError('Unable to allocate memory for java args')
-                populate_args(self.j_env, d_args, j_args, args)
+                populate_args(self.j_env, d_args, j_args, args_)
 
             # get the java constructor
             constructor = self.j_env[0].GetMethodID(
@@ -440,7 +445,6 @@ cdef class JavaMethod(object):
                 parse_definition(definition)
         self.is_static = kwargs.get('static', False)
         self.is_varargs = kwargs.get('varargs', False)
-        print self, self.is_varargs
 
     cdef void ensure_method(self) except *:
         if self.j_method != NULL:
@@ -465,7 +469,6 @@ cdef class JavaMethod(object):
         self.j_env = j_env
         self.j_cls = j_cls
         self.j_self = j_self
-        print "resolve", self, self.is_varargs
 
     def __get__(self, obj, objtype):
         if obj is None:
@@ -727,8 +730,8 @@ cdef class JavaMultipleMethod(object):
 
         for signature in methods:
             sign_ret, sign_args = parse_definition(signature)
-            print methods[signature]
-            if methods[signature].is_varargs:
+            jm = methods[signature]
+            if jm.is_varargs:
                 args_ = args[:len(sign_args) - 1] + (args[len(sign_args) - 1:],)
             else:
                 args_ = args
