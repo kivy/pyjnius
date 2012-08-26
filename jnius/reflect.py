@@ -47,6 +47,7 @@ class Method(JavaClass):
     getParameterTypes = JavaMethod('()[Ljava/lang/Class;')
     getReturnType = JavaMethod('()Ljava/lang/Class;')
     getModifiers = JavaMethod('()I')
+    isVarArgs = JavaMethod('()Z')
 
 
 class Field(JavaClass):
@@ -65,6 +66,7 @@ class Constructor(JavaClass):
     toString = JavaMethod('()Ljava/lang/String;')
     getParameterTypes = JavaMethod('()[Ljava/lang/Class;')
     getModifiers = JavaMethod('()I')
+    isVarArgs = JavaMethod('()Z')
 
 def get_signature(cls_tp):
     tp = cls_tp.getName()
@@ -98,7 +100,8 @@ def ensureclass(clsname):
 def autoclass(clsname):
     jniname = clsname.replace('.', '/')
     cls = MetaJavaClass.get_javaclass(jniname)
-    if cls: return cls
+    if cls:
+        return cls
 
     classDict = {}
 
@@ -112,7 +115,7 @@ def autoclass(clsname):
     for constructor in c.getConstructors():
         sig = '({0})V'.format(
             ''.join([get_signature(x) for x in constructor.getParameterTypes()]))
-        constructors.append(sig)
+        constructors.append((sig, constructor.isVarArgs()))
     classDict['__javaconstructor__'] = constructors
 
     methods = c.getMethods()
@@ -126,11 +129,12 @@ def autoclass(clsname):
         # only one method available
         if count == 1:
             static = Modifier.isStatic(method.getModifiers())
+            varargs = method.isVarArgs()
             sig = '({0}){1}'.format(
                 ''.join([get_signature(x) for x in method.getParameterTypes()]),
                 get_signature(method.getReturnType()))
             cls = JavaStaticMethod if static else JavaMethod
-            classDict[name] = cls(sig)
+            classDict[name] = cls(sig, varargs=varargs)
             continue
 
         # multpile signatures
@@ -158,7 +162,7 @@ def autoclass(clsname):
             print 'Abstract', Modifier.isAbstract(m)
             print 'Strict', Modifier.isStrict(m)
             '''
-            signatures.append((sig, Modifier.isStatic(method.getModifiers())))
+            signatures.append((sig, Modifier.isStatic(method.getModifiers()), method.isVarArgs()))
 
         classDict[name] = JavaMultipleMethod(signatures)
 
