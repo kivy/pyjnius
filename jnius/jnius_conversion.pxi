@@ -294,7 +294,7 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
                 j_env[0].SetObjectArrayElement(
                         j_env, <jobjectArray>ret, i, NULL)
             elif isinstance(arg, basestring) and \
-                    definition == 'Ljava/lang/String;':
+                    definition in ('Ljava/lang/String;', 'Ljava/lang/Object;'):
                 j_string = j_env[0].NewStringUTF(
                         j_env, <bytes>arg)
                 j_env[0].SetObjectArrayElement(
@@ -309,9 +309,9 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
                 j_env[0].SetObjectArrayElement(
                         j_env, <jobjectArray>ret, i, jo.obj)
             else:
-                raise JavaException('Invalid variable used for L array')
+                raise JavaException('Invalid variable used for L array', definition, pyarray)
 
     else:
-        raise JavaException('Invalid array definition')
+        raise JavaException('Invalid array definition', definition, pyarray)
 
     return <jobject>ret
