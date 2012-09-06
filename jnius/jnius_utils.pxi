@@ -1,3 +1,21 @@
+cdef extern from "stdarg.h":
+    ctypedef struct va_list:
+        pass
+    ctypedef struct fake_type:
+        pass
+    void va_start(va_list, void* arg)
+    void* va_arg(va_list, fake_type)
+    void va_end(va_list)
+    fake_type bool_type "int"
+    fake_type byte_type "char" # can i really do this?
+    fake_type char_type "char"
+    fake_type int_type "int"
+    fake_type short_type "short"
+    fake_type long_type "long"
+    fake_type float_type "float"
+    fake_type double_type "double"
+    fake_type pointer_type "void*"
+
 
 cdef parse_definition(definition):
     # not a function, just a field
@@ -202,3 +220,368 @@ cdef int calculate_score(sign_args, args) except *:
             continue
 
     return score
+
+
+cdef class GenericNativeWrapper(object):
+    """
+    This class is to be used to register python method as methods of
+    JavaObjects using RegisterNatives
+    """
+    cdef JNIEnv* j_env
+    cdef args
+
+    def __cinit__(self, j_env, definition, callback):
+        self.j_env = NULL
+
+    def __init__(self, j_env, definition, callback):
+        self.callback = callback
+        self.definitions = parse_definition(definition)[1]
+
+    cdef void call_void(self, ...):
+        cdef va_list j_args
+        cdef int n
+        cdef void* l
+
+        args = []
+
+        va_start(j_args, <void*>self)
+
+        for d in self.definitions:
+            if d == 'Z':
+                args.append(<bint>va_arg(j_args, bool_type))
+            elif d == 'B':
+                args.append(<char>va_arg(j_args, char_type))
+            elif d == 'C':
+                args.append(<char>va_arg(j_args, byte_type))
+            elif d == 'S':
+                args.append(<short>va_arg(j_args, short_type))
+            elif d == 'I':
+                args.append(<int>va_arg(j_args, int_type))
+            elif d == 'J':
+                args.append(<long>va_arg(j_args, long_type))
+            elif d == 'F':
+                args.append(<float>va_arg(j_args, float_type))
+            elif d == 'D':
+                args.append(<double>va_arg(j_args, double_type))
+            else: # == L, java object
+                l = <void*>va_arg(j_args, pointer_type)
+                args.append(convert_jobject_to_python(self.j_env, d, l))
+
+        va_end(j_args)
+
+        self.callback(*args)
+
+    # XXX define call_int/call_bool/call_char/... and friends on the
+    # same model, and "array of" variants
+
+    cdef bint call_bint(self, ...):
+        cdef va_list j_args
+        cdef int n
+        cdef void* l
+
+        args = []
+
+        va_start(j_args, <void*>self)
+
+        for d in self.definitions:
+            if d == 'Z':
+                args.append(<bint>va_arg(j_args, bool_type))
+            elif d == 'B':
+                args.append(<char>va_arg(j_args, char_type))
+            elif d == 'C':
+                args.append(<char>va_arg(j_args, byte_type))
+            elif d == 'S':
+                args.append(<short>va_arg(j_args, short_type))
+            elif d == 'I':
+                args.append(<int>va_arg(j_args, int_type))
+            elif d == 'J':
+                args.append(<long>va_arg(j_args, long_type))
+            elif d == 'F':
+                args.append(<float>va_arg(j_args, float_type))
+            elif d == 'D':
+                args.append(<double>va_arg(j_args, double_type))
+            else: # == L, java object
+                l = <void*>va_arg(j_args, pointer_type)
+                args.append(convert_jobject_to_python(self.j_env, d, l))
+
+        va_end(j_args)
+
+        return self.callback(*args)
+
+
+    cdef char call_byte(self, ...):
+        cdef va_list j_args
+        cdef int n
+        cdef void* l
+
+        args = []
+
+        va_start(j_args, <void*>self)
+
+        for d in self.definitions:
+            if d == 'Z':
+                args.append(<bint>va_arg(j_args, bool_type))
+            elif d == 'B':
+                args.append(<char>va_arg(j_args, char_type))
+            elif d == 'C':
+                args.append(<char>va_arg(j_args, byte_type))
+            elif d == 'S':
+                args.append(<short>va_arg(j_args, short_type))
+            elif d == 'I':
+                args.append(<int>va_arg(j_args, int_type))
+            elif d == 'J':
+                args.append(<long>va_arg(j_args, long_type))
+            elif d == 'F':
+                args.append(<float>va_arg(j_args, float_type))
+            elif d == 'D':
+                args.append(<double>va_arg(j_args, double_type))
+            else: # == L, java object
+                l = <void*>va_arg(j_args, pointer_type)
+                args.append(convert_jobject_to_python(self.j_env, d, l))
+
+        va_end(j_args)
+
+        return self.callback(*args)
+
+
+    cdef char call_char(self, ...):
+        cdef va_list j_args
+        cdef int n
+        cdef void* l
+
+        args = []
+
+        va_start(j_args, <void*>self)
+
+        for d in self.definitions:
+            if d == 'Z':
+                args.append(<bint>va_arg(j_args, bool_type))
+            elif d == 'B':
+                args.append(<char>va_arg(j_args, char_type))
+            elif d == 'C':
+                args.append(<char>va_arg(j_args, byte_type))
+            elif d == 'S':
+                args.append(<short>va_arg(j_args, short_type))
+            elif d == 'I':
+                args.append(<int>va_arg(j_args, int_type))
+            elif d == 'J':
+                args.append(<long>va_arg(j_args, long_type))
+            elif d == 'F':
+                args.append(<float>va_arg(j_args, float_type))
+            elif d == 'D':
+                args.append(<double>va_arg(j_args, double_type))
+            else: # == L, java object
+                l = <void*>va_arg(j_args, pointer_type)
+                args.append(convert_jobject_to_python(self.j_env, d, l))
+
+        va_end(j_args)
+
+        return self.callback(*args)
+
+
+    cdef short call_short(self, ...):
+        cdef va_list j_args
+        cdef int n
+        cdef void* l
+
+        args = []
+
+        va_start(j_args, <void*>self)
+
+        for d in self.definitions:
+            if d == 'Z':
+                args.append(<bint>va_arg(j_args, bool_type))
+            elif d == 'B':
+                args.append(<char>va_arg(j_args, char_type))
+            elif d == 'C':
+                args.append(<char>va_arg(j_args, byte_type))
+            elif d == 'S':
+                args.append(<short>va_arg(j_args, short_type))
+            elif d == 'I':
+                args.append(<int>va_arg(j_args, int_type))
+            elif d == 'J':
+                args.append(<long>va_arg(j_args, long_type))
+            elif d == 'F':
+                args.append(<float>va_arg(j_args, float_type))
+            elif d == 'D':
+                args.append(<double>va_arg(j_args, double_type))
+            else: # == L, java object
+                l = <void*>va_arg(j_args, pointer_type)
+                args.append(convert_jobject_to_python(self.j_env, d, l))
+
+        va_end(j_args)
+
+        return self.callback(*args)
+
+
+    cdef int call_int(self, ...):
+        cdef va_list j_args
+        cdef int n
+        cdef void* l
+
+        args = []
+
+        va_start(j_args, <void*>self)
+
+        for d in self.definitions:
+            if d == 'Z':
+                args.append(<bint>va_arg(j_args, bool_type))
+            elif d == 'B':
+                args.append(<char>va_arg(j_args, char_type))
+            elif d == 'C':
+                args.append(<char>va_arg(j_args, byte_type))
+            elif d == 'S':
+                args.append(<short>va_arg(j_args, short_type))
+            elif d == 'I':
+                args.append(<int>va_arg(j_args, int_type))
+            elif d == 'J':
+                args.append(<long>va_arg(j_args, long_type))
+            elif d == 'F':
+                args.append(<float>va_arg(j_args, float_type))
+            elif d == 'D':
+                args.append(<double>va_arg(j_args, double_type))
+            else: # == L, java object
+                l = <void*>va_arg(j_args, pointer_type)
+                args.append(convert_jobject_to_python(self.j_env, d, l))
+
+        va_end(j_args)
+
+        return self.callback(*args)
+
+
+    cdef long call_long(self, ...):
+        cdef va_list j_args
+        cdef int n
+        cdef void* l
+
+        args = []
+
+        va_start(j_args, <void*>self)
+
+        for d in self.definitions:
+            if d == 'Z':
+                args.append(<bint>va_arg(j_args, bool_type))
+            elif d == 'B':
+                args.append(<char>va_arg(j_args, char_type))
+            elif d == 'C':
+                args.append(<char>va_arg(j_args, byte_type))
+            elif d == 'S':
+                args.append(<short>va_arg(j_args, short_type))
+            elif d == 'I':
+                args.append(<int>va_arg(j_args, int_type))
+            elif d == 'J':
+                args.append(<long>va_arg(j_args, long_type))
+            elif d == 'F':
+                args.append(<float>va_arg(j_args, float_type))
+            elif d == 'D':
+                args.append(<double>va_arg(j_args, double_type))
+            else: # == L, java object
+                l = <void*>va_arg(j_args, pointer_type)
+                args.append(convert_jobject_to_python(self.j_env, d, l))
+
+        va_end(j_args)
+
+        return self.callback(*args)
+
+
+    cdef float call_float(self, ...):
+        cdef va_list j_args
+        cdef int n
+        cdef void* l
+
+        args = []
+
+        va_start(j_args, <void*>self)
+
+        for d in self.definitions:
+            if d == 'Z':
+                args.append(<bint>va_arg(j_args, bool_type))
+            elif d == 'B':
+                args.append(<char>va_arg(j_args, char_type))
+            elif d == 'C':
+                args.append(<char>va_arg(j_args, byte_type))
+            elif d == 'S':
+                args.append(<short>va_arg(j_args, short_type))
+            elif d == 'I':
+                args.append(<int>va_arg(j_args, int_type))
+            elif d == 'J':
+                args.append(<long>va_arg(j_args, long_type))
+            elif d == 'F':
+                args.append(<float>va_arg(j_args, float_type))
+            elif d == 'D':
+                args.append(<double>va_arg(j_args, double_type))
+            else: # == L, java object
+                l = <void*>va_arg(j_args, pointer_type)
+                args.append(convert_jobject_to_python(self.j_env, d, l))
+
+        va_end(j_args)
+
+        return self.callback(*args)
+
+    cdef double call_double(self, ...):
+        cdef va_list j_args
+        cdef int n
+        cdef void* l
+
+        args = []
+
+        va_start(j_args, <void*>self)
+
+        for d in self.definitions:
+            if d == 'Z':
+                args.append(<bint>va_arg(j_args, bool_type))
+            elif d == 'B':
+                args.append(<char>va_arg(j_args, char_type))
+            elif d == 'C':
+                args.append(<char>va_arg(j_args, byte_type))
+            elif d == 'S':
+                args.append(<short>va_arg(j_args, short_type))
+            elif d == 'I':
+                args.append(<int>va_arg(j_args, int_type))
+            elif d == 'J':
+                args.append(<long>va_arg(j_args, long_type))
+            elif d == 'F':
+                args.append(<float>va_arg(j_args, float_type))
+            elif d == 'D':
+                args.append(<double>va_arg(j_args, double_type))
+            else: # == L, java object
+                l = <void*>va_arg(j_args, pointer_type)
+                args.append(convert_jobject_to_python(self.j_env, d, l))
+
+        va_end(j_args)
+
+        return self.callback(*args)
+
+    #cdef jobject call_obj(self, ...):
+    #    cdef va_list j_args
+    #    cdef int n
+    #    cdef void* l
+
+    #    args = []
+
+    #    va_start(j_args, <void*>self)
+
+    #    for d in self.definitions:
+    #        if d == 'Z':
+    #            args.append(<bint>va_arg(j_args, bool_type))
+    #        elif d == 'B':
+    #            args.append(<char>va_arg(j_args, char_type))
+    #        elif d == 'C':
+    #            args.append(<char>va_arg(j_args, byte_type))
+    #        elif d == 'S':
+    #            args.append(<short>va_arg(j_args, short_type))
+    #        elif d == 'I':
+    #            args.append(<int>va_arg(j_args, int_type))
+    #        elif d == 'J':
+    #            args.append(<long>va_arg(j_args, long_type))
+    #        elif d == 'F':
+    #            args.append(<float>va_arg(j_args, float_type))
+    #        elif d == 'D':
+    #            args.append(<double>va_arg(j_args, double_type))
+    #        else: # == L, java object
+    #            l = <void*>va_arg(j_args, pointer_type)
+    #            args.append(convert_jobject_to_python(self.j_env, d, l))
+
+    #    va_end(j_args)
+
+    #    return self.callback(*args)

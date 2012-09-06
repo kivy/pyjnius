@@ -1,25 +1,60 @@
 __all__ = ('autoclass', 'ensureclass')
 
-from jnius import JavaClass, MetaJavaClass, JavaMethod, JavaStaticMethod, \
-        JavaField, JavaStaticField, JavaMultipleMethod, find_javaclass
+from jnius import (
+    JavaClass, MetaJavaClass, JavaMethod, JavaStaticMethod,
+    JavaField, JavaStaticField, JavaMultipleMethod, find_javaclass
+)
+
 
 class Class(JavaClass):
     __metaclass__ = MetaJavaClass
     __javaclass__ = 'java/lang/Class'
 
-    forName = JavaStaticMethod('(Ljava/lang/String;)Ljava/lang/Class;')
+    desiredAssertionStatus = JavaMethod('()Z;')
+    forName = JavaMultipleMethod([
+        ('(Ljava/lang/String,Z,Ljava/lang/ClassLoader;)Ljava/langClass;', True, False),
+        ('(Ljava/lang/String;)Ljava/lang/Class;', True, False), ])
+    getClassLoader = JavaMethod('()Ljava/lang/ClassLoader;')
+    getClasses = JavaMethod('()[Ljava/lang/Class;')
+    getComponentType = JavaMethod('()Ljava/lang/Class;')
+    getConstructor = JavaMethod('([Ljava/lang/Class;)Ljava/lang/reflect/Constructor;')
     getConstructors = JavaMethod('()[Ljava/lang/reflect/Constructor;')
-    getMethods = JavaMethod('()[Ljava/lang/reflect/Method;')
-    getFields = JavaMethod('()[Ljava/lang/reflect/Field;')
-    getDeclaredMethods = JavaMethod('()[Ljava/lang/reflect/Method;')
+    getDeclaredClasses = JavaMethod('()[Ljava/lang/Class;')
+    getDeclaredConstructor = JavaMethod('([Ljava/lang/Class;)Ljava/lang/reflect/Constructor;')
+    getDeclaredConstructors = JavaMethod('()[Ljava/lang/reflect/Constructor;')
+    getDeclaredField = JavaMethod('(Ljava/lang/String;)Ljava/lang/reflect/Field;')
     getDeclaredFields = JavaMethod('()[Ljava/lang/reflect/Field;')
+    getDeclaredMethod = JavaMethod('(Ljava/lang/String,[Ljava/lang/Class;)Ljava/lang/reflect/Method;')
+    getDeclaredMethods = JavaMethod('()[Ljava/lang/reflect/Method;')
+    getDeclaringClass = JavaMethod('()Ljava/lang/Class;')
+    getField = JavaMethod('(Ljava/lang/String;)Ljava/lang/reflect/Field;')
+    getFields = JavaMethod('()[Ljava/lang/reflect/Field;')
+    getInterfaces = JavaMethod('()[Ljava/lang/Class;')
+    getMethod = JavaMethod('(Ljava/lang/String,[Ljava/lang/Class;)Ljava/lang/reflect/Method;')
+    getMethods = JavaMethod('()[Ljava/lang/reflect/Method;')
+    getModifiers = JavaMethod('()[I;')
     getName = JavaMethod('()Ljava/lang/String;')
+    getPackage = JavaMethod('()Ljava/lang/Package;')
+    getProtectionDomain = JavaMethod('()Ljava/security/ProtectionDomain;')
+    getResource = JavaMethod('(Ljava/lang/String;)Ljava/net/URL;')
+    getResourceAsStream = JavaMethod('(Ljava/lang/String;)Ljava/io/InputStream;')
+    getSigners = JavaMethod('()[Ljava/lang/Object;')
+    getSuperclass = JavaMethod('()Ljava/lang/reflect/Class;')
+    isArray = JavaMethod('()Z;')
+    isAssignableFrom = JavaMethod('(Ljava/lang/reflect/Class;)Z;')
+    isInstance = JavaMethod('(Ljava/lang/Object;)Z;')
+    isInterface = JavaMethod('()Z;')
+    isPrimitive = JavaMethod('()Z;')
+    newInstance = JavaMethod('()Ljava/lang/Object;')
+    toString = JavaMethod('()Ljava/lang/String;')
+
 
 class Object(JavaClass):
     __metaclass__ = MetaJavaClass
     __javaclass__ = 'java/lang/Object'
 
     getClass = JavaMethod('()Ljava/lang/Class;')
+
 
 class Modifier(JavaClass):
     __metaclass__ = MetaJavaClass
@@ -37,6 +72,7 @@ class Modifier(JavaClass):
     isSynchronized = JavaStaticMethod('(I)Z')
     isTransient = JavaStaticMethod('(I)Z')
     isVolatile = JavaStaticMethod('(I)Z')
+
 
 class Method(JavaClass):
     __metaclass__ = MetaJavaClass
@@ -59,6 +95,7 @@ class Field(JavaClass):
     getType = JavaMethod('()Ljava/lang/Class;')
     getModifiers = JavaMethod('()I')
 
+
 class Constructor(JavaClass):
     __metaclass__ = MetaJavaClass
     __javaclass__ = 'java/lang/reflect/Constructor'
@@ -68,11 +105,13 @@ class Constructor(JavaClass):
     getModifiers = JavaMethod('()I')
     isVarArgs = JavaMethod('()Z')
 
+
 def get_signature(cls_tp):
     tp = cls_tp.getName()
     if tp[0] == '[':
         return tp.replace('.', '/')
-    signatures = { 'void': 'V', 'boolean': 'Z', 'byte': 'B',
+    signatures = {
+        'void': 'V', 'boolean': 'Z', 'byte': 'B',
         'char': 'C', 'short': 'S', 'int': 'I',
         'long': 'J', 'float': 'F', 'double': 'D'}
     ret = signatures.get(tp)
@@ -86,6 +125,7 @@ def get_signature(cls_tp):
 
 
 registers = []
+
 
 def ensureclass(clsname):
     if clsname in registers:
@@ -174,7 +214,8 @@ def autoclass(clsname):
 
     classDict['__javaclass__'] = clsname.replace('.', '/')
 
-    return MetaJavaClass.__new__(MetaJavaClass,
-            clsname,#.replace('.', '_'),
-            (JavaClass, ),
-            classDict)
+    return MetaJavaClass.__new__(
+        MetaJavaClass,
+        clsname,  # .replace('.', '_'),
+        (JavaClass, ),
+        classDict)

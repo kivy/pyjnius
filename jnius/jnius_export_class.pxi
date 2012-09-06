@@ -45,16 +45,48 @@ class MetaJavaClass(type):
 
         cdef JavaClassStorage jcs = JavaClassStorage()
         cdef bytes __javaclass__ = <bytes>classDict['__javaclass__']
+        cdef bytes __javainterfaces__ = <bytes>classDict.get('__javainterfaces__', '')
+        cdef bytes __javabaseclass__ = <bytes>classDict.get('__javabaseclass__', '')
+        cdef jmethodID getProxyClass, getClassLoader
+        cdef jclass *interfaces
+        cdef jobject *jargs
 
         jcs.j_env = get_jnienv()
         if jcs.j_env == NULL:
             raise JavaException('Unable to get the Android JNI Environment')
 
-        jcs.j_cls = jcs.j_env[0].FindClass(jcs.j_env,
-                <char *>__javaclass__)
-        if jcs.j_cls == NULL:
-            raise JavaException('Unable to found the class'
-                    ' {0}'.format(__javaclass__))
+        if __javainterfaces__ and __javabaseclass__:
+            Proxy = jcs.j_env[0].FindClass(jcs.j_env, <char*>'java.lang.reflect.Proxy')
+            baseclass = jcs.j_env[0].FindClass(jcs.j_env, <char*>__javabaseclass__)
+            interfaces = <jclass *>malloc(sizeof(jclass) * len(__javainterfaces__))
+
+            for n, i in enumerate(__javainterfaces__):
+                interfaces[n] = jcs.j_env[0].FindClass(jcs.j_env, <char*>i)
+
+            getProxyClass = jcs.j_env[0].GetStaticMethodID(
+                jcs.j_env, Proxy, "getProxyClass", "(Ljava/lang/ClassLoader,[Ljava/lang/Class;)Ljava/lang/Class;")
+
+            getClassLoader = jcs.j_env[0].GetStaticMethodID(
+                jcs.j_env, baseclass, "getClassLoader", "()Ljava/lang/Class;")
+
+            classLoader = jcs.j_env[0].CallStaticObjectMethodA(
+                    jcs.j_env, baseclass, getClassLoader, [])
+
+            jargs = <jobject*>malloc(sizeof(jobject) * 2)
+            jargs[0] = classLoader
+            jargs[1] = interfaces
+            jcs.j_cls = jcs.j_env[0].CallStaticObjectMethod(
+                    jcs.j_env, Proxy, getProxyClass, jargs)
+
+            if jcs.j_cls == NULL:
+                raise JavaException('Unable to create the class'
+                        ' {0}'.format(__javaclass__))
+        else:
+            jcs.j_cls = jcs.j_env[0].FindClass(jcs.j_env,
+                    <char *>__javaclass__)
+            if jcs.j_cls == NULL:
+                raise JavaException('Unable to find the class'
+                        ' {0}'.format(__javaclass__))
 
         classDict['__cls_storage'] = jcs
 
@@ -72,6 +104,15 @@ class MetaJavaClass(type):
                 jmm = value
                 jmm.set_resolve_info(jcs.j_env, jcs.j_cls, None,
                     name, __javaclass__)
+            elif isinstance(value, PythonMethod):
+                if '__javabaseclass__' not in self.classDict:
+                    raise JavaException("Can't use PythonMethod on a java
+                    class, you must use inheritance to implement a java
+                        interface")
+                pm = value
+                pm.set_resolve_info(self.j_env, self.j_cls, self.j_self,
+                    name, self.__javaclass__)
+
 
         # search all the static JavaField within our class, and resolve them
         cdef JavaField jf
@@ -204,6 +245,11 @@ cdef class JavaClass(object):
             elif isinstance(value, JavaMultipleMethod):
                 jmm = value
                 jmm.set_resolve_info(self.j_env, self.j_cls, self.j_self,
+                    name, self.__javaclass__)
+            elif isinstance(value, PythonMethod):
+                # if self#XXX
+                pm = value
+                pm.set_resolve_info(self.j_env, self.j_cls, self.j_self,
                     name, self.__javaclass__)
 
     cdef void resolve_fields(self) except *:
@@ -415,6 +461,17 @@ cdef class JavaField(object):
 
         check_exception(self.j_env)
         return ret
+
+
+cdef class PythonMethod(object):
+    '''Used to register python method in the java class, so java can call it
+    '''
+    cdef bytes definition
+    cdef bint is_static
+    cdef bint is_varargs
+    cdef bytes name
+    cdef bytes classname
+    # XXX
 
 
 cdef class JavaMethod(object):
