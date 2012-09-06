@@ -53,10 +53,9 @@ class MetaJavaClass(type):
 
         jcs.j_env = get_jnienv()
         if jcs.j_env == NULL:
-            raise JavaException('Unable to get the Android JNI Environment')
+            raise JavaException('Unable to get the JNI Environment')
 
         if __javainterfaces__ and __javabaseclass__:
-            Proxy = jcs.j_env[0].FindClass(jcs.j_env, <char*>'java.lang.reflect.Proxy')
             baseclass = jcs.j_env[0].FindClass(jcs.j_env, <char*>__javabaseclass__)
             interfaces = <jclass *>malloc(sizeof(jclass) * len(__javainterfaces__))
 
