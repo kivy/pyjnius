@@ -111,3 +111,8 @@ for x in xrange(20):
     print Hardware.accelerometerReading()
     sleep(.1)
 ```
+
+Support/Discussion
+------------------
+
+mailto:pyjnius-dev@googlegroups.com
