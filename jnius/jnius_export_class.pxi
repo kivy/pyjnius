@@ -105,9 +105,9 @@ class MetaJavaClass(type):
                     name, __javaclass__)
             elif isinstance(value, PythonMethod):
                 if '__javabaseclass__' not in self.classDict:
-                    raise JavaException("Can't use PythonMethod on a java
-                    class, you must use inheritance to implement a java
-                        interface")
+                    raise JavaException("Can't use PythonMethod on a java "
+                    "class, you must use inheritance to implement a java "
+                    "interface")
                 pm = value
                 pm.set_resolve_info(self.j_env, self.j_cls, self.j_self,
                     name, self.__javaclass__)

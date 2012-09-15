@@ -585,3 +585,9 @@ cdef class GenericNativeWrapper(object):
     #    va_end(j_args)
 
     #    return self.callback(*args)
+
+cdef jobject invoke0(JNIEnv *j_env, jobject this, jobject method, jobjectArray args):
+    cdef jfieldID ptrField = j_env[0].GetFieldID(j_env.GetObjectClass(this), "ptr", "J")
+    cdef jlong jptr = j_env.GetLongField(this, ptrField)
+    cdef NativeInvocationHandler *h = reinterpret_cast<NativeInvocationHandler>(jptr)
+    return h.Invoke(env, method, args);
