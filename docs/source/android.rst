@@ -103,7 +103,7 @@ Let's see an example that demonstrate the `Intent.ACTION_VIEW`::
     # create the intent
     intent = Intent()
     intent.setAction(Intent.ACTION_VIEW)
-    intent.setData(Uri('http://kivy.org'))
+    intent.setData(Uri.parse('http://kivy.org'))
 
     # PythonActivity.mActivity is the instance of the current Activity
     # BUT, startActivity is a method from the Activity class, not our
