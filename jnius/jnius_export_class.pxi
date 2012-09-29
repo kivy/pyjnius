@@ -728,9 +728,8 @@ cdef class JavaMultipleMethod(object):
         else:
             methods = self.static_methods
 
-        for signature in methods:
-            sign_ret, sign_args = parse_definition(signature)
-            jm = methods[signature]
+        for signature, jm in methods.iteritems():
+            sign_ret, sign_args = jm.definition_return, jm.definition_args
             if jm.is_varargs:
                 args_ = args[:len(sign_args) - 1] + (args[len(sign_args) - 1:],)
             else:
@@ -746,7 +745,7 @@ cdef class JavaMultipleMethod(object):
             raise JavaException('No methods matching your arguments')
         scores.sort()
         score, signature = scores[-1]
-
+        
         jm = methods[signature]
         jm.j_self = self.j_self
         return jm.__call__(*args)
