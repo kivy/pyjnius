@@ -761,5 +761,3 @@ class JavaStaticField(JavaField):
     def __init__(self, definition, **kwargs):
         kwargs['static'] = True
         super(JavaStaticField, self).__init__(definition, **kwargs)
-
-
