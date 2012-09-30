@@ -112,4 +112,8 @@ public class BasicsTest {
 			return false;
 		return (x[0].equals("hello") && x[1].equals("world"));
 	}
+
+	public boolean methodParamsObject(Object x) {
+	    return true;
+	}
 }

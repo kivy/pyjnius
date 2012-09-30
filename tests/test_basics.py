@@ -77,3 +77,8 @@ class BasicsTest(unittest.TestCase):
         self.assertEquals(test.methodParamsArrayI([1, 2, 3]), True)
         self.assertEquals(test.methodParamsArrayString([
             'hello', 'world']), True)
+
+    def test_instances_methods_params_object_list_str(self):
+        test = autoclass('org.jnius.BasicsTest')()
+        self.assertEquals(test.methodParamsObject([
+            'hello', 'world']), True)

@@ -52,6 +52,8 @@ cdef void populate_args(JNIEnv *j_env, list definition_args, jvalue *j_args, arg
             elif isinstance(py_arg, JavaObject):
                 jo = py_arg
                 j_args[index].l = jo.obj
+            elif isinstance(py_arg, (tuple, list)):
+                j_args[index].l = convert_pyarray_to_java(j_env, argtype, py_arg)
             else:
                 raise JavaException('Invalid python object for this '
                         'argument. Want {0!r}, got {1!r}'.format(
