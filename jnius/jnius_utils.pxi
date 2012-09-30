@@ -85,16 +85,28 @@ cdef bytes lookup_java_object_name(JNIEnv *j_env, jobject j_obj):
     return name.replace('.', '/')
 
 
-cdef int calculate_score(sign_args, args) except *:
+cdef int calculate_score(sign_args, args, is_varargs=False) except *:
     cdef int index
     cdef int score = 0
     cdef bytes r
     cdef JavaClass jc
 
-    if len(args) != len(sign_args):
+    if len(args) != len(sign_args) and not is_varargs:
+        # if the number of arguments expected is not the same
+        # as the number of arguments the method gets
+        # it can not be the method we are looking for except
+        # if the method has varargs aka. it takes
+        # an undefined number of arguments
         return -1
-
-    score += 10
+    elif len(args) == len(sign_args) and not is_varargs:
+        # if the method has the good number of arguments and
+        # the method doesn't take varargs increment the score
+        # so that it takes precedence over a method with the same
+        # signature and varargs e.g.
+        # (Integer, Integer) takes precedence over (Integer, Integer, Integer...)
+        # and
+        # (Integer, Integer, Integer) takes precedence over (Integer, Integer, Integer...)
+        score += 10
 
     for index in range(len(sign_args)):
         r = sign_args[index]
@@ -193,12 +205,16 @@ cdef int calculate_score(sign_args, args) except *:
                 return -1
 
             # calculate the score for our subarray
-            subscore = calculate_score([r[1:]] * len(arg), arg)
-            if subscore == -1:
-                return -1
-
-            # look like the array is matching, accept it.
-            score += 10
-            continue
-
+            if len(arg) > 0:
+                # if there are supplemantal arguments we compute the score
+                subscore = calculate_score([r[1:]] * len(arg), arg)
+                if subscore == -1:
+                    return -1
+                # the supplemental arguments match the varargs arguments
+                score += 10
+                continue
+            # else if there is no supplemental arguments
+            # it might be the good method but there may be
+            # a method with a better signature so we don't
+            # change this method score
     return score
