@@ -224,6 +224,21 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
     cdef JavaObject jo
     cdef JavaClass jc
 
+    if definition == 'Ljava/lang/Object;' and len(pyarray) > 0:
+        # then the method will accept any array type as param
+        # let's be as precise as we can
+        conversions = {
+            int: 'I',
+            bool: 'Z',
+            long: 'J',
+            float: 'F',
+            basestring: 'Ljava/lang/String;',
+        }
+        for type, override in conversions.iteritems():
+            if isinstance(pyarray[0], type):
+                definition = override
+                break
+
     if definition == 'Z':
         ret = j_env[0].NewBooleanArray(j_env, array_size)
         for i in range(array_size):

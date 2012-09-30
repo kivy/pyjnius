@@ -82,3 +82,15 @@ class BasicsTest(unittest.TestCase):
         test = autoclass('org.jnius.BasicsTest')()
         self.assertEquals(test.methodParamsObject([
             'hello', 'world']), True)
+
+    def test_instances_methods_params_object_list_int(self):
+        test = autoclass('org.jnius.BasicsTest')()
+        self.assertEquals(test.methodParamsObject([1, 2]), True)
+
+    def test_instances_methods_params_object_list_float(self):
+        test = autoclass('org.jnius.BasicsTest')()
+        self.assertEquals(test.methodParamsObject([3.14, 1.61]), True)
+
+    def test_instances_methods_params_object_list_long(self):
+        test = autoclass('org.jnius.BasicsTest')()
+        self.assertEquals(test.methodParamsObject([1L, 2L]), True)
