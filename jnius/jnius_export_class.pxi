@@ -728,9 +728,8 @@ cdef class JavaMultipleMethod(object):
         else:
             methods = self.static_methods
 
-        for signature in methods:
+        for signature, jm in methods.iteritems():
             sign_ret, sign_args = parse_definition(signature)
-            jm = methods[signature]
             if jm.is_varargs:
                 args_ = args[:len(sign_args) - 1] + (args[len(sign_args) - 1:],)
             else:
