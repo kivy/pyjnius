@@ -735,7 +735,7 @@ cdef class JavaMultipleMethod(object):
             else:
                 args_ = args
 
-            score = calculate_score(sign_args, args_)
+            score = calculate_score(sign_args, args_, jm.is_varargs)
 
             if score <= 0:
                 continue
