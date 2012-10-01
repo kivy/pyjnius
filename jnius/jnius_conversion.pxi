@@ -52,8 +52,8 @@ cdef void populate_args(JNIEnv *j_env, list definition_args, jvalue *j_args, arg
             elif isinstance(py_arg, JavaObject):
                 jo = py_arg
                 j_args[index].l = jo.obj
-                raise JavaException('JavaObject needed for argument '
-                        '{0}'.format(index))
+            elif isinstance(py_arg, (tuple, list)):
+                j_args[index].l = convert_pyarray_to_java(j_env, argtype, py_arg)
             else:
                 raise JavaException('Invalid python object for this '
                         'argument. Want {0!r}, got {1!r}'.format(
@@ -88,6 +88,9 @@ cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object
         py_str = <bytes>c_str
         j_env[0].ReleaseStringUTFChars(j_env, j_object, c_str)
         return py_str
+
+    if r[0] == '[':
+        return convert_jarray_to_python(j_env, r[1:], j_object)
 
     if r not in jclass_register:
         from reflect import autoclass
@@ -223,6 +226,21 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
     cdef jclass j_class
     cdef JavaObject jo
     cdef JavaClass jc
+
+    if definition == 'Ljava/lang/Object;' and len(pyarray) > 0:
+        # then the method will accept any array type as param
+        # let's be as precise as we can
+        conversions = {
+            int: 'I',
+            bool: 'Z',
+            long: 'J',
+            float: 'F',
+            basestring: 'Ljava/lang/String;',
+        }
+        for type, override in conversions.iteritems():
+            if isinstance(pyarray[0], type):
+                definition = override
+                break
 
     if definition == 'Z':
         ret = j_env[0].NewBooleanArray(j_env, array_size)
