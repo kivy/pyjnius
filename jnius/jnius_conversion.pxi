@@ -89,6 +89,9 @@ cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object
         j_env[0].ReleaseStringUTFChars(j_env, j_object, c_str)
         return py_str
 
+    if r[0] == '[':
+        return convert_jarray_to_python(j_env, r[1:], j_object)
+
     if r not in jclass_register:
         from reflect import autoclass
         ret_jc = autoclass(r.replace('/', '.'))(noinstance=True)

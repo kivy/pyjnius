@@ -116,4 +116,18 @@ public class BasicsTest {
     public boolean methodParamsObject(Object x) {
 	return true;
     }
+
+    public Object methodReturnStrings() {
+	String[] hello_world = new String[2];
+	hello_world[0] = "Hello";
+	hello_world[1] = "world";
+	return hello_world;
+    }
+
+    public Object methodReturnIntegers() {
+	int[] integers = new int[2];
+	integers[0] = 1;
+	integers[1] = 2;
+	return integers;
+    }
 }

@@ -94,3 +94,14 @@ class BasicsTest(unittest.TestCase):
     def test_instances_methods_params_object_list_long(self):
         test = autoclass('org.jnius.BasicsTest')()
         self.assertEquals(test.methodParamsObject([1L, 2L]), True)
+
+    def test_return_array_as_object_array_of_strings(self):
+        test = autoclass('org.jnius.BasicsTest')()
+        self.assertEquals(test.methodReturnStrings(), ['Hello', 'world'])
+
+    def test_return_array_as_object_of_integers(self):
+        test = autoclass('org.jnius.BasicsTest')()
+        print 'begin'
+        c = test.methodReturnIntegers()
+        print 'end'
+        self.assertEquals(c, [1, 2])
