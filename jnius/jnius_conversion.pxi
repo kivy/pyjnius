@@ -17,6 +17,7 @@ cdef void release_args(JNIEnv *j_env, list definition_args, jvalue *j_args, args
 
 cdef void populate_args(JNIEnv *j_env, list definition_args, jvalue *j_args, args) except *:
     # do the conversion from a Python object to Java from a Java definition
+    cdef JavaClassStorage jcs
     cdef JavaObject jo
     cdef JavaClass jc
     cdef int index
@@ -52,6 +53,9 @@ cdef void populate_args(JNIEnv *j_env, list definition_args, jvalue *j_args, arg
             elif isinstance(py_arg, JavaObject):
                 jo = py_arg
                 j_args[index].l = jo.obj
+            elif isinstance(py_arg, MetaJavaClass):
+                jcs = py_arg.__cls_storage
+                j_args[index].l = jcs.j_cls
             elif isinstance(py_arg, (tuple, list)):
                 j_args[index].l = convert_pyarray_to_java(j_env, argtype, py_arg)
             else:
