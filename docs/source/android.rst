@@ -209,3 +209,25 @@ You'll obtain something like this::
     [-0.0095768067985773087, 9.4235782623291016, 2.2122423648834229]
     ...
 
+
+Using TextToSpeech
+------------------
+
+Same as the audio capture, by looking at the
+By looking at the `An introduction to Text-To-Speech in Android
+<http://android-developers.blogspot.fr/2009/09/introduction-to-text-to-speech-in.html>`_ blog post, it's easy to do it with Pyjnius::
+
+    from jnius import autoclass
+    Locale = autoclass('java.util.Locale')
+    PythonActivity = autoclass('org.renpy.android.PythonActivity')
+    TextToSpeech = autoclass('android.speech.tts.TextToSpeech')
+    tts = TextToSpeech(PythonActivity.mActivity, None)
+
+    # Play something in english
+    tts.setLanguage(Locale.US)
+    tts.speak('Hello World.', TextToSpeech.QUEUE_FLUSH, None)
+
+    # Queue something in french
+    tts.setLanguage(Locale.FRANCE)
+    tts.speak('Bonjour tout le monde.', TextToSpeech.QUEUE_ADD, None)
+
