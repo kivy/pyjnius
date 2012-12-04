@@ -42,6 +42,13 @@ if platform == 'android':
     # for android, we use SDL...
     libraries = ['sdl', 'log']
     library_dirs = ['libs/' + environ['ARCH']]
+elif platform == 'darwin':
+    import objc
+    framework = objc.pathForFramework('JavaVM.framework')
+    if not framework:
+        raise Exception('You must install Java on your Mac OS X distro')
+    extra_link_args = [ '-framework', 'JavaVM' ]
+    include_dirs = [ join(framework, 'Versions/A/Headers')  ]
 else:
     import subprocess
     # otherwise, we need to search the JDK_HOME
