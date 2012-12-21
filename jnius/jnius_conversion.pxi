@@ -136,65 +136,57 @@ cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
                 j_env, j_object, &iscopy)
         ret = [(True if j_booleans[i] else False)
                 for i in range(array_size)]
-        if iscopy:
-            j_env[0].ReleaseBooleanArrayElements(
-                    j_env, j_object, j_booleans, 0)
+        j_env[0].ReleaseBooleanArrayElements(
+                j_env, j_object, j_booleans, 0)
 
     elif r == 'B':
         j_bytes = j_env[0].GetByteArrayElements(
                 j_env, j_object, &iscopy)
         ret = [(<char>j_bytes[i]) for i in range(array_size)]
-        if iscopy:
-            j_env[0].ReleaseByteArrayElements(
-                    j_env, j_object, j_bytes, 0)
+        j_env[0].ReleaseByteArrayElements(
+                j_env, j_object, j_bytes, 0)
 
     elif r == 'C':
         j_chars = j_env[0].GetCharArrayElements(
                 j_env, j_object, &iscopy)
         ret = [chr(<char>j_chars[i]) for i in range(array_size)]
-        if iscopy:
-            j_env[0].ReleaseCharArrayElements(
-                    j_env, j_object, j_chars, 0)
+        j_env[0].ReleaseCharArrayElements(
+                j_env, j_object, j_chars, 0)
 
     elif r == 'S':
         j_shorts = j_env[0].GetShortArrayElements(
                 j_env, j_object, &iscopy)
         ret = [(<short>j_shorts[i]) for i in range(array_size)]
-        if iscopy:
-            j_env[0].ReleaseShortArrayElements(
-                    j_env, j_object, j_shorts, 0)
+        j_env[0].ReleaseShortArrayElements(
+                j_env, j_object, j_shorts, 0)
 
     elif r == 'I':
         j_ints = j_env[0].GetIntArrayElements(
                 j_env, j_object, &iscopy)
         ret = [(<int>j_ints[i]) for i in range(array_size)]
-        if iscopy:
-            j_env[0].ReleaseIntArrayElements(
-                    j_env, j_object, j_ints, 0)
+        j_env[0].ReleaseIntArrayElements(
+                j_env, j_object, j_ints, 0)
 
     elif r == 'J':
         j_longs = j_env[0].GetLongArrayElements(
                 j_env, j_object, &iscopy)
         ret = [(<long>j_longs[i]) for i in range(array_size)]
-        if iscopy:
-            j_env[0].ReleaseLongArrayElements(
-                    j_env, j_object, j_longs, 0)
+        j_env[0].ReleaseLongArrayElements(
+                j_env, j_object, j_longs, 0)
 
     elif r == 'F':
         j_floats = j_env[0].GetFloatArrayElements(
                 j_env, j_object, &iscopy)
         ret = [(<float>j_floats[i]) for i in range(array_size)]
-        if iscopy:
-            j_env[0].ReleaseFloatArrayElements(
-                    j_env, j_object, j_floats, 0)
+        j_env[0].ReleaseFloatArrayElements(
+                j_env, j_object, j_floats, 0)
 
     elif r == 'D':
         j_doubles = j_env[0].GetDoubleArrayElements(
                 j_env, j_object, &iscopy)
         ret = [(<double>j_doubles[i]) for i in range(array_size)]
-        if iscopy:
-            j_env[0].ReleaseDoubleArrayElements(
-                    j_env, j_object, j_doubles, 0)
+        j_env[0].ReleaseDoubleArrayElements(
+                j_env, j_object, j_doubles, 0)
 
     elif r == 'L':
         r = definition[1:-1]
