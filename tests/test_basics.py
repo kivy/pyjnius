@@ -77,3 +77,31 @@ class BasicsTest(unittest.TestCase):
         self.assertEquals(test.methodParamsArrayI([1, 2, 3]), True)
         self.assertEquals(test.methodParamsArrayString([
             'hello', 'world']), True)
+
+    def test_instances_methods_params_object_list_str(self):
+        test = autoclass('org.jnius.BasicsTest')()
+        self.assertEquals(test.methodParamsObject([
+            'hello', 'world']), True)
+
+    def test_instances_methods_params_object_list_int(self):
+        test = autoclass('org.jnius.BasicsTest')()
+        self.assertEquals(test.methodParamsObject([1, 2]), True)
+
+    def test_instances_methods_params_object_list_float(self):
+        test = autoclass('org.jnius.BasicsTest')()
+        self.assertEquals(test.methodParamsObject([3.14, 1.61]), True)
+
+    def test_instances_methods_params_object_list_long(self):
+        test = autoclass('org.jnius.BasicsTest')()
+        self.assertEquals(test.methodParamsObject([1L, 2L]), True)
+
+    def test_return_array_as_object_array_of_strings(self):
+        test = autoclass('org.jnius.BasicsTest')()
+        self.assertEquals(test.methodReturnStrings(), ['Hello', 'world'])
+
+    def test_return_array_as_object_of_integers(self):
+        test = autoclass('org.jnius.BasicsTest')()
+        print 'begin'
+        c = test.methodReturnIntegers()
+        print 'end'
+        self.assertEquals(c, [1, 2])

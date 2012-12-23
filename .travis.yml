@@ -1,0 +1,15 @@
+language: python
+python:
+  - "2.7"
+# command to install dependencies
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install python-pip openjdk-7-jdk
+
+install:
+  - pip install --upgrade cython --use-mirrors
+  - make
+
+# command to run tests
+script:
+  - make tests

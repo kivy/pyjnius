@@ -784,15 +784,14 @@ cdef class JavaMultipleMethod(object):
         else:
             methods = self.static_methods
 
-        for signature in methods:
-            sign_ret, sign_args = parse_definition(signature)
-            jm = methods[signature]
+        for signature, jm in methods.iteritems():
+            sign_ret, sign_args = jm.definition_return, jm.definition_args
             if jm.is_varargs:
                 args_ = args[:len(sign_args) - 1] + (args[len(sign_args) - 1:],)
             else:
                 args_ = args
 
-            score = calculate_score(sign_args, args_)
+            score = calculate_score(sign_args, args_, jm.is_varargs)
 
             if score <= 0:
                 continue

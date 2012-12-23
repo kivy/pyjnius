@@ -17,6 +17,7 @@ cdef void release_args(JNIEnv *j_env, list definition_args, jvalue *j_args, args
 
 cdef void populate_args(JNIEnv *j_env, list definition_args, jvalue *j_args, args) except *:
     # do the conversion from a Python object to Java from a Java definition
+    cdef JavaClassStorage jcs
     cdef JavaObject jo
     cdef JavaClass jc
     cdef int index
@@ -55,8 +56,11 @@ cdef void populate_args(JNIEnv *j_env, list definition_args, jvalue *j_args, arg
             elif isinstance(py_arg, JavaObject):
                 jo = py_arg
                 j_args[index].l = jo.obj
-                raise JavaException('JavaObject needed for argument '
-                        '{0}'.format(index))
+            elif isinstance(py_arg, MetaJavaClass):
+                jcs = py_arg.__cls_storage
+                j_args[index].l = jcs.j_cls
+            elif isinstance(py_arg, (tuple, list)):
+                j_args[index].l = convert_pyarray_to_java(j_env, argtype, py_arg)
             else:
                 raise JavaException('Invalid python object for this '
                         'argument. Want {0!r}, got {1!r}'.format(
@@ -91,6 +95,9 @@ cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object
         py_str = <bytes>c_str
         j_env[0].ReleaseStringUTFChars(j_env, j_object, c_str)
         return py_str
+
+    if r[0] == '[':
+        return convert_jarray_to_python(j_env, r[1:], j_object)
 
     if r not in jclass_register:
         from reflect import autoclass
@@ -132,65 +139,57 @@ cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
                 j_env, j_object, &iscopy)
         ret = [(True if j_booleans[i] else False)
                 for i in range(array_size)]
-        if iscopy:
-            j_env[0].ReleaseBooleanArrayElements(
-                    j_env, j_object, j_booleans, 0)
+        j_env[0].ReleaseBooleanArrayElements(
+                j_env, j_object, j_booleans, 0)
 
     elif r == 'B':
         j_bytes = j_env[0].GetByteArrayElements(
                 j_env, j_object, &iscopy)
         ret = [(<char>j_bytes[i]) for i in range(array_size)]
-        if iscopy:
-            j_env[0].ReleaseByteArrayElements(
-                    j_env, j_object, j_bytes, 0)
+        j_env[0].ReleaseByteArrayElements(
+                j_env, j_object, j_bytes, 0)
 
     elif r == 'C':
         j_chars = j_env[0].GetCharArrayElements(
                 j_env, j_object, &iscopy)
         ret = [chr(<char>j_chars[i]) for i in range(array_size)]
-        if iscopy:
-            j_env[0].ReleaseCharArrayElements(
-                    j_env, j_object, j_chars, 0)
+        j_env[0].ReleaseCharArrayElements(
+                j_env, j_object, j_chars, 0)
 
     elif r == 'S':
         j_shorts = j_env[0].GetShortArrayElements(
                 j_env, j_object, &iscopy)
         ret = [(<short>j_shorts[i]) for i in range(array_size)]
-        if iscopy:
-            j_env[0].ReleaseShortArrayElements(
-                    j_env, j_object, j_shorts, 0)
+        j_env[0].ReleaseShortArrayElements(
+                j_env, j_object, j_shorts, 0)
 
     elif r == 'I':
         j_ints = j_env[0].GetIntArrayElements(
                 j_env, j_object, &iscopy)
         ret = [(<int>j_ints[i]) for i in range(array_size)]
-        if iscopy:
-            j_env[0].ReleaseIntArrayElements(
-                    j_env, j_object, j_ints, 0)
+        j_env[0].ReleaseIntArrayElements(
+                j_env, j_object, j_ints, 0)
 
     elif r == 'J':
         j_longs = j_env[0].GetLongArrayElements(
                 j_env, j_object, &iscopy)
         ret = [(<long>j_longs[i]) for i in range(array_size)]
-        if iscopy:
-            j_env[0].ReleaseLongArrayElements(
-                    j_env, j_object, j_longs, 0)
+        j_env[0].ReleaseLongArrayElements(
+                j_env, j_object, j_longs, 0)
 
     elif r == 'F':
         j_floats = j_env[0].GetFloatArrayElements(
                 j_env, j_object, &iscopy)
         ret = [(<float>j_floats[i]) for i in range(array_size)]
-        if iscopy:
-            j_env[0].ReleaseFloatArrayElements(
-                    j_env, j_object, j_floats, 0)
+        j_env[0].ReleaseFloatArrayElements(
+                j_env, j_object, j_floats, 0)
 
     elif r == 'D':
         j_doubles = j_env[0].GetDoubleArrayElements(
                 j_env, j_object, &iscopy)
         ret = [(<double>j_doubles[i]) for i in range(array_size)]
-        if iscopy:
-            j_env[0].ReleaseDoubleArrayElements(
-                    j_env, j_object, j_doubles, 0)
+        j_env[0].ReleaseDoubleArrayElements(
+                j_env, j_object, j_doubles, 0)
 
     elif r == 'L':
         r = definition[1:-1]
@@ -226,6 +225,21 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
     cdef jclass j_class
     cdef JavaObject jo
     cdef JavaClass jc
+
+    if definition == 'Ljava/lang/Object;' and len(pyarray) > 0:
+        # then the method will accept any array type as param
+        # let's be as precise as we can
+        conversions = {
+            int: 'I',
+            bool: 'Z',
+            long: 'J',
+            float: 'F',
+            basestring: 'Ljava/lang/String;',
+        }
+        for type, override in conversions.iteritems():
+            if isinstance(pyarray[0], type):
+                definition = override
+                break
 
     if definition == 'Z':
         ret = j_env[0].NewBooleanArray(j_env, array_size)
