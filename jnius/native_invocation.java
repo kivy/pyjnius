@@ -1,5 +1,6 @@
 import java.lang.reflect.InvocationHandler;
 
+package jnius;
 public class NativeInvocationHandler implements InvocationHandler {
 	public NativeInvocationHandler(long ptr) {
 		this.ptr = ptr;
