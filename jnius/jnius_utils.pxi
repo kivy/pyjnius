@@ -246,12 +246,26 @@ cdef class GenericNativeWrapper(object):
     cdef JNIEnv* j_env
     cdef args
 
-    def __cinit__(self, j_env, definition, callback):
+    def __cinit__(self, j_env, name, definition, callback):
         self.j_env = NULL
+	self.j_nm = JNINativeMethod
 
-    def __init__(self, j_env, definition, callback):
+    def __init__(self, j_env, name, definition, callback):
         self.callback = callback
-        self.definitions = parse_definition(definition)[1]
+        self.definitions = parse_definition(definition)
+	self.nm.name = name
+	self.nm.signature = definitions
+	self.fnPtr = {
+	   'V': self.call_void,
+	   'L': self.call_obj,
+	   'D': self.call_double,
+	   'F': self.call_float,
+	   'J': self.call_long,
+	   'I': self.call_int,
+	   'S': self.call_short,
+	   'C': self.call_char,
+	   'B': self.call_byte,
+	   'Z': self.call_bool}[self.definitions[0]]
 
     cdef void call_void(self, ...):
         cdef va_list j_args
@@ -262,7 +276,7 @@ cdef class GenericNativeWrapper(object):
 
         va_start(j_args, <void*>self)
 
-        for d in self.definitions:
+        for d in self.definitions[1]:
             if d == 'Z':
                 args.append(<bint>va_arg(j_args, bool_type))
             elif d == 'B':
@@ -290,7 +304,7 @@ cdef class GenericNativeWrapper(object):
     # XXX define call_int/call_bool/call_char/... and friends on the
     # same model, and "array of" variants
 
-    cdef bint call_bint(self, ...):
+    cdef bint call_boot(self, ...):
         cdef va_list j_args
         cdef int n
         cdef void* l
@@ -299,7 +313,7 @@ cdef class GenericNativeWrapper(object):
 
         va_start(j_args, <void*>self)
 
-        for d in self.definitions:
+        for d in self.definitions[1]:
             if d == 'Z':
                 args.append(<bint>va_arg(j_args, bool_type))
             elif d == 'B':
@@ -334,7 +348,7 @@ cdef class GenericNativeWrapper(object):
 
         va_start(j_args, <void*>self)
 
-        for d in self.definitions:
+        for d in self.definitions[1]:
             if d == 'Z':
                 args.append(<bint>va_arg(j_args, bool_type))
             elif d == 'B':
@@ -369,7 +383,7 @@ cdef class GenericNativeWrapper(object):
 
         va_start(j_args, <void*>self)
 
-        for d in self.definitions:
+        for d in self.definitions[1]:
             if d == 'Z':
                 args.append(<bint>va_arg(j_args, bool_type))
             elif d == 'B':
@@ -404,7 +418,7 @@ cdef class GenericNativeWrapper(object):
 
         va_start(j_args, <void*>self)
 
-        for d in self.definitions:
+        for d in self.definitions[1]:
             if d == 'Z':
                 args.append(<bint>va_arg(j_args, bool_type))
             elif d == 'B':
@@ -439,7 +453,7 @@ cdef class GenericNativeWrapper(object):
 
         va_start(j_args, <void*>self)
 
-        for d in self.definitions:
+        for d in self.definitions[1]:
             if d == 'Z':
                 args.append(<bint>va_arg(j_args, bool_type))
             elif d == 'B':
@@ -474,7 +488,7 @@ cdef class GenericNativeWrapper(object):
 
         va_start(j_args, <void*>self)
 
-        for d in self.definitions:
+        for d in self.definitions[1]:
             if d == 'Z':
                 args.append(<bint>va_arg(j_args, bool_type))
             elif d == 'B':
@@ -509,7 +523,7 @@ cdef class GenericNativeWrapper(object):
 
         va_start(j_args, <void*>self)
 
-        for d in self.definitions:
+        for d in self.definitions[1]:
             if d == 'Z':
                 args.append(<bint>va_arg(j_args, bool_type))
             elif d == 'B':
@@ -543,7 +557,7 @@ cdef class GenericNativeWrapper(object):
 
         va_start(j_args, <void*>self)
 
-        for d in self.definitions:
+        for d in self.definitions[1]:
             if d == 'Z':
                 args.append(<bint>va_arg(j_args, bool_type))
             elif d == 'B':
@@ -577,7 +591,7 @@ cdef class GenericNativeWrapper(object):
 
     #    va_start(j_args, <void*>self)
 
-    #    for d in self.definitions:
+    #    for d in self.definitions[1]:
     #        if d == 'Z':
     #            args.append(<bint>va_arg(j_args, bool_type))
     #        elif d == 'B':
@@ -602,8 +616,32 @@ cdef class GenericNativeWrapper(object):
 
     #    return self.callback(*args)
 
-cdef jobject invoke0(JNIEnv *j_env, jobject this, jobject method, jobjectArray args):
+cdef jobject invoke0(
+		JNIEnv *j_env,
+		jobject this,
+		jobject method,
+		jobjectArray args):
+
     cdef jfieldID ptrField = j_env[0].GetFieldID(j_env.GetObjectClass(this), "ptr", "J")
     cdef jlong jptr = j_env.GetLongField(this, ptrField)
     cdef NativeInvocationHandler *h = reinterpret_cast<NativeInvocationHandler>(jptr)
     return h.Invoke(env, method, args);
+
+
+# now we need to create a proxy and pass it an invocation handler
+
+from jnius import autoclass
+Proxy = autoclass('java.lang.reflec.Proxy')
+NativeInvocationHandler('jnius.NativeInvocationHandler')
+
+def create_proxy_instance(j_env, py_obj, j_interfaces):
+    nih = NativeInvocationHandler(py_obj)
+    cls = Proxy.newProxyInstance(Null, j_interfaces, nih) # XXX wishful code
+
+    for name, definition, method in py_obj.j_methods:
+        nw = GenericNativeWrapper(j_env, name, definition, method)
+	j_env.RegisterNatives(j_env[0], cls, nw.nm, 1)
+
+    # adds it to the invocationhandler
+
+    # create the proxy and pass it the invocation handler
