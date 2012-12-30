@@ -1,6 +1,7 @@
-import java.lang.reflect.InvocationHandler;
-
 package jnius;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+
 public class NativeInvocationHandler implements InvocationHandler {
 	public NativeInvocationHandler(long ptr) {
 		this.ptr = ptr;
@@ -14,9 +15,3 @@ public class NativeInvocationHandler implements InvocationHandler {
 
 	private long ptr;
 }
-
-class NativeInvocationHandler {
-	public:
-		virtual ~NativeInvocationHandler();
-		virtual jobject Invoke(JNIEnv *, jobject method, jobjectArray args) = 0;
-};

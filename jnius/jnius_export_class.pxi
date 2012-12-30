@@ -63,7 +63,8 @@ class MetaJavaClass(type):
                 interfaces[n] = jcs.j_env[0].FindClass(jcs.j_env, <char*>i)
 
             getProxyClass = jcs.j_env[0].GetStaticMethodID(
-                jcs.j_env, Proxy, "getProxyClass", "(Ljava/lang/ClassLoader,[Ljava/lang/Class;)Ljava/lang/Class;")
+                jcs.j_env, Proxy, "getProxyClass",
+                "(Ljava/lang/ClassLoader,[Ljava/lang/Class;)Ljava/lang/Class;")
 
             getClassLoader = jcs.j_env[0].GetStaticMethodID(
                 jcs.j_env, baseclass, "getClassLoader", "()Ljava/lang/Class;")

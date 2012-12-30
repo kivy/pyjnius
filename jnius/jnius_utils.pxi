@@ -248,24 +248,24 @@ cdef class GenericNativeWrapper(object):
 
     def __cinit__(self, j_env, name, definition, callback):
         self.j_env = NULL
-	self.j_nm = JNINativeMethod
+        self.j_nm = JNINativeMethod
 
     def __init__(self, j_env, name, definition, callback):
         self.callback = callback
         self.definitions = parse_definition(definition)
-	self.nm.name = name
-	self.nm.signature = definitions
-	self.fnPtr = {
-	   'V': self.call_void,
-	   'L': self.call_obj,
-	   'D': self.call_double,
-	   'F': self.call_float,
-	   'J': self.call_long,
-	   'I': self.call_int,
-	   'S': self.call_short,
-	   'C': self.call_char,
-	   'B': self.call_byte,
-	   'Z': self.call_bool}[self.definitions[0]]
+        self.nm.name = name
+        self.nm.signature = definitions
+        self.fnPtr = {
+           'V': self.call_void,
+           'L': self.call_obj,
+           'D': self.call_double,
+           'F': self.call_float,
+           'J': self.call_long,
+           'I': self.call_int,
+           'S': self.call_short,
+           'C': self.call_char,
+           'B': self.call_byte,
+           'Z': self.call_bool}[self.definitions[0]]
 
     cdef void call_void(self, ...):
         cdef va_list j_args
@@ -616,16 +616,32 @@ cdef class GenericNativeWrapper(object):
 
     #    return self.callback(*args)
 
+cdef class PythonJavaClass(object):
+    '''
+    base class to create a java class from python
+    '''
+    cdef JNIEnv *j_env
+    cdef jclass j_cls
+    cdef LocalRef j_self
+
+    def __cinit__(self, *args):
+        self.j_env = NULL
+        self.j_cls = NULL
+        self.j_self = NULL
+        pass
+
+    def __init__(self, *args, **kwargs):
+        self.j_self = create_proxy_instance()
+
 cdef jobject invoke0(
-		JNIEnv *j_env,
-		jobject this,
-		jobject method,
-		jobjectArray args):
+                JNIEnv *j_env,
+                jobject this,
+                jobject method,
+                jobjectArray args):
 
     cdef jfieldID ptrField = j_env[0].GetFieldID(j_env.GetObjectClass(this), "ptr", "J")
     cdef jlong jptr = j_env.GetLongField(this, ptrField)
-    cdef NativeInvocationHandler *h = reinterpret_cast<NativeInvocationHandler>(jptr)
-    return h.Invoke(env, method, args);
+    return h.fnPtr(env, method, args);
 
 
 # now we need to create a proxy and pass it an invocation handler
@@ -640,7 +656,7 @@ def create_proxy_instance(j_env, py_obj, j_interfaces):
 
     for name, definition, method in py_obj.j_methods:
         nw = GenericNativeWrapper(j_env, name, definition, method)
-	j_env.RegisterNatives(j_env[0], cls, nw.nm, 1)
+        j_env.RegisterNatives(j_env[0], cls, nw.nm, 1)
 
     # adds it to the invocationhandler
 
