@@ -47,7 +47,7 @@ cdef parse_definition(definition):
             c, argdef = argdef.split(';', 1)
             args.append(prefix + c + ';')
 
-    return ret, args
+    return ret, tuple(args)
 
 
 cdef void check_exception(JNIEnv *j_env) except *:
@@ -211,6 +211,10 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
                 score += 1
                 continue
 
+            if isinstance(arg, PythonJavaClass):
+                score += 1
+                continue
+
             # native type? not accepted
             return -1
 
@@ -237,7 +241,7 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
             # change this method score
     return score
 
-
+'''
 cdef class GenericNativeWrapper(object):
     """
     This class is to be used to register python method as methods of
@@ -615,6 +619,20 @@ cdef class GenericNativeWrapper(object):
     #    va_end(j_args)
 
     #    return self.callback(*args)
+'''
+
+import functools
+class java_implementation(object):
+    def __init__(self, signature):
+        super(java_implementation, self).__init__()
+        self.signature = signature
+
+    def __get__(self, instance, instancetype):
+        return functools.partial(self.__call__, instance)
+
+    def __call__(self, f):
+        f.__javasignature__ = self.signature
+        return f
 
 cdef class PythonJavaClass(object):
     '''
@@ -622,42 +640,158 @@ cdef class PythonJavaClass(object):
     '''
     cdef JNIEnv *j_env
     cdef jclass j_cls
-    cdef LocalRef j_self
+    cdef public object j_self
 
     def __cinit__(self, *args):
-        self.j_env = NULL
+        self.j_env = get_jnienv()
         self.j_cls = NULL
-        self.j_self = NULL
-        pass
+        self.j_self = None
 
     def __init__(self, *args, **kwargs):
-        self.j_self = create_proxy_instance()
+        self.j_self = create_proxy_instance(self.j_env, self,
+            self.__javainterfaces__)
 
-cdef jobject invoke0(
-                JNIEnv *j_env,
-                jobject this,
-                jobject method,
-                jobjectArray args):
+        # discover all the java method implementated
+        self.__javamethods__ = {}
+        for x in dir(self):
+            attr = getattr(self, x)
+            if not callable(attr):
+                continue
+            if not hasattr(attr, '__javasignature__'):
+                continue
+            signature = parse_definition(attr.__javasignature__)
+            self.__javamethods__[(x, signature)] = attr
 
-    cdef jfieldID ptrField = j_env[0].GetFieldID(j_env.GetObjectClass(this), "ptr", "J")
-    cdef jlong jptr = j_env.GetLongField(this, ptrField)
-    return h.fnPtr(env, method, args);
+    def invoke(self, method, *args):
+        from .reflect import get_signature
+        print 'PythonJavaClass.invoke() called with args:', args
+        # search the java method
+
+        ret_signature = get_signature(method.getReturnType())
+        args_signature = tuple([get_signature(x) for x in method.getParameterTypes()])
+        method_name = method.getName()
+
+        key = (method_name, (ret_signature, args_signature))
+        print 'PythonJavaClass.invoke() want to invoke', key
+
+        py_method = self.__javamethods__.get(key, None)
+        if not py_method:
+            raise NotImplemented('The method {0} is not implemented'.format(key))
+
+        return py_method(*args)
+
+cdef jobject invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject j_method, jobjectArray args):
+    from .reflect import get_signature
+
+    # get the python object
+    cdef jfieldID ptrField = j_env[0].GetFieldID(j_env,
+        j_env[0].GetObjectClass(j_env, j_this), "ptr", "J")
+    cdef jlong jptr = j_env[0].GetLongField(j_env, j_this, ptrField)
+    cdef object py_obj = <object>jptr
+
+    # extract the method information
+    # TODO: cache ?
+    method = convert_jobject_to_python(j_env, b'Ljava/lang/reflect/Method;', j_method)
+    ret_signature = get_signature(method.getReturnType())
+    args_signature = ''.join([get_signature(x) for x in method.getParameterTypes()])
+
+    # XX implement java array conversion
+    py_args = []
+    ret = py_obj.invoke(method, *py_args)
+
+    # convert back to the return type
+    # use the populate_args(), but in the reverse way :)
+    cdef jvalue j_ret[1]
+    populate_args(j_env, (ret_signature, ), <jvalue *>j_ret, [ret])
+    return <jobject>j_ret
 
 
 # now we need to create a proxy and pass it an invocation handler
 
-from jnius import autoclass
-Proxy = autoclass('java.lang.reflec.Proxy')
-NativeInvocationHandler('jnius.NativeInvocationHandler')
+cdef create_proxy_instance(JNIEnv *j_env, py_obj, j_interfaces):
+    from .reflect import autoclass
+    Proxy = autoclass('java.lang.reflect.Proxy')
+    NativeInvocationHandler = autoclass('jnius.NativeInvocationHandler')
+    ClassLoader = autoclass('java.lang.ClassLoader')
 
-def create_proxy_instance(j_env, py_obj, j_interfaces):
-    nih = NativeInvocationHandler(py_obj)
-    cls = Proxy.newProxyInstance(Null, j_interfaces, nih) # XXX wishful code
+    # convert strings to Class
+    j_interfaces = [find_javaclass(x) for x in j_interfaces]
+    print 'create_proxy_instance', j_interfaces
 
-    for name, definition, method in py_obj.j_methods:
-        nw = GenericNativeWrapper(j_env, name, definition, method)
-        j_env.RegisterNatives(j_env[0], cls, nw.nm, 1)
+    cdef JavaClass nih = NativeInvocationHandler(<long><void *>py_obj)
+    cdef JNINativeMethod invoke_methods[1]
+    invoke_methods[0].name = 'invoke0'
+    invoke_methods[0].signature = '(Ljava/lang/Object;Ljava/lang/reflect/Method;[Ljava/lang/Object;)Ljava/lang/Object;'
+    invoke_methods[0].fnPtr = <void *>&invoke0
+    j_env[0].RegisterNatives(j_env, nih.j_cls, <JNINativeMethod *>invoke_methods, 1)
+
+    cdef JavaClass j_obj = Proxy.newProxyInstance(
+            ClassLoader.getSystemClassLoader(), j_interfaces, nih)
+
+    #for name, definition, method in py_obj.j_methods:
+    #    nw = GenericNativeWrapper(j_env, name, definition, method)
+    #    j_env.RegisterNatives(j_env[0], cls, nw.nm, 1)
 
     # adds it to the invocationhandler
 
     # create the proxy and pass it the invocation handler
+    return j_obj
+
+def test():
+    from .reflect import autoclass
+
+    print '1: declare a TestImplem that implement Collection'
+    class TestImplemIterator(PythonJavaClass):
+        __javainterfaces__ = ['java/util/Iterator']
+
+        def __init__(self, collection):
+            super(TestImplemIterator, self).__init__()
+            self.collection = collection
+            self.index = 0
+
+        @java_implementation('()B')
+        def hasNext(self):
+            return self.index < len(self.collection.data)
+
+        @java_implementation('()Ljava/lang/Object;')
+        def next(self):
+            obj = self.collection.data[self.index]
+            self.index += 1
+            return obj
+
+
+    class TestImplem(PythonJavaClass):
+        __javainterfaces__ = ['java/util/Collection']
+
+        def __init__(self, *args):
+            super(TestImplem, self).__init__()
+            self.data = args
+
+        @java_implementation('()Ljava/util/Iterator;')
+        def iterator(self):
+            it = TestImplemIterator(self)
+            print 'iterator called, and returned', it
+            return it
+
+    print '2: instanciate the class, with some data'
+    a = TestImplem(129387, 'aoesrch', 987, 'aoenth')
+    print a
+    print dir(a)
+
+    print '3: Do cast to a collection'
+    a2 = cast('java/util/Collection', a.j_self)
+
+    print '4: Try few method on the collection'
+    Collections = autoclass('java.util.Collections')
+    print Collections.enumeration(a)
+    #print Collections.enumeration(a)
+    print Collections.max(a)
+
+
+    # XXX We have issues for methosd with multiple signature
+    #print '-> Collections.max(a)'
+    #print Collections.max(a2)
+    #print '-> Collections.max(a)'
+    #print Collections.max(a2)
+    #print '-> Collections.shuffle(a)'
+    #print Collections.shuffle(a2)

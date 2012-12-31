@@ -1,4 +1,4 @@
-cdef void release_args(JNIEnv *j_env, list definition_args, jvalue *j_args, args) except *:
+cdef void release_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, args) except *:
     # do the conversion from a Python object to Java from a Java definition
     cdef JavaObject jo
     cdef JavaClass jc
@@ -15,11 +15,12 @@ cdef void release_args(JNIEnv *j_env, list definition_args, jvalue *j_args, args
             j_env[0].DeleteLocalRef(j_env, j_args[index].l)
 
 
-cdef void populate_args(JNIEnv *j_env, list definition_args, jvalue *j_args, args) except *:
+cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, args) except *:
     # do the conversion from a Python object to Java from a Java definition
     cdef JavaClassStorage jcs
     cdef JavaObject jo
     cdef JavaClass jc
+    cdef PythonJavaClass pc
     cdef int index
     for index, argtype in enumerate(definition_args):
         py_arg = args[index]
@@ -59,6 +60,13 @@ cdef void populate_args(JNIEnv *j_env, list definition_args, jvalue *j_args, arg
             elif isinstance(py_arg, MetaJavaClass):
                 jcs = py_arg.__cls_storage
                 j_args[index].l = jcs.j_cls
+            elif isinstance(py_arg, PythonJavaClass):
+                # from python class, get the proxy/python class
+                pc = py_arg
+                # get the java class
+                jc = pc.j_self
+                # get the localref
+                j_args[index].l = jc.j_self.obj
             elif isinstance(py_arg, (tuple, list)):
                 j_args[index].l = convert_pyarray_to_java(j_env, argtype, py_arg)
             else:

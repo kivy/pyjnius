@@ -41,6 +41,8 @@ cdef extern from "jni.h":
         const_char* signature
         void*       fnPtr
 
+    ctypedef JNINativeMethod const_JNINativeMethod "const JNINativeMethod"
+
     ctypedef union jvalue:
         jboolean    z
         jbyte       b
@@ -368,7 +370,7 @@ cdef extern from "jni.h":
                             jsize, jsize, const_jdouble*)
 
         #XXX not working with cython?
-        #jint        (*RegisterNatives)(JNIEnv*, jclass, const_JNINativeMethod*, jint)
+        jint        (*RegisterNatives)(JNIEnv*, jclass, const_JNINativeMethod*, jint)
         jint        (*UnregisterNatives)(JNIEnv*, jclass)
         jint        (*MonitorEnter)(JNIEnv*, jobject)
         jint        (*MonitorExit)(JNIEnv*, jobject)

@@ -63,7 +63,7 @@ class MetaJavaClass(type):
                 interfaces[n] = jcs.j_env[0].FindClass(jcs.j_env, <char*>i)
 
             getProxyClass = jcs.j_env[0].GetStaticMethodID(
-                jcs.j_env, Proxy, "getProxyClass",
+                jcs.j_env, baseclass, "getProxyClass",
                 "(Ljava/lang/ClassLoader,[Ljava/lang/Class;)Ljava/lang/Class;")
 
             getClassLoader = jcs.j_env[0].GetStaticMethodID(
@@ -76,7 +76,7 @@ class MetaJavaClass(type):
             jargs[0] = classLoader
             jargs[1] = interfaces
             jcs.j_cls = jcs.j_env[0].CallStaticObjectMethod(
-                    jcs.j_env, Proxy, getProxyClass, jargs)
+                    jcs.j_env, baseclass, getProxyClass, jargs)
 
             if jcs.j_cls == NULL:
                 raise JavaException('Unable to create the class'
@@ -93,6 +93,7 @@ class MetaJavaClass(type):
         # search all the static JavaMethod within our class, and resolve them
         cdef JavaMethod jm
         cdef JavaMultipleMethod jmm
+        cdef PythonMethod pm
         for name, value in classDict.iteritems():
             if isinstance(value, JavaMethod):
                 jm = value
@@ -105,13 +106,13 @@ class MetaJavaClass(type):
                 jmm.set_resolve_info(jcs.j_env, jcs.j_cls, None,
                     name, __javaclass__)
             elif isinstance(value, PythonMethod):
-                if '__javabaseclass__' not in self.classDict:
+                if '__javabaseclass__' not in classDict:
                     raise JavaException("Can't use PythonMethod on a java "
                     "class, you must use inheritance to implement a java "
                     "interface")
                 pm = value
-                pm.set_resolve_info(self.j_env, self.j_cls, self.j_self,
-                    name, self.__javaclass__)
+                pm.set_resolve_info(jcs.j_env, jcs.j_cls, jcs.j_self,
+                    name, jcs.__javaclass__)
 
 
         # search all the static JavaField within our class, and resolve them
@@ -235,6 +236,7 @@ cdef class JavaClass(object):
         # search all the JavaMethod within our class, and resolve them
         cdef JavaMethod jm
         cdef JavaMultipleMethod jmm
+        cdef PythonMethod pm
         for name, value in self.__class__.__dict__.iteritems():
             if isinstance(value, JavaMethod):
                 jm = value
@@ -247,7 +249,6 @@ cdef class JavaClass(object):
                 jmm.set_resolve_info(self.j_env, self.j_cls, self.j_self,
                     name, self.__javaclass__)
             elif isinstance(value, PythonMethod):
-                # if self#XXX
                 pm = value
                 pm.set_resolve_info(self.j_env, self.j_cls, self.j_self,
                     name, self.__javaclass__)
@@ -473,6 +474,18 @@ cdef class PythonMethod(object):
     cdef bytes classname
     # XXX
 
+    cdef void set_resolve_info(self, JNIEnv *j_env, jclass j_cls, LocalRef j_self,
+            bytes name, bytes classname):
+        '''
+        XXX TODO
+        self.name = name
+        self.classname = classname
+        self.j_env = j_env
+        self.j_cls = j_cls
+        self.j_self = j_self
+        '''
+        pass
+
 
 cdef class JavaMethod(object):
     '''Used to resolve a Java method, and do the call
@@ -539,7 +552,7 @@ cdef class JavaMethod(object):
     def __call__(self, *args):
         # argument array to pass to the method
         cdef jvalue *j_args = NULL
-        cdef list d_args = self.definition_args
+        cdef tuple d_args = self.definition_args
         if self.is_varargs:
             args = args[:len(d_args) - 1] + (args[len(d_args) - 1:],)
 

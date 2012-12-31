@@ -14,3 +14,7 @@ tests: build_ext
 	cd tests && javac org/jnius/InterfaceWithPublicEnum.java
 	cd tests && javac org/jnius/ClassArgument.java
 	cd tests && env PYTHONPATH=..:$(PYTHONPATH) nosetests -v
+
+testimpl: build_ext
+	javac jnius/NativeInvocationHandler.java
+	python -c 'import jnius.jnius; jnius.jnius.test()'
