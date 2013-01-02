@@ -253,6 +253,110 @@ cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
 
     return ret
 
+cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
+    cdef jobject retobject, retsubobject
+    cdef jclass retclass
+    cdef jmethodID redmidinit
+    cdef jvalue j_ret[1]
+    cdef JavaClass jc
+    cdef JavaObject jo
+    cdef JavaClassStorage jcs
+    cdef PythonJavaClass pc
+    cdef int index
+
+    print 'convert_python_to_jobject()', definition, repr(obj)
+
+    if definition[0] == 'L':
+        if obj is None:
+            return NULL
+        elif isinstance(obj, basestring) and \
+                definition in ('Ljava/lang/String;', 'Ljava/lang/Object;'):
+            return j_env[0].NewStringUTF(j_env, <char *><bytes>obj)
+        elif isinstance(obj, type):
+            jc = obj
+            return jc.j_cls
+        elif isinstance(obj, JavaClass):
+            jc = obj
+            check_assignable_from(j_env, jc, definition[1:-1])
+            return jc.j_self.obj
+        elif isinstance(obj, JavaObject):
+            jo = obj
+            return jo.obj
+        elif isinstance(obj, MetaJavaClass):
+            jcs = obj.__cls_storage
+            return jcs.j_cls
+        elif isinstance(obj, PythonJavaClass):
+            # from python class, get the proxy/python class
+            pc = obj
+            # get the java class
+            jc = pc.j_self
+            # get the localref
+            return jc.j_self.obj
+        elif isinstance(obj, (tuple, list)):
+            return convert_pyarray_to_java(j_env, definition, obj)
+        else:
+            raise JavaException('Invalid python object for this '
+                    'argument. Want {0!r}, got {1!r}'.format(
+                        definition[1:-1], obj))
+
+    elif definition[0] == '[':
+        conversions = {
+            int: 'I',
+            bool: 'Z',
+            long: 'J',
+            float: 'F',
+            basestring: 'Ljava/lang/String;',
+        }
+        retclass = j_env[0].FindClass(j_env, 'java/lang/Object')
+        retobject = j_env[0].NewObjectArray(j_env, len(obj), retclass, NULL)
+        for index, item in enumerate(obj):
+            item_definition = conversions.get(type(item), definition[1:])
+            retsubobject = convert_python_to_jobject(
+                    j_env, item_definition, item)
+            j_env[0].SetObjectArrayElement(j_env, retobject, index,
+                    retsubobject)
+        return retobject
+
+    elif definition == 'B':
+        retclass = j_env[0].FindClass(j_env, 'java/lang/Byte')
+        retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(B)V')
+        j_ret[0].b = obj
+    elif definition == 'S':
+        retclass = j_env[0].FindClass(j_env, 'java/lang/Short')
+        retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(S)V')
+        j_ret[0].s = obj
+    elif definition == 'I':
+        retclass = j_env[0].FindClass(j_env, 'java/lang/Integer')
+        retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(I)V')
+        j_ret[0].i = obj
+    elif definition == 'J':
+        retclass = j_env[0].FindClass(j_env, 'java/lang/Long')
+        retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(J)V')
+        j_ret[0].j = obj
+    elif definition == 'F':
+        retclass = j_env[0].FindClass(j_env, 'java/lang/Float')
+        retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(F)V')
+        j_ret[0].f = obj
+    elif definition == 'D':
+        retclass = j_env[0].FindClass(j_env, 'java/lang/Double')
+        retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(D)V')
+        j_ret[0].d = obj
+    elif definition == 'C':
+        retclass = j_env[0].FindClass(j_env, 'java/lang/Char')
+        retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(C)V')
+        j_ret[0].c = ord(obj)
+    elif definition == 'Z':
+        retclass = j_env[0].FindClass(j_env, 'java/lang/Boolean')
+        retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(Z)V')
+        j_ret[0].z = 1 if obj else 0
+    else:
+        assert(0)
+
+    assert(retclass != NULL)
+    # XXX do we need a globalref or something ?
+    retobject = j_env[0].NewObjectA(j_env, retclass, retmidinit, j_ret)
+    return retobject
+
 
 cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except *:
     cdef jobject ret = NULL
@@ -270,6 +374,7 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
     cdef jclass j_class
     cdef JavaObject jo
     cdef JavaClass jc
+
 
     if definition == 'Ljava/lang/Object;' and len(pyarray) > 0:
         # then the method will accept any array type as param

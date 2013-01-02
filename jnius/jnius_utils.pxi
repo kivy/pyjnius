@@ -357,11 +357,7 @@ cdef jobject invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
 
     # convert back to the return type
     # use the populate_args(), but in the reverse way :)
-    cdef jvalue j_ret[1]
     t = ret_signature[:1]
-    cdef jclass retclass = NULL
-    cdef jobject retobject
-    cdef jmethodID retmidinit
 
     # did python returned a "native" type ?
     jtype = None
@@ -378,56 +374,13 @@ cdef jobject invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
     elif len(ret_signature) == 1:
         jtype = ret_signature
 
-    # converting a native type to an Object for returning the value
-    if jtype is not None:
-        if jtype == 'B':
-            retclass = j_env[0].FindClass(j_env, 'java/lang/Byte')
-            retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(B)V')
-            j_ret[0].b = ret
-        elif jtype == 'S':
-            retclass = j_env[0].FindClass(j_env, 'java/lang/Short')
-            retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(S)V')
-            j_ret[0].s = ret
-        elif jtype == 'I':
-            retclass = j_env[0].FindClass(j_env, 'java/lang/Integer')
-            retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(I)V')
-            j_ret[0].i = ret
-        elif jtype == 'J':
-            retclass = j_env[0].FindClass(j_env, 'java/lang/Long')
-            retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(J)V')
-            j_ret[0].j = ret
-        elif jtype == 'F':
-            retclass = j_env[0].FindClass(j_env, 'java/lang/Float')
-            retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(F)V')
-            j_ret[0].f = ret
-        elif jtype == 'D':
-            retclass = j_env[0].FindClass(j_env, 'java/lang/Double')
-            retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(D)V')
-            j_ret[0].d = ret
-        elif jtype == 'C':
-            retclass = j_env[0].FindClass(j_env, 'java/lang/Char')
-            retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(C)V')
-            j_ret[0].c = ord(ret)
-        elif jtype == 'Z':
-            retclass = j_env[0].FindClass(j_env, 'java/lang/Boolean')
-            retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(Z)V')
-            j_ret[0].z = 1 if ret else 0
-        else:
-            print 'jtype', jtype
-            assert(0)
+    cdef jobject jret
 
-    if retclass != NULL:
-        # XXX do we need a globalref or something ?
-        retobject = j_env[0].NewObjectA(j_env, retclass, retmidinit, j_ret)
-        return retobject
-
-    # this is not a "native" type, so we should be able to convert it to object
-    # with populate_args().
-    # (String, list/tuple, etc.)
-    populate_args(j_env, (ret_signature, ), <jvalue *>j_ret, [ret])
-    return j_ret[0].l
-
-
+    try:
+        jret = convert_python_to_jobject(j_env, jtype or ret_signature, ret)
+        return jret
+    except Exception as e:
+        traceback.print_exc(e)
 
 
 
@@ -465,6 +418,7 @@ def test():
     from .reflect import autoclass
 
     print '1: declare a TestImplem that implement Collection'
+
     class TestImplemIterator(PythonJavaClass):
         __javainterfaces__ = ['java/util/Iterator']
 
@@ -522,7 +476,7 @@ def test():
             return self.data
 
     print '2: instanciate the class, with some data'
-    a = TestImplem(1, 2, 3)
+    a = TestImplem(*range(10))
     print a
     print dir(a)
 
