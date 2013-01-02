@@ -24,7 +24,11 @@ public class NativeInvocationHandler implements InvocationHandler {
 		System.out.println(")");
 		System.out.println(method.getName());
 		System.out.println(method.getParameterTypes());
+		System.out.print("+ java:call native invoke0() >>>");
 		Object ret = invoke0(proxy, method, args);
+		System.out.println("+ java:call native invoke0() <<<");
+		System.out.print("+ java:invoke returned ");
+		System.out.println(ret);
 		return ret;
 	}
 
