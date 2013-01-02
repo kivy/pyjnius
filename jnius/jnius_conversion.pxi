@@ -92,6 +92,8 @@ cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object
     cdef bytes r = definition[1:-1]
     cdef JavaObject ret_jobject
     cdef JavaClass ret_jc
+    cdef jclass retclass
+    cdef jmethodID retmeth
 
     # we got a generic object -> lookup for the real name instead.
     if r == 'java/lang/Object':
@@ -103,6 +105,41 @@ cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object
         py_str = <bytes>c_str
         j_env[0].ReleaseStringUTFChars(j_env, j_object, c_str)
         return py_str
+
+    # XXX should be deactivable from configuration
+    # ie, user might not want autoconvertion of lang classes.
+    if r == 'java/lang/Long':
+        retclass = j_env[0].GetObjectClass(j_env, j_object)
+        retmeth = j_env[0].GetMethodID(j_env, retclass, 'longValue', '()J')
+        return j_env[0].CallLongMethod(j_env, j_object, retmeth)
+    if r == 'java/lang/Integer':
+        retclass = j_env[0].GetObjectClass(j_env, j_object)
+        retmeth = j_env[0].GetMethodID(j_env, retclass, 'intValue', '()I')
+        return j_env[0].CallIntMethod(j_env, j_object, retmeth)
+    if r == 'java/lang/Float':
+        retclass = j_env[0].GetObjectClass(j_env, j_object)
+        retmeth = j_env[0].GetMethodID(j_env, retclass, 'floatValue', '()F')
+        return j_env[0].CallFloatMethod(j_env, j_object, retmeth)
+    if r == 'java/lang/Double':
+        retclass = j_env[0].GetObjectClass(j_env, j_object)
+        retmeth = j_env[0].GetMethodID(j_env, retclass, 'doubleValue', '()D')
+        return j_env[0].CallDoubleMethod(j_env, j_object, retmeth)
+    if r == 'java/lang/Short':
+        retclass = j_env[0].GetObjectClass(j_env, j_object)
+        retmeth = j_env[0].GetMethodID(j_env, retclass, 'shortValue', '()S')
+        return j_env[0].CallShortMethod(j_env, j_object, retmeth)
+    if r == 'java/lang/Boolean':
+        retclass = j_env[0].GetObjectClass(j_env, j_object)
+        retmeth = j_env[0].GetMethodID(j_env, retclass, 'booleanValue', '()Z')
+        return j_env[0].CallBooleanMethod(j_env, j_object, retmeth)
+    if r == 'java/lang/Byte':
+        retclass = j_env[0].GetObjectClass(j_env, j_object)
+        retmeth = j_env[0].GetMethodID(j_env, retclass, 'byteValue', '()B')
+        return j_env[0].CallByteMethod(j_env, j_object, retmeth)
+    if r == 'java/lang/Character':
+        retclass = j_env[0].GetObjectClass(j_env, j_object)
+        retmeth = j_env[0].GetMethodID(j_env, retclass, 'charValue', '()C')
+        return ord(j_env[0].CallCharMethod(j_env, j_object, retmeth))
 
     if r[0] == '[':
         return convert_jarray_to_python(j_env, r[1:], j_object)
