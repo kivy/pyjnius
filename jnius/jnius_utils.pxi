@@ -91,14 +91,11 @@ cdef void check_assignable_from(JNIEnv *env, JavaClass jc, bytes signature) exce
 
 
 cdef bytes lookup_java_object_name(JNIEnv *j_env, jobject j_obj):
-    from reflect import ensureclass, autoclass
-    ensureclass('java.lang.Object')
-    ensureclass('java.lang.Class')
-    cdef JavaClass obj = autoclass('java.lang.Object')(noinstance=True)
-    obj.instanciate_from(create_local_ref(j_env, j_obj))
-    cls = obj.getClass()
-    name = cls.getName()
-    ensureclass(name)
+    cdef jclass jcls = j_env[0].GetObjectClass(j_env, j_obj)
+    cdef jclass jcls2 = j_env[0].GetObjectClass(j_env, jcls)
+    cdef jmethodID jmeth = j_env[0].GetMethodID(j_env, jcls2, 'getName', '()Ljava/lang/String;')
+    cdef jobject js = j_env[0].CallObjectMethod(j_env, jcls, jmeth)
+    name = convert_jobject_to_python(j_env, b'Ljava/lang/String;', js)
     return name.replace('.', '/')
 
 
@@ -242,6 +239,7 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
 
 
 import functools
+import traceback
 class java_implementation(object):
     def __init__(self, signature):
         super(java_implementation, self).__init__()
@@ -283,6 +281,14 @@ cdef class PythonJavaClass(object):
             self.__javamethods__[(x, signature)] = attr
 
     def invoke(self, method, *args):
+        try:
+            ret = self._invoke(method, *args)
+            return ret
+        except Exception as e:
+            traceback.print_exc(e)
+            return None
+
+    def _invoke(self, method, *args):
         from .reflect import get_signature
         #print 'PythonJavaClass.invoke() called with args:', args
         # search the java method
@@ -292,15 +298,22 @@ cdef class PythonJavaClass(object):
         method_name = method.getName()
 
         key = (method_name, (ret_signature, args_signature))
-        #print 'PythonJavaClass.invoke() want to invoke', key
 
         py_method = self.__javamethods__.get(key, None)
         if not py_method:
-            raise NotImplemented('The method {0} is not implemented'.format(key))
+            print
+            print '===== Python/java method missing ======'
+            print 'Python class:', self
+            print 'Java method name:', method_name
+            print 'Signature: ({}){}'.format(''.join(args_signature), ret_signature)
+            print '======================================='
+            print
+            raise NotImplemented('The method {} is not implemented'.format(key))
 
         return py_method(*args)
 
-cdef jobject invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject j_method, jobjectArray args):
+cdef jobject invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
+        j_method, jobjectArray args) except *:
     from .reflect import get_signature
 
     # get the python object
@@ -314,10 +327,32 @@ cdef jobject invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject j_m
     method = convert_jobject_to_python(j_env, b'Ljava/lang/reflect/Method;', j_method)
     method = convert_jobject_to_python(j_env, b'Ljava/lang/reflect/Method;', j_method)
     ret_signature = get_signature(method.getReturnType())
-    args_signature = ''.join([get_signature(x) for x in method.getParameterTypes()])
+    args_signature = [get_signature(x) for x in method.getParameterTypes()]
 
-    # XX implement java array conversion
+    # convert java argument to python object
+    # native java type are given with java.lang.*, even if the signature say
+    # it's a native type.
+    cdef jobject j_arg
     py_args = []
+    convert_signature = {
+        'Z': 'Ljava/lang/Boolean;',
+        'B': 'Ljava/lang/Byte;',
+        'C': 'Ljava/lang/Character;',
+        'S': 'Ljava/lang/Short;',
+        'I': 'Ljava/lang/Integer;',
+        'J': 'Ljava/lang/Long;',
+        'F': 'Ljava/lang/Float;',
+        'D': 'Ljava/lang/Double;'}
+
+    for index, arg_signature in enumerate(args_signature):
+        print 'convert signature', index, arg_signature
+        arg_signature = convert_signature.get(arg_signature, arg_signature)
+        j_arg = j_env[0].GetObjectArrayElement(j_env, args, index)
+        py_arg = convert_jobject_to_python(j_env, arg_signature, j_arg)
+        py_args.append(py_arg)
+
+    # really invoke the python method
+    print '- python invoke', method.getName(), py_args
     ret = py_obj.invoke(method, *py_args)
 
     # convert back to the return type
@@ -329,20 +364,57 @@ cdef jobject invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject j_m
     cdef jmethodID retmidinit
 
     # did python returned a "native" type ?
+    jtype = None
 
-    tp = type(ret)
-    if tp == int:
-        retclass = j_env[0].FindClass(j_env, 'java/lang/Long')
-        retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(J)V')
-        j_ret[0].j = ret
-    elif tp == float:
-        retclass = j_env[0].FindClass(j_env, 'java/lang/Double')
-        retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(D)V')
-        j_ret[0].d = ret
-    elif tp == bool:
-        retclass = j_env[0].FindClass(j_env, 'java/lang/Boolean')
-        retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(Z)V')
-        j_ret[0].z = 1 if ret else 0
+    if ret_signature == 'Ljava/lang/Object;':
+        # generic object, try to manually convert it
+        tp = type(ret)
+        if tp == int:
+            jtype = 'J'
+        elif tp == float:
+            jtype = 'D'
+        elif tp == bool:
+            jtype = 'Z'
+    elif len(ret_signature) == 1:
+        jtype = ret_signature
+
+    # converting a native type to an Object for returning the value
+    if jtype is not None:
+        if jtype == 'B':
+            retclass = j_env[0].FindClass(j_env, 'java/lang/Byte')
+            retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(B)V')
+            j_ret[0].b = ret
+        elif jtype == 'S':
+            retclass = j_env[0].FindClass(j_env, 'java/lang/Short')
+            retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(S)V')
+            j_ret[0].s = ret
+        elif jtype == 'I':
+            retclass = j_env[0].FindClass(j_env, 'java/lang/Integer')
+            retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(I)V')
+            j_ret[0].i = ret
+        elif jtype == 'J':
+            retclass = j_env[0].FindClass(j_env, 'java/lang/Long')
+            retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(J)V')
+            j_ret[0].j = ret
+        elif jtype == 'F':
+            retclass = j_env[0].FindClass(j_env, 'java/lang/Float')
+            retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(F)V')
+            j_ret[0].f = ret
+        elif jtype == 'D':
+            retclass = j_env[0].FindClass(j_env, 'java/lang/Double')
+            retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(D)V')
+            j_ret[0].d = ret
+        elif jtype == 'C':
+            retclass = j_env[0].FindClass(j_env, 'java/lang/Char')
+            retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(C)V')
+            j_ret[0].c = ord(ret)
+        elif jtype == 'Z':
+            retclass = j_env[0].FindClass(j_env, 'java/lang/Boolean')
+            retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(Z)V')
+            j_ret[0].z = 1 if ret else 0
+        else:
+            print 'jtype', jtype
+            assert(0)
 
     if retclass != NULL:
         # XXX do we need a globalref or something ?
@@ -416,11 +488,11 @@ def test():
             return repr(self)
 
     class TestImplem(PythonJavaClass):
-        __javainterfaces__ = ['java/util/Collection']
+        __javainterfaces__ = ['java/util/List']
 
         def __init__(self, *args):
             super(TestImplem, self).__init__()
-            self.data = args
+            self.data = list(args)
 
         @java_implementation('()Ljava/util/Iterator;')
         def iterator(self):
@@ -431,8 +503,26 @@ def test():
         def toString(self):
             return repr(self)
 
+        @java_implementation('()I')
+        def size(self):
+            return len(self.data)
+
+        @java_implementation('(I)Ljava/lang/Object;')
+        def get(self, index):
+            return self.data[index]
+
+        @java_implementation('(ILjava/lang/Object;)Ljava/lang/Object;')
+        def set(self, index, obj):
+            old_object = self.data[index]
+            self.data[index] = obj
+            return old_object
+
+        @java_implementation('()[Ljava/lang/Object;')
+        def toArray(self):
+            return self.data
+
     print '2: instanciate the class, with some data'
-    a = TestImplem(129387, 98, 9879)
+    a = TestImplem(1, 2, 3)
     print a
     print dir(a)
 
@@ -445,7 +535,10 @@ def test():
     #print Collections.enumeration(a)
     ret = Collections.max(a)
     print 'MAX returned', ret
-    #print Collections.shuffle(a)
+
+    print 'Order of data before shuffle()', a.data
+    print Collections.shuffle(a)
+    print 'Order of data after shuffle()', a.data
 
 
     # XXX We have issues for methosd with multiple signature

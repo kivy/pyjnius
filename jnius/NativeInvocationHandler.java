@@ -22,12 +22,23 @@ public class NativeInvocationHandler implements InvocationHandler {
 		System.out.print(", ");
 		System.out.print(args);
 		System.out.println(")");
-		System.out.println(method.getName());
-		System.out.println(method.getParameterTypes());
-		System.out.print("+ java:call native invoke0() >>>");
+		/**
+		if ( args != null ) {
+			for ( int i = 0; i < args.length; i++ ) {
+				System.out.print("  - arg");
+				System.out.print(i);
+				System.out.print(",");
+				System.out.print(args[i].getClass());
+				System.out.print(": ");
+				System.out.println(args[i]);
+			}
+		}
+		**/
+		//System.out.println(method.getParameterTypes());
+		//System.out.print("+ java:call native invoke0() >>>");
 		Object ret = invoke0(proxy, method, args);
-		System.out.println("+ java:call native invoke0() <<<");
-		System.out.print("+ java:invoke returned ");
+		//System.out.println("+ java:call native invoke0() <<<");
+		System.out.print("+ java:invoke returned: ");
 		System.out.println(ret);
 		return ret;
 	}
