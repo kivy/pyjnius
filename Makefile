@@ -1,6 +1,7 @@
 .PHONY: build_ext tests
 
 build_ext:
+	javac jnius/src/org/jnius/NativeInvocationHandler.java
 	python setup.py build_ext --inplace -f
 
 html:
@@ -14,7 +15,3 @@ tests: build_ext
 	cd tests && javac org/jnius/InterfaceWithPublicEnum.java
 	cd tests && javac org/jnius/ClassArgument.java
 	cd tests && env PYTHONPATH=..:$(PYTHONPATH) nosetests-2.7 -v
-
-testimpl: build_ext
-	javac jnius/NativeInvocationHandler.java
-	python -c 'import jnius.jnius; jnius.jnius.test()'

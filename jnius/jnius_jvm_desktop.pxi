@@ -20,18 +20,20 @@ def classpath():
     import platform
     from glob import glob
     from os import environ
-    from os.path import realpath
+    from os.path import realpath, dirname
 
-    if 'CLASSPATH' not in environ:
-        return realpath('.')
-    cp = environ.get('CLASSPATH')
     if platform.system() == 'Windows':
         split_char = ';'
     else:
         split_char = ':'
+
+    paths = [realpath('.'), dirname(__file__) + '/src/org/', ]
+    if 'CLASSPATH' not in environ:
+        return split_char.join(paths)
+
+    cp = environ.get('CLASSPATH')
     pre_paths = cp.split(split_char)
     # deal with wildcards
-    paths = []
     for path in pre_paths:
         if not path.endswith('*'):
             paths.append(path)
@@ -40,7 +42,6 @@ def classpath():
             paths.extend(glob(path + '.JAR'))
     result = split_char.join(paths)
     return result
-
 
 cdef void create_jnienv():
     cdef JavaVM* jvm
