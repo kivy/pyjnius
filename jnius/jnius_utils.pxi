@@ -508,6 +508,10 @@ def test():
     print Collections.reverse(a)
     print a.data
 
+    print "reverse"
+    print Collections.reverse(a)
+    print a.data
+
     print "before swap"
     print Collections.swap(a, 2, 3)
     print "after swap"
