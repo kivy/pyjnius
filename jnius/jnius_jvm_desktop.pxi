@@ -20,19 +20,19 @@ def classpath():
     import platform
     from glob import glob
     from os import environ
-    from os.path import realpath, dirname
+    from os.path import realpath, dirname, join
 
     if platform.system() == 'Windows':
         split_char = ';'
     else:
         split_char = ':'
 
-    paths = [realpath('.'), dirname(__file__) + '/src/org/', ]
+    paths = [realpath('.'), join(dirname(__file__), 'src', 'org'), ]
     if 'CLASSPATH' not in environ:
         return split_char.join(paths)
 
     cp = environ.get('CLASSPATH')
-    pre_paths = cp.split(split_char)
+    pre_paths = paths + cp.split(split_char)
     # deal with wildcards
     for path in pre_paths:
         if not path.endswith('*'):
