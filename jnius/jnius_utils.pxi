@@ -1,22 +1,3 @@
-cdef extern from "stdarg.h":
-    ctypedef struct va_list:
-        pass
-    ctypedef struct fake_type:
-        pass
-    void va_start(va_list, void* arg)
-    void* va_arg(va_list, fake_type)
-    void va_end(va_list)
-    fake_type bool_type "int"
-    fake_type byte_type "char" # can i really do this?
-    fake_type char_type "char"
-    fake_type int_type "int"
-    fake_type short_type "short"
-    fake_type long_type "long"
-    fake_type float_type "float"
-    fake_type double_type "double"
-    fake_type pointer_type "void*"
-
-
 cdef parse_definition(definition):
     # not a function, just a field
     if definition[0] != '(':
@@ -241,15 +222,17 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
 import functools
 import traceback
 class java_implementation(object):
-    def __init__(self, signature):
+    def __init__(self, signature, name=None):
         super(java_implementation, self).__init__()
         self.signature = signature
+        self.name = name
 
     def __get__(self, instance, instancetype):
         return functools.partial(self.__call__, instance)
 
     def __call__(self, f):
         f.__javasignature__ = self.signature
+        f.__javaname__ = self.name
         return f
 
 cdef class PythonJavaClass(object):
@@ -278,7 +261,7 @@ cdef class PythonJavaClass(object):
             if not hasattr(attr, '__javasignature__'):
                 continue
             signature = parse_definition(attr.__javasignature__)
-            self.__javamethods__[(x, signature)] = attr
+            self.__javamethods__[(attr.__javaname__ or x, signature)] = attr
 
     def invoke(self, method, *args):
         try:
@@ -420,12 +403,14 @@ def test():
     print '1: declare a TestImplem that implement Collection'
 
     class TestImplemIterator(PythonJavaClass):
-        __javainterfaces__ = ['java/util/Iterator']
+        __javainterfaces__ = [
+            #'java/util/Iterator',
+            'java/util/ListIterator',]
 
-        def __init__(self, collection):
+        def __init__(self, collection, index=0):
             super(TestImplemIterator, self).__init__()
             self.collection = collection
-            self.index = 0
+            self.index = index
 
         @java_implementation('()Z')
         def hasNext(self):
@@ -436,6 +421,21 @@ def test():
             obj = self.collection.data[self.index]
             self.index += 1
             return obj
+
+        @java_implementation('()Z')
+        def hasPrevious(self):
+            return self.index >= 0
+
+        @java_implementation('()Ljava/lang/Object;')
+        def previous(self):
+            self.index -= 1
+            obj = self.collection.data[self.index]
+            print "previous called", obj
+            return obj
+
+        @java_implementation('()I')
+        def previousIndex(self):
+            return self.index - 1
 
         @java_implementation('()Ljava/lang/String;')
         def toString(self):
@@ -475,6 +475,18 @@ def test():
         def toArray(self):
             return self.data
 
+        @java_implementation('()Ljava/util/ListIterator;')
+        def listIterator(self):
+            it = TestImplemIterator(self)
+            return it
+
+        @java_implementation('(I)Ljava/util/ListIterator;',
+                name='ListIterator')
+        def listIteratorI(self, index):
+            it = TestImplemIterator(self, index)
+            return it
+
+
     print '2: instanciate the class, with some data'
     a = TestImplem(*range(10))
     print a
@@ -489,6 +501,21 @@ def test():
     #print Collections.enumeration(a)
     ret = Collections.max(a)
     print 'MAX returned', ret
+
+    # the first one of the following methods will work, witchever it is
+    # the next ones will fail
+    print "reverse"
+    print Collections.reverse(a)
+    print a.data
+
+    print "before swap"
+    print Collections.swap(a, 2, 3)
+    print "after swap"
+    print a.data
+
+    print "rotate"
+    print Collections.rotate(a, 5)
+    print a.data
 
     print 'Order of data before shuffle()', a.data
     print Collections.shuffle(a)
