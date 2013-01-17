@@ -42,12 +42,20 @@ class TestImplemIterator(PythonJavaClass):
     def toString(self):
         return repr(self)
 
+    @java_implementation('(I)Ljava/lang/Object;')
+    def get(self, index):
+        return self.collection.data[index]
+
+    @java_implementation('(Ljava/lang/Object;)V')
+    def set(self, index, obj):
+        self.data[index] = obj
+
 
 class TestImplem(PythonJavaClass):
     __javainterfaces__ = ['java/util/List']
 
     def __init__(self, *args):
-        super(TestImplem, self).__init__()
+        super(TestImplem, self).__init__(*args)
         self.data = list(args)
 
     @java_implementation('()Ljava/util/Iterator;')
@@ -103,13 +111,6 @@ Collections = autoclass('java.util.Collections')
 #print Collections.enumeration(a)
 #print Collections.enumeration(a)
 ret = Collections.max(a)
-print 'MAX returned', ret
-
-# the first one of the following methods will work, witchever it is
-# the next ones will fail
-print "reverse"
-print Collections.reverse(a)
-print a.data
 
 print "reverse"
 print Collections.reverse(a)
@@ -123,6 +124,10 @@ print a.data
 print "rotate"
 print Collections.rotate(a, 5)
 print a.data
+
+# if this test is commented, the next one fail…
+print 'tries to get a ListIterator'
+print a.listIterator()
 
 print 'Order of data before shuffle()', a.data
 print Collections.shuffle(a)
