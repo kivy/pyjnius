@@ -15,7 +15,8 @@ class TestImplemIterator(PythonJavaClass):
 
     @java_implementation('()Z')
     def hasNext(self):
-        return self.index < len(self.collection.data)
+        print "hasNext", self.index
+        return self.index < len(self.collection.data) - 1
 
     @java_implementation('()Ljava/lang/Object;')
     def next(self):
@@ -47,8 +48,9 @@ class TestImplemIterator(PythonJavaClass):
         return self.collection.data[index]
 
     @java_implementation('(Ljava/lang/Object;)V')
-    def set(self, index, obj):
-        self.data[index] = obj
+    def set(self, obj):
+        print self.index, len(self.collection.data)
+        self.collection.data[self.index] = obj
 
 
 class TestImplem(PythonJavaClass):
@@ -125,7 +127,7 @@ print "rotate"
 print Collections.rotate(a, 5)
 print a.data
 
-# if this test is commented, the next one fail…
+# if this test is commented, the next one fail.
 print 'tries to get a ListIterator'
 print a.listIterator()
 
