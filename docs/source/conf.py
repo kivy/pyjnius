@@ -40,8 +40,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Pyjnius'
-copyright = u'2012, Mathieu Virbel, Gabriel Pettier'
+project = 'Pyjnius'
+copyright = '2012, Mathieu Virbel, Gabriel Pettier'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -183,8 +183,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'Pyjnius.tex', u'Pyjnius Documentation',
-   u'Mathieu Virbel, Gabriel Pettier', 'manual'),
+  ('index', 'Pyjnius.tex', 'Pyjnius Documentation',
+   'Mathieu Virbel, Gabriel Pettier', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -213,8 +213,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'pyjnius', u'Pyjnius Documentation',
-     [u'Mathieu Virbel, Gabriel Pettier'], 1)
+    ('index', 'pyjnius', 'Pyjnius Documentation',
+     ['Mathieu Virbel, Gabriel Pettier'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -227,8 +227,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'Pyjnius', u'Pyjnius Documentation',
-   u'Mathieu Virbel, Gabriel Pettier', 'Pyjnius', 'One line description of project.',
+  ('index', 'Pyjnius', 'Pyjnius Documentation',
+   'Mathieu Virbel, Gabriel Pettier', 'Pyjnius', 'One line description of project.',
    'Miscellaneous'),
 ]
 
