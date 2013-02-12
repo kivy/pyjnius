@@ -28,6 +28,9 @@ cdef dict jclass_register = {}
 
 class MetaJavaClass(type):
     def __new__(meta, classname, bases, classDict):
+        if classname == 'ClassBase':
+            return type.__new__(meta, classname, bases, classDict)
+
         meta.resolve_class(classDict)
         tp = type.__new__(meta, classname, bases, classDict)
         jclass_register[classDict['__javaclass__']] = tp

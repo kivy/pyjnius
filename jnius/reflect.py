@@ -1,12 +1,75 @@
 __all__ = ('autoclass', 'ensureclass')
-import sys
 
 from jnius import JavaClass, MetaJavaClass, JavaMethod, JavaStaticMethod, \
         JavaField, JavaStaticField, JavaMultipleMethod, find_javaclass
-if sys.version_info < (3, 0):
-    from .reflect2 import Class, Object, Modifier, Method, Field, Constructor
-else:
-    from .reflect3 import Class, Object, Modifier, Method, Field, Constructor
+
+
+# Workaround for the new metaclass syntax in Python 3
+ClassBase = MetaJavaClass('ClassBase', (JavaClass, ), {})
+
+
+class Class(ClassBase):
+    __javaclass__ = 'java/lang/Class'
+
+    forName = JavaStaticMethod('(Ljava/lang/String;)Ljava/lang/Class;')
+    getConstructors = JavaMethod('()[Ljava/lang/reflect/Constructor;')
+    getMethods = JavaMethod('()[Ljava/lang/reflect/Method;')
+    getFields = JavaMethod('()[Ljava/lang/reflect/Field;')
+    getDeclaredMethods = JavaMethod('()[Ljava/lang/reflect/Method;')
+    getDeclaredFields = JavaMethod('()[Ljava/lang/reflect/Field;')
+    getName = JavaMethod('()Ljava/lang/String;')
+
+
+class Object(ClassBase):
+    __javaclass__ = 'java/lang/Object'
+
+    getClass = JavaMethod('()Ljava/lang/Class;')
+
+
+class Modifier(ClassBase):
+    __javaclass__ = 'java/lang/reflect/Modifier'
+
+    isAbstract = JavaStaticMethod('(I)Z')
+    isFinal = JavaStaticMethod('(I)Z')
+    isInterface = JavaStaticMethod('(I)Z')
+    isNative = JavaStaticMethod('(I)Z')
+    isPrivate = JavaStaticMethod('(I)Z')
+    isProtected = JavaStaticMethod('(I)Z')
+    isPublic = JavaStaticMethod('(I)Z')
+    isStatic = JavaStaticMethod('(I)Z')
+    isStrict = JavaStaticMethod('(I)Z')
+    isSynchronized = JavaStaticMethod('(I)Z')
+    isTransient = JavaStaticMethod('(I)Z')
+    isVolatile = JavaStaticMethod('(I)Z')
+
+
+class Method(ClassBase):
+    __javaclass__ = 'java/lang/reflect/Method'
+
+    getName = JavaMethod('()Ljava/lang/String;')
+    toString = JavaMethod('()Ljava/lang/String;')
+    getParameterTypes = JavaMethod('()[Ljava/lang/Class;')
+    getReturnType = JavaMethod('()Ljava/lang/Class;')
+    getModifiers = JavaMethod('()I')
+    isVarArgs = JavaMethod('()Z')
+
+
+class Field(ClassBase):
+    __javaclass__ = 'java/lang/reflect/Field'
+
+    getName = JavaMethod('()Ljava/lang/String;')
+    toString = JavaMethod('()Ljava/lang/String;')
+    getType = JavaMethod('()Ljava/lang/Class;')
+    getModifiers = JavaMethod('()I')
+
+
+class Constructor(ClassBase):
+    __javaclass__ = 'java/lang/reflect/Constructor'
+
+    toString = JavaMethod('()Ljava/lang/String;')
+    getParameterTypes = JavaMethod('()[Ljava/lang/Class;')
+    getModifiers = JavaMethod('()I')
+    isVarArgs = JavaMethod('()Z')
 
 
 def get_signature(cls_tp):
