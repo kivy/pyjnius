@@ -40,7 +40,7 @@ def classpath():
             paths.extend(glob(path + '.JAR'))
     result = split_char.join(paths)
     return result
-    
+
 
 cdef void create_jnienv():
     cdef JavaVM* jvm
@@ -49,7 +49,7 @@ cdef void create_jnienv():
     cdef bytes py_bytes
 
     cp = classpath()
-    py_bytes = <bytes>('-Djava.class.path={0}'.format(cp))
+    py_bytes = <bytes>('-Djava.class.path={0}'.format(cp).encode())
     options[0].optionString = py_bytes
     options[0].extraInfo = NULL
 

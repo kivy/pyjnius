@@ -1,5 +1,5 @@
 
-cdef parse_definition(definition):
+cdef parse_definition(str definition):
     # not a function, just a field
     if definition[0] != '(':
         return definition, None
@@ -41,7 +41,7 @@ cdef void check_exception(JNIEnv *j_env) except *:
 
 
 cdef dict assignable_from = {}
-cdef void check_assignable_from(JNIEnv *env, JavaClass jc, bytes signature) except *:
+cdef void check_assignable_from(JNIEnv *env, JavaClass jc, str signature) except *:
     cdef jclass cls
 
     # if we have a JavaObject, it's always ok.
@@ -58,7 +58,7 @@ cdef void check_assignable_from(JNIEnv *env, JavaClass jc, bytes signature) exce
 
         # we got an object that doesn't match with the signature
         # check if we can use it.
-        cls = env[0].FindClass(env, signature)
+        cls = env[0].FindClass(env, <bytes>signature.encode())
         if cls == NULL:
             raise JavaException('Unable to found the class for {0!r}'.format(
                 signature))
@@ -73,8 +73,8 @@ cdef void check_assignable_from(JNIEnv *env, JavaClass jc, bytes signature) exce
             jc.__javaclass__, signature))
 
 
-cdef bytes lookup_java_object_name(JNIEnv *j_env, jobject j_obj):
-    from reflect import ensureclass, autoclass
+cdef str lookup_java_object_name(JNIEnv *j_env, jobject j_obj):
+    from .reflect import ensureclass, autoclass
     ensureclass('java.lang.Object')
     ensureclass('java.lang.Class')
     cdef JavaClass obj = autoclass('java.lang.Object')(noinstance=True)
@@ -88,7 +88,7 @@ cdef bytes lookup_java_object_name(JNIEnv *j_env, jobject j_obj):
 cdef int calculate_score(sign_args, args, is_varargs=False) except *:
     cdef int index
     cdef int score = 0
-    cdef bytes r
+    cdef str r
     cdef JavaClass jc
 
     if len(args) != len(sign_args) and not is_varargs:
@@ -159,7 +159,7 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
                 continue
 
             # if it's a string, accept any python string
-            if r == 'java/lang/String' and isinstance(arg, basestring):
+            if r == 'java/lang/String' and isinstance(arg, str):
                 score += 10
                 continue
 
@@ -169,7 +169,7 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
                 if isinstance(arg, JavaClass) or isinstance(arg, JavaObject):
                     score += 10
                     continue
-                elif isinstance(arg, basestring):
+                elif isinstance(arg, str):
                     score += 5
                     continue
                 return -1

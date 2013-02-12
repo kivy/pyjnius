@@ -34,7 +34,7 @@ try:
 except ImportError:
     from distutils.command.build_ext import build_ext
     if platform != 'android':
-        print '\n\nYou need Cython to compile Pyjnius.\n\n'
+        print('\n\nYou need Cython to compile Pyjnius.\n\n')
         raise
     files = [fn[:-3] + 'c' for fn in files if fn.endswith('pyx')]
 
@@ -55,17 +55,19 @@ else:
     jdk_home = environ.get('JDK_HOME')
     if not jdk_home:
         jdk_home = subprocess.Popen('readlink -f /usr/bin/javac | sed "s:bin/javac::"',
-                shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+                shell=True, universal_newlines=True,
+                stdout=subprocess.PIPE).communicate()[0].strip()
     if not jdk_home:
         raise Exception('Unable to determine JDK_HOME')
 
     jre_home = environ.get('JRE_HOME')
     if not jre_home:
         jre_home = subprocess.Popen('readlink -f /usr/bin/java | sed "s:bin/java::"',
-                shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+                shell=True, universal_newlines=True,
+                stdout=subprocess.PIPE).communicate()[0].strip()
     if not jre_home:
         raise Exception('Unable to determine JRE_HOME')
-    cpu = 'i386' if sys.maxint == 2147483647 else 'amd64'
+    cpu = 'i386' if sys.maxsize == 2147483647 else 'amd64'
     include_dirs = [
             join(jdk_home, 'include'),
             join(jdk_home, 'include', 'linux')]
