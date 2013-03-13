@@ -273,7 +273,6 @@ cdef class PythonJavaClass(object):
 
     def _invoke(self, method, *args):
         from .reflect import get_signature
-        #print 'PythonJavaClass.invoke() called with args:', args
         # search the java method
 
         ret_signature = get_signature(method.getReturnType())
@@ -284,13 +283,12 @@ cdef class PythonJavaClass(object):
 
         py_method = self.__javamethods__.get(key, None)
         if not py_method:
-            print
-            print '===== Python/java method missing ======'
-            print 'Python class:', self
-            print 'Java method name:', method_name
-            print 'Signature: ({}){}'.format(''.join(args_signature), ret_signature)
-            print '======================================='
-            print
+            print(''.join(
+                '\n===== Python/java method missing ======',
+                '\nPython class:', self,
+                '\nJava method name:', method_name,
+                '\nSignature: ({}){}'.format(''.join(args_signature), ret_signature),
+                '\n=======================================\n'))
             raise NotImplemented('The method {} is not implemented'.format(key))
 
         return py_method(*args)
@@ -306,9 +304,10 @@ cdef jobject invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
     cdef object py_obj = <object>jptr
 
     # extract the method information
-    # FIXME: only one call is not working sometimes ????+??????O?O??O?O
-    method = convert_jobject_to_python(j_env, b'Ljava/lang/reflect/Method;', j_method)
-    method = convert_jobject_to_python(j_env, b'Ljava/lang/reflect/Method;', j_method)
+    from .reflect import Method
+    cdef JavaClass method = Method(noinstance=True)
+    cdef LocalRef ref = create_local_ref(j_env, j_method)
+    method.instanciate_from(create_local_ref(j_env, j_method))
     ret_signature = get_signature(method.getReturnType())
     args_signature = [get_signature(x) for x in method.getParameterTypes()]
 
@@ -328,14 +327,13 @@ cdef jobject invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
         'D': 'Ljava/lang/Double;'}
 
     for index, arg_signature in enumerate(args_signature):
-        print 'convert signature', index, arg_signature
         arg_signature = convert_signature.get(arg_signature, arg_signature)
         j_arg = j_env[0].GetObjectArrayElement(j_env, args, index)
         py_arg = convert_jobject_to_python(j_env, arg_signature, j_arg)
         py_args.append(py_arg)
 
     # really invoke the python method
-    print '- python invoke', method.getName(), py_args
+    name = method.getName()
     ret = py_obj.invoke(method, *py_args)
 
     # convert back to the return type

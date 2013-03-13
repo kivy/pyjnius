@@ -264,8 +264,6 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
     cdef PythonJavaClass pc
     cdef int index
 
-    print 'convert_python_to_jobject()', definition, repr(obj)
-
     if definition[0] == 'L':
         if obj is None:
             return NULL

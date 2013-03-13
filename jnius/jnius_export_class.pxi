@@ -225,9 +225,7 @@ cdef class JavaClass(object):
                 raise JavaException('Unable to instanciate {0}'.format(
                     self.__javaclass__))
 
-            self.j_self = LocalRef()
-            self.j_self.env = self.j_env
-            self.j_self.obj = j_self
+            self.j_self = create_local_ref(self.j_env, j_self)
         finally:
             if j_args != NULL:
                 free(j_args)
