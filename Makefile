@@ -2,7 +2,7 @@
 
 build_ext:
 	javac jnius/src/org/jnius/NativeInvocationHandler.java
-	python setup.py build_ext --inplace -f
+	python setup.py build_ext --inplace -f -g
 
 html:
 	$(MAKE) -C docs html
