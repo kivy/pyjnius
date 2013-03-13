@@ -16,7 +16,7 @@ Reflection classes
     add few :class:`JavaMethod`, :class:`JavaStaticMethod`, :class:`JavaField`,
     :class:`JavaStaticField`, and you're done.
 
-    You need to define at minimun the :data:`__javaclass__` attribute, and set
+    You need to define at minimum the :data:`__javaclass__` attribute, and set
     the :data:`__metaclass__` to :class:`MetaJavaClass`.
 
     So the minimum class definition would look like::
@@ -168,4 +168,142 @@ Reflection functions
     >>> from jnius import autoclass
     >>> autoclass('java.lang.System')
     <class 'jnius.java.lang.System'>
+
+
+Java class implementation in Python
+-----------------------------------
+
+.. class:: PythonJavaClass
+
+    Base for creating a Java class from a Python class. This allow to implement
+    java interface completely in Python.
+    
+    In reality, you'll create a Python class that mimic the list of declared
+    :data:`__javainterfaces__`. When you'll give an instance of this class to
+    Java, Java will just accept it and call the interfaces methods as declared.
+    Under the hood, we are catching the call, and redirecting to use your
+    declared Python method.
+
+    Your class will act as a Proxy to the Java interfaces.
+
+    You need to define at minimum the :data:`__javainterfaces__` attribute, and
+    declare java methods with the :func:`java_method` decorator.
+
+    .. note::
+
+        Static methods and static fields are not supported
+
+    For example, you could implement the `java/util/ListIterator` interface in
+    Python like that::
+
+        from jnius import PythonJavaClass, java_method
+
+        class PythonListIterator(PythonJavaClass):
+            __javainterfaces__ = ['java/util/ListIterator']
+            
+            def __init__(self, collection, index=0):
+                super(TestImplemIterator, self).__init__()
+                self.collection = collection
+                self.index = index
+
+            @java_method('()Z')
+            def hasNext(self):
+                return self.index < len(self.collection.data) - 1
+
+            @java_method('()Ljava/lang/Object;')
+            def next(self):
+                obj = self.collection.data[self.index]
+                self.index += 1
+                return obj
+
+            # etc...
+
+    .. attribute:: __javainterfaces__
+
+        List of the Java interfaces you want to proxify, in the format
+        'org/lang/Class'. (eg: 'java/util/Iterator'), not 'org.lang.Class'.
+
+.. function:: java_method(java_signature, name=None)
+
+    Decoration function to use with :class:`PythonJavaClass`. The
+    `java_signature` must match the wanted signature of the interface. The
+    `name` of the method will be the name of the Python method by default. You
+    can still force it, in case of multiple signature with the same Java method
+    name.
+    
+    For example::
+
+        class PythonListIterator(PythonJavaClass):
+            __javainterfaces__ = ['java/util/ListIterator']
+            
+            @java_method('()Ljava/lang/Object;')
+            def next(self):
+                obj = self.collection.data[self.index]
+                self.index += 1
+                return obj
+
+    Another example with the same Java method name, but 2 differents signatures::
+    
+        class TestImplem(PythonJavaClass):
+            __javainterfaces__ = ['java/util/List']
+
+            @java_method('()Ljava/util/ListIterator;')
+            def listIterator(self):
+                return PythonListIterator(self)
+
+            @java_method('(I)Ljava/util/ListIterator;',
+                                 name='ListIterator')
+            def listIteratorWithIndex(self, index):
+                return PythonListIterator(self, index)
+
+Java signature format
+---------------------
+
+Java signatures have a special format that could be difficult to understand at
+first. Let's see in details. A signature is in the format::
+
+    (<argument1><argument2><...>)<return type>
+
+All the types for any part of the signature can be one of:
+
+* L<java class>; = represent a Java object of the type <java class>
+* Z = represent a java/lang/Boolean;
+* B = represent a java/lang/Byte;
+* C = represent a java/lang/Character;
+* S = represent a java/lang/Short;
+* I = represent a java/lang/Integer;
+* J = represent a java/lang/Long;
+* F = represent a java/lang/Float;
+* D = represent a java/lang/Double;
+* V = represent void, available only for the return type
+
+All the types can have the `[]` suffix to design an array. The return type can be `V` or empty.
+
+A signature like::
+
+    (ILjava/util/List;)V
+    -> argument 1 is an integer
+    -> argument 2 is a java.util.List object
+    -> the method doesn't return anything.
+
+    (java.util.Collection, java.lang.Object[]);
+    -> argument 1 is a Collection
+    -> argument 2 is an array of Object
+    -> nothing is returned
+    
+
+When you implement Java in Python, the signature of the Java method must match.
+Java provide a tool named `javap` to get the signature of any java class. For
+example::
+
+    $ javap -s java.util.Iterator
+    Compiled from "Iterator.java"
+    public interface java.util.Iterator{
+    public abstract boolean hasNext();
+      Signature: ()Z
+    public abstract java.lang.Object next();
+      Signature: ()Ljava/lang/Object;
+    public abstract void remove();
+      Signature: ()V
+    }
 
