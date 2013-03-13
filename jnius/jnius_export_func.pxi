@@ -11,7 +11,7 @@ def cast(destclass, obj):
     return jc
 
 def find_javaclass(bytes name):
-    from reflect import Class
+    from .reflect import Class
     cdef JavaClass cls
     cdef jclass jc
     cdef JNIEnv *j_env = get_jnienv()

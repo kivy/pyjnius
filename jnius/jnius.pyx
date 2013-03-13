@@ -87,9 +87,11 @@ Python::
 
 __all__ = ('JavaObject', 'JavaClass', 'JavaMethod', 'JavaField',
            'MetaJavaClass', 'JavaException', 'cast', 'find_javaclass',
-           'PythonJavaClass', 'java_implementation')
+           'PythonJavaClass', 'java_method')
 
 from libc.stdlib cimport malloc, free
+from functools import partial
+import traceback
 
 include "jni.pxi"
 include "config.pxi"
@@ -105,3 +107,5 @@ include "jnius_localref.pxi"
 
 include "jnius_export_func.pxi"
 include "jnius_export_class.pxi"
+
+include "jnius_proxy.pxi"
