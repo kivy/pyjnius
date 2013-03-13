@@ -15,7 +15,6 @@ class TestImplemIterator(PythonJavaClass):
 
     @java_implementation('()Z')
     def hasNext(self):
-        print "hasNext", self.index
         return self.index < len(self.collection.data) - 1
 
     @java_implementation('()Ljava/lang/Object;')
@@ -32,7 +31,6 @@ class TestImplemIterator(PythonJavaClass):
     def previous(self):
         self.index -= 1
         obj = self.collection.data[self.index]
-        print "previous called", obj
         return obj
 
     @java_implementation('()I')
@@ -45,12 +43,11 @@ class TestImplemIterator(PythonJavaClass):
 
     @java_implementation('(I)Ljava/lang/Object;')
     def get(self, index):
-        return self.collection.data[index]
+        return self.collection.data[index - 1]
 
     @java_implementation('(Ljava/lang/Object;)V')
     def set(self, obj):
-        print self.index, len(self.collection.data)
-        self.collection.data[self.index] = obj
+        self.collection.data[self.index - 1] = obj
 
 
 class TestImplem(PythonJavaClass):
@@ -104,6 +101,12 @@ a = TestImplem(*range(10))
 print a
 print dir(a)
 
+print 'tries to get a ListIterator'
+iterator = a.listIterator()
+print 'iterator is', iterator
+while iterator.hasNext():
+    print 'at index', iterator.index, 'value is', iterator.next()
+
 print '3: Do cast to a collection'
 a2 = cast('java/util/Collection', a.j_self)
 print a2
@@ -127,19 +130,13 @@ print "rotate"
 print Collections.rotate(a, 5)
 print a.data
 
-# if this test is commented, the next one fail.
-print 'tries to get a ListIterator'
-print a.listIterator()
-
 print 'Order of data before shuffle()', a.data
 print Collections.shuffle(a)
 print 'Order of data after shuffle()', a.data
 
 
 # XXX We have issues for methosd with multiple signature
-#print '-> Collections.max(a)'
-#print Collections.max(a2)
-#print '-> Collections.max(a)'
-#print Collections.max(a2)
-#print '-> Collections.shuffle(a)'
-#print Collections.shuffle(a2)
+print '-> Collections.max(a)'
+print Collections.max(a2)
+print '-> Collections.shuffle(a)'
+print Collections.shuffle(a2)
