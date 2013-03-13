@@ -1,8 +1,9 @@
 *.pyo
 *.pyc
-jnius/*.c
+jnius/jnius.c
+jnius/config.pxi
+jnius/jnius.so
 build
-jnius.so
 .*.swp
 *.class
 .idea
