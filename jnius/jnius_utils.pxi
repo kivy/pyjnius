@@ -355,11 +355,8 @@ cdef jobject invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
     elif len(ret_signature) == 1:
         jtype = ret_signature
 
-    cdef jobject jret
-
     try:
-        jret = convert_python_to_jobject(j_env, jtype or ret_signature, ret)
-        return jret
+        return convert_python_to_jobject(j_env, jtype or ret_signature, ret)
     except Exception as e:
         traceback.print_exc(e)
 
