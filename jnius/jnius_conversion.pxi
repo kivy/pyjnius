@@ -47,9 +47,6 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                     argtype in ('Ljava/lang/String;', 'Ljava/lang/Object;'):
                 j_args[index].l = j_env[0].NewStringUTF(
                         j_env, <char *><bytes>py_arg)
-            elif isinstance(py_arg, type):
-                jc = py_arg
-                j_args[index].l = jc.j_cls
             elif isinstance(py_arg, JavaClass):
                 jc = py_arg
                 check_assignable_from(j_env, jc, argtype[1:-1])
@@ -67,6 +64,9 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                 jc = pc.j_self
                 # get the localref
                 j_args[index].l = jc.j_self.obj
+            elif isinstance(py_arg, type):
+                jc = py_arg
+                j_args[index].l = jc.j_cls
             elif isinstance(py_arg, (tuple, list)):
                 j_args[index].l = convert_pyarray_to_java(j_env, argtype, py_arg)
             else:
