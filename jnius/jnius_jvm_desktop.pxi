@@ -27,7 +27,7 @@ def classpath():
     else:
         split_char = ':'
 
-    paths = [realpath('.'), join(dirname(__file__), 'src', 'org'), ]
+    paths = [realpath('.'), join(dirname(__file__), 'src'), ]
     if 'CLASSPATH' not in environ:
         return split_char.join(paths)
 

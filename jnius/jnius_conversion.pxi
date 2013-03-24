@@ -145,8 +145,15 @@ cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object
         return convert_jarray_to_python(j_env, r[1:], j_object)
 
     if r not in jclass_register:
-        from reflect import autoclass
-        ret_jc = autoclass(r.replace('/', '.'))(noinstance=True)
+        if r.startswith('$Proxy'):
+            # only for $Proxy on android, don't use autoclass. The dalvik vm is
+            # not able to give us introspection on that one (FindClass return
+            # NULL).
+            from .reflect import Object
+            ret_jc = Object(noinstance=True)
+        else:
+            from reflect import autoclass
+            ret_jc = autoclass(r.replace('/', '.'))(noinstance=True)
     else:
         ret_jc = jclass_register[r](noinstance=True)
     ret_jc.instanciate_from(create_local_ref(j_env, j_object))
@@ -339,7 +346,7 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
     elif definition == 'I':
         retclass = j_env[0].FindClass(j_env, 'java/lang/Integer')
         retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(I)V')
-        j_ret[0].i = obj
+        j_ret[0].i = int(obj)
     elif definition == 'J':
         retclass = j_env[0].FindClass(j_env, 'java/lang/Long')
         retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(J)V')

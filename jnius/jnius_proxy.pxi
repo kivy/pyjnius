@@ -61,18 +61,18 @@ cdef class PythonJavaClass(object):
 
         py_method = self.__javamethods__.get(key, None)
         if not py_method:
-            print(''.join(
+            print(''.join([
                 '\n===== Python/java method missing ======',
-                '\nPython class:', self,
+                '\nPython class:', repr(self),
                 '\nJava method name:', method_name,
                 '\nSignature: ({}){}'.format(''.join(args_signature), ret_signature),
-                '\n=======================================\n'))
+                '\n=======================================\n']))
             raise NotImplemented('The method {} is not implemented'.format(key))
 
         return py_method(*args)
 
 cdef jobject invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
-        j_method, jobjectArray args) except *:
+        j_method, jobjectArray args) with gil:
     from .reflect import get_signature, Method
 
     # get the python object
@@ -142,7 +142,7 @@ cdef jobject invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
 cdef create_proxy_instance(JNIEnv *j_env, py_obj, j_interfaces):
     from .reflect import autoclass
     Proxy = autoclass('java.lang.reflect.Proxy')
-    NativeInvocationHandler = autoclass('jnius.NativeInvocationHandler')
+    NativeInvocationHandler = autoclass('org.jnius.NativeInvocationHandler')
     ClassLoader = autoclass('java.lang.ClassLoader')
 
     # convert strings to Class
@@ -156,7 +156,9 @@ cdef create_proxy_instance(JNIEnv *j_env, py_obj, j_interfaces):
     j_env[0].RegisterNatives(j_env, nih.j_cls, <JNINativeMethod *>invoke_methods, 1)
 
     # create the proxy and pass it the invocation handler
+    classLoader = ClassLoader.getSystemClassLoader()
+
     cdef JavaClass j_obj = Proxy.newProxyInstance(
-            ClassLoader.getSystemClassLoader(), j_interfaces, nih)
+            classLoader, j_interfaces, nih)
 
     return j_obj

@@ -1,4 +1,4 @@
-package jnius;
+package org.jnius;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
