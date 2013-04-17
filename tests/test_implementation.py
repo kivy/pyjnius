@@ -1,3 +1,4 @@
+# coding: utf-8
 import unittest
 from jnius.reflect import autoclass
 
@@ -14,3 +15,7 @@ class ImplementationTest(unittest.TestCase):
         System = autoclass('java.lang.System')
         System.out.printf('hi\n')
         System.out.printf('hi %s %s\n', 'jnius', 'other string')
+
+    def test_unicode(self):
+        System = autoclass('java.lang.System')
+        System.out.printf('é'.encode('utf-8'))
