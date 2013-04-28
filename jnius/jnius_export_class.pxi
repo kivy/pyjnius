@@ -88,6 +88,9 @@ class MetaJavaClass(type):
                 raise JavaException('Unable to find the class'
                         ' {0}'.format(__javaclass__))
 
+        # XXX do we need to grab a ref here?
+        # jcs.j_cls = jcs.j_env[0].NewGlobalRef(jcs.j_env, jcs.j_cls)
+
         classDict['__cls_storage'] = jcs
 
         # search all the static JavaMethod within our class, and resolve them
@@ -376,6 +379,7 @@ cdef class JavaField(object):
         elif r == 'L':
             j_object = self.j_env[0].GetObjectField(
                     self.j_env, j_self, self.j_field)
+            check_exception(self.j_env)
             if j_object != NULL:
                 ret = convert_jobject_to_python(
                         self.j_env, self.definition, j_object)
@@ -384,6 +388,7 @@ cdef class JavaField(object):
             r = self.definition[1:]
             j_object = self.j_env[0].GetObjectField(
                     self.j_env, j_self, self.j_field)
+            check_exception(self.j_env)
             if j_object != NULL:
                 ret = convert_jarray_to_python(self.j_env, r, j_object)
                 self.j_env[0].DeleteLocalRef(self.j_env, j_object)
@@ -444,6 +449,7 @@ cdef class JavaField(object):
         elif r == 'L':
             j_object = self.j_env[0].GetStaticObjectField(
                     self.j_env, self.j_cls, self.j_field)
+            check_exception(self.j_env)
             if j_object != NULL:
                 ret = convert_jobject_to_python(
                         self.j_env, self.definition, j_object)
@@ -452,6 +458,7 @@ cdef class JavaField(object):
             r = self.definition[1:]
             j_object = self.j_env[0].GetStaticObjectField(
                     self.j_env, self.j_cls, self.j_field)
+            check_exception(self.j_env)
             if j_object != NULL:
                 ret = convert_jarray_to_python(self.j_env, r, j_object)
                 self.j_env[0].DeleteLocalRef(self.j_env, j_object)
@@ -641,6 +648,7 @@ cdef class JavaMethod(object):
         elif r == 'L':
             j_object = self.j_env[0].CallObjectMethodA(
                     self.j_env, j_self, self.j_method, j_args)
+            check_exception(self.j_env)
             if j_object != NULL:
                 ret = convert_jobject_to_python(
                         self.j_env, self.definition_return, j_object)
@@ -649,6 +657,7 @@ cdef class JavaMethod(object):
             r = self.definition_return[1:]
             j_object = self.j_env[0].CallObjectMethodA(
                     self.j_env, j_self, self.j_method, j_args)
+            check_exception(self.j_env)
             if j_object != NULL:
                 ret = convert_jarray_to_python(self.j_env, r, j_object)
                 self.j_env[0].DeleteLocalRef(self.j_env, j_object)
@@ -716,6 +725,7 @@ cdef class JavaMethod(object):
         elif r == 'L':
             j_object = self.j_env[0].CallStaticObjectMethodA(
                     self.j_env, self.j_cls, self.j_method, j_args)
+            check_exception(self.j_env)
             if j_object != NULL:
                 ret = convert_jobject_to_python(
                         self.j_env, self.definition_return, j_object)
@@ -724,6 +734,7 @@ cdef class JavaMethod(object):
             r = self.definition_return[1:]
             j_object = self.j_env[0].CallStaticObjectMethodA(
                     self.j_env, self.j_cls, self.j_method, j_args)
+            check_exception(self.j_env)
             if j_object != NULL:
                 ret = convert_jarray_to_python(self.j_env, r, j_object)
                 self.j_env[0].DeleteLocalRef(self.j_env, j_object)

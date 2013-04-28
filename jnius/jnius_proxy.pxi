@@ -27,8 +27,11 @@ cdef class PythonJavaClass(object):
         self.j_self = None
 
     def __init__(self, *args, **kwargs):
+        javacontext = 'system'
+        if hasattr(self, '__javacontext__'):
+            javacontext = self.__javacontext__
         self.j_self = create_proxy_instance(self.j_env, self,
-            self.__javainterfaces__)
+            self.__javainterfaces__, javacontext)
 
         # discover all the java method implemented
         self.__javamethods__ = {}
@@ -79,7 +82,7 @@ cdef jobject invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
     cdef jfieldID ptrField = j_env[0].GetFieldID(j_env,
         j_env[0].GetObjectClass(j_env, j_this), "ptr", "J")
     cdef jlong jptr = j_env[0].GetLongField(j_env, j_this, ptrField)
-    cdef object py_obj = <object>jptr
+    cdef object py_obj = <object><void *>jptr
 
     # extract the method information
     cdef JavaClass method = Method(noinstance=True)
@@ -139,11 +142,10 @@ cdef jobject invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
 
 
 # now we need to create a proxy and pass it an invocation handler
-cdef create_proxy_instance(JNIEnv *j_env, py_obj, j_interfaces):
+cdef create_proxy_instance(JNIEnv *j_env, py_obj, j_interfaces, javacontext):
     from .reflect import autoclass
     Proxy = autoclass('java.lang.reflect.Proxy')
     NativeInvocationHandler = autoclass('org.jnius.NativeInvocationHandler')
-    ClassLoader = autoclass('java.lang.ClassLoader')
 
     # convert strings to Class
     j_interfaces = [find_javaclass(x) for x in j_interfaces]
@@ -156,9 +158,22 @@ cdef create_proxy_instance(JNIEnv *j_env, py_obj, j_interfaces):
     j_env[0].RegisterNatives(j_env, nih.j_cls, <JNINativeMethod *>invoke_methods, 1)
 
     # create the proxy and pass it the invocation handler
-    classLoader = ClassLoader.getSystemClassLoader()
+    cdef JavaClass j_obj
+    if javacontext == 'app':
+        Thread = autoclass('java.lang.Thread')
+        classLoader = Thread.currentThread().getContextClassLoader()
+        j_obj = Proxy.newProxyInstance(
+                classLoader, j_interfaces, nih)
 
-    cdef JavaClass j_obj = Proxy.newProxyInstance(
-            classLoader, j_interfaces, nih)
+    elif javacontext == 'system':
+        ClassLoader = autoclass('java.lang.ClassLoader')
+        classLoader = ClassLoader.getSystemClassLoader()
+        j_obj = Proxy.newProxyInstance(
+                classLoader, j_interfaces, nih)
+
+    else:
+        raise Exception(
+                'Invalid __javacontext__ {}, must be app or system.'.format(
+                    javacontext))
 
     return j_obj
