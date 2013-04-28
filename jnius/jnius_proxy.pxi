@@ -79,7 +79,7 @@ cdef jobject invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
     cdef jfieldID ptrField = j_env[0].GetFieldID(j_env,
         j_env[0].GetObjectClass(j_env, j_this), "ptr", "J")
     cdef jlong jptr = j_env[0].GetLongField(j_env, j_this, ptrField)
-    cdef object py_obj = <object>jptr
+    cdef object py_obj = <object><void *>jptr
 
     # extract the method information
     cdef JavaClass method = Method(noinstance=True)
