@@ -17,6 +17,10 @@ cdef class LocalRef:
         self.env = env
         self.obj = env[0].NewGlobalRef(env, obj)
 
+    def __repr__(self):
+        return '<LocalRef obj=0x{:x} at 0x{:x}>'.format(
+            <long><void *>self.obj, id(self))
+
 
 cdef LocalRef create_local_ref(JNIEnv *env, jobject obj):
     cdef LocalRef ret = LocalRef()
