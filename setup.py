@@ -55,7 +55,7 @@ else:
     jdk_home = environ.get('JDK_HOME')
     if not jdk_home:
         jdk_home = subprocess.Popen(
-            'readlink -f /usr/bin/javac | sed "s:bin/javac::"',
+            'readlink -f `which javac` | sed "s:bin/javac::"',
             shell=True,
             stdout=subprocess.PIPE
         ).communicate()[0].strip()
@@ -64,7 +64,7 @@ else:
     jre_home = jdk_home + '/jre'
     if not jre_home:
         jre_home = subprocess.Popen(
-            'readlink -f /usr/bin/java | sed "s:bin/java::"',
+            'readlink -f `which java` | sed "s:bin/java::"',
             shell=True,
             stdout=subprocess.PIPE
         ).communicate()[0].strip()
