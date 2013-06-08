@@ -1,6 +1,6 @@
 from distutils.core import setup, Extension
 from os import environ
-from os.path import dirname, join
+from os.path import dirname, join, exists
 import sys
 
 files = [
@@ -47,21 +47,23 @@ elif platform == 'darwin':
     framework = objc.pathForFramework('JavaVM.framework')
     if not framework:
         raise Exception('You must install Java on your Mac OS X distro')
-    extra_link_args = [ '-framework', 'JavaVM' ]
-    include_dirs = [ join(framework, 'Versions/A/Headers')  ]
+    extra_link_args = ['-framework', 'JavaVM']
+    include_dirs = [join(framework, 'Versions/A/Headers')]
 else:
     import subprocess
     # otherwise, we need to search the JDK_HOME
     jdk_home = environ.get('JDK_HOME')
     if not jdk_home:
-        jdk_home = subprocess.Popen('readlink -f /usr/bin/javac | sed "s:bin/javac::"',
+        jdk_home = subprocess.Popen('readlink -f `which javac` | sed "s:bin/javac::"',
                 shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
     if not jdk_home:
         raise Exception('Unable to determine JDK_HOME')
 
     jre_home = environ.get('JRE_HOME')
+    if exists(join(jdk_home, 'jre')):
+        jre_home = join(jdk_home, 'jre')
     if not jre_home:
-        jre_home = subprocess.Popen('readlink -f /usr/bin/java | sed "s:bin/java::"',
+        jre_home = subprocess.Popen('readlink -f `which java` | sed "s:bin/java::"',
                 shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
     if not jre_home:
         raise Exception('Unable to determine JRE_HOME')
