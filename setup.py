@@ -47,28 +47,34 @@ elif platform == 'darwin':
     framework = objc.pathForFramework('JavaVM.framework')
     if not framework:
         raise Exception('You must install Java on your Mac OS X distro')
-    extra_link_args = [ '-framework', 'JavaVM' ]
-    include_dirs = [ join(framework, 'Versions/A/Headers')  ]
+    extra_link_args = ['-framework', 'JavaVM']
+    include_dirs = [join(framework, 'Versions/A/Headers')]
 else:
     import subprocess
     # otherwise, we need to search the JDK_HOME
     jdk_home = environ.get('JDK_HOME')
     if not jdk_home:
-        jdk_home = subprocess.Popen('readlink -f /usr/bin/javac | sed "s:bin/javac::"',
-                shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+        jdk_home = subprocess.Popen(
+            'readlink -f `which javac` | sed "s:bin/javac::"',
+            shell=True,
+            stdout=subprocess.PIPE
+        ).communicate()[0].strip()
     if not jdk_home:
         raise Exception('Unable to determine JDK_HOME')
-
-    jre_home = environ.get('JRE_HOME')
+    jre_home = jdk_home + '/jre'
     if not jre_home:
-        jre_home = subprocess.Popen('readlink -f /usr/bin/java | sed "s:bin/java::"',
-                shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+        jre_home = subprocess.Popen(
+            'readlink -f `which java` | sed "s:bin/java::"',
+            shell=True,
+            stdout=subprocess.PIPE
+        ).communicate()[0].strip()
     if not jre_home:
         raise Exception('Unable to determine JRE_HOME')
     cpu = 'i386' if sys.maxint == 2147483647 else 'amd64'
     include_dirs = [
-            join(jdk_home, 'include'),
-            join(jdk_home, 'include', 'linux')]
+        join(jdk_home, 'include'),
+        join(jdk_home, 'include', 'linux')
+    ]
     library_dirs = [join(jre_home, 'lib', cpu, 'server')]
     extra_link_args = ['-Wl,-rpath', library_dirs[0]]
     libraries = ['jvm']
@@ -80,6 +86,7 @@ with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
 with open(join('jnius', '__init__.py')) as fd:
     versionline = [x for x in fd.readlines() if x.startswith('__version__')]
     version = versionline[0].split("'")[-2]
+
 
 # create the extension
 setup(name='jnius',
@@ -112,4 +119,5 @@ setup(name='jnius',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
-        'Topic :: Software Development :: Libraries :: Application Frameworks'])
+        'Topic :: Software Development :: Libraries :: Application Frameworks']
+)
