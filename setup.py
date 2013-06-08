@@ -58,8 +58,7 @@ else:
                 shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
     if not jdk_home:
         raise Exception('Unable to determine JDK_HOME')
-
-    jre_home = environ.get('JRE_HOME')
+    jre_home = jdk_home + '/jre'
     if not jre_home:
         jre_home = subprocess.Popen('readlink -f /usr/bin/java | sed "s:bin/java::"',
                 shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
