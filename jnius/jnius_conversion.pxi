@@ -74,13 +74,15 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                         'argument. Want {0!r}, got {1!r}'.format(
                             argtype[1:-1], py_arg))
         elif argtype[0] == '[':
-            if not isinstance(py_arg, list) and \
-                    not isinstance(py_arg, tuple):
-                raise JavaException('Expecting a python list/tuple, got '
-                        '{0!r}'.format(py_arg))
-
-            j_args[index].l = convert_pyarray_to_java(
-                    j_env, argtype[1:], py_arg)
+            if py_arg is None:
+                j_args[index].l = NULL
+            else:
+                if not isinstance(py_arg, list) and \
+                        not isinstance(py_arg, tuple):
+                    raise JavaException('Expecting a python list/tuple, got '
+                            '{0!r}'.format(py_arg))
+                j_args[index].l = convert_pyarray_to_java(
+                        j_env, argtype[1:], py_arg)
 
 
 cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object):
