@@ -223,6 +223,18 @@ Java class implementation in Python
         List of the Java interfaces you want to proxify, in the format
         'org/lang/Class'. (eg: 'java/util/Iterator'), not 'org.lang.Class'.
 
+    .. attribute:: __javacontext__
+
+        Indicate which class loader to use: 'system' or 'app', default to 'system':
+
+        - By default, we assume that you are going to implement a Java
+          interface declared in the Java API. It will use the 'system' class
+          loader.
+        - On android, all the java interfaces that you ship within the APK are
+          not accessible with the system class loader, but with the application
+          thread class loader. So if you wish to implement a class from an
+          interface you've done in your app, use 'app'.
+
 .. function:: java_method(java_signature, name=None)
 
     Decoration function to use with :class:`PythonJavaClass`. The
