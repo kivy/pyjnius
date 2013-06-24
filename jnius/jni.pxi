@@ -66,8 +66,10 @@ cdef extern from "jni.h":
     ctypedef void *jfieldID
 
     ctypedef struct JNINativeInterface
+    ctypedef struct JNIInvokeInterface
 
     ctypedef JNINativeInterface* JNIEnv
+    ctypedef JNIInvokeInterface* JavaVM
 
     ctypedef struct JNINativeInterface:
         jint *GetVersion(JNIEnv *)
@@ -396,5 +398,6 @@ cdef extern from "jni.h":
 
         jobjectRefType (*GetObjectRefType)(JNIEnv*, jobject)
 
-    ctypedef struct JavaVM:
-        pass
+    ctypedef struct JNIInvokeInterface:
+        jint        (*AttachCurrentThread)(JavaVM *, JNIEnv **, void *)
+

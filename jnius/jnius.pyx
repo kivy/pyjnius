@@ -91,6 +91,7 @@ __all__ = ('JavaObject', 'JavaClass', 'JavaMethod', 'JavaField',
 
 from libc.stdlib cimport malloc, free
 from functools import partial
+import sys
 import traceback
 
 include "jni.pxi"

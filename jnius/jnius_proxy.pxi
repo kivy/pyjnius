@@ -147,13 +147,24 @@ cdef jobject py_invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
 
 cdef jobject invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
         j_method, jobjectArray args) nogil:
+    # XXX sys.set/get check interval is very very BAD
+    # for now, we have no other method to prevent other python thread to execute
+    # so we assume that this invocation is prior, mostly because the jnienv is
+    # shared accross all threads.
+    # The right way would be to have a TLS storage, but it seems not supported
+    # on Android / NDK.
     cdef jobject ret = NULL
     push_jnienv(j_env)
     with gil:
+        interval = 100
         try:
+            interval = sys.getcheckinterval()
+            sys.setcheckinterval(2 ** 30)
             ret = py_invoke0(j_env, j_this, j_proxy, j_method, args)
         except Exception as e:
             traceback.print_exc(e)
+        finally:
+            sys.setcheckinterval(interval)
     pop_jnienv()
     return ret
 
