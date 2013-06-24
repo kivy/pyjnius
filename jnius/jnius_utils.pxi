@@ -198,7 +198,12 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
         if r[0] == '[':
 
             if arg is None:
-                return 10
+                score += 10
+                continue
+
+            if (r == '[B' or r == '[C') and isinstance(arg, basestring):
+                score += 10
+                continue
 
             if not isinstance(arg, tuple) and not isinstance(arg, list):
                 return -1
