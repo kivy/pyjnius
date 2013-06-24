@@ -21,6 +21,13 @@ cdef class JavaClassStorage:
     def __cinit__(self):
         self.j_cls = NULL
 
+    def __dealloc__(self):
+        cdef JNIEnv *j_env
+        if self.j_cls != NULL:
+            j_env = get_jnienv()
+            j_env[0].DeleteGlobalRef(j_env, self.j_cls)
+            self.j_cls = NULL
+
 
 cdef dict jclass_register = {}
 
@@ -67,8 +74,8 @@ class MetaJavaClass(type):
             classLoader = j_env[0].CallStaticObjectMethodA(
                     j_env, baseclass, getClassLoader, [])
 
-            jargs = <jobject*>malloc(sizeof(jobject) * 2)
-            jargs[0] = classLoader
+            jargs = <jobject *>malloc(sizeof(jobject) * 2)
+            jargs[0] = <jobject *>classLoader
             jargs[1] = interfaces
             jcs.j_cls = j_env[0].CallStaticObjectMethod(
                     j_env, baseclass, getProxyClass, jargs)
@@ -84,7 +91,9 @@ class MetaJavaClass(type):
                         ' {0}'.format(__javaclass__))
 
         # XXX do we need to grab a ref here?
-        # jcs.j_cls = j_env[0].NewGlobalRef(j_env, jcs.j_cls)
+        # -> Yes, according to http://developer.android.com/training/articles/perf-jni.html
+        #    in the section Local and Global References
+        jcs.j_cls = j_env[0].NewGlobalRef(j_env, jcs.j_cls)
 
         classDict['__cls_storage'] = jcs
 
