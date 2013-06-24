@@ -1,4 +1,4 @@
-# coding: utf-8
+# -*- coding: utf-8 -*-
 import unittest
 from jnius.reflect import autoclass
 
@@ -18,4 +18,4 @@ class ImplementationTest(unittest.TestCase):
 
     def test_unicode(self):
         System = autoclass('java.lang.System')
-        System.out.printf('é'.encode('utf-8'))
+        System.out.printf(u'é')

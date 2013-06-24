@@ -46,7 +46,7 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
             elif isinstance(py_arg, basestring) and \
                     argtype in ('Ljava/lang/String;', 'Ljava/lang/Object;'):
                 j_args[index].l = j_env[0].NewStringUTF(
-                        j_env, <char *><bytes>py_arg)
+                        j_env, <char *><bytes>py_arg.encode('utf-8'))
             elif isinstance(py_arg, JavaClass):
                 jc = py_arg
                 check_assignable_from(j_env, jc, argtype[1:-1])
