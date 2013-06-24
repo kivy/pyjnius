@@ -17,12 +17,10 @@ cdef class PythonJavaClass(object):
     '''
     Base class to create a java class from python
     '''
-    cdef JNIEnv *j_env
     cdef jclass j_cls
     cdef public object j_self
 
     def __cinit__(self, *args):
-        self.j_env = get_jnienv()
         self.j_cls = NULL
         self.j_self = None
 
@@ -30,7 +28,7 @@ cdef class PythonJavaClass(object):
         javacontext = 'system'
         if hasattr(self, '__javacontext__'):
             javacontext = self.__javacontext__
-        self.j_self = create_proxy_instance(self.j_env, self,
+        self.j_self = create_proxy_instance(get_jnienv(), self,
             self.__javainterfaces__, javacontext)
 
         # discover all the java method implemented
@@ -77,68 +75,79 @@ cdef class PythonJavaClass(object):
 cdef jobject invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
         j_method, jobjectArray args) with gil:
     from .reflect import get_signature, Method
-
-    # get the python object
-    cdef jfieldID ptrField = j_env[0].GetFieldID(j_env,
-        j_env[0].GetObjectClass(j_env, j_this), "ptr", "J")
-    cdef jlong jptr = j_env[0].GetLongField(j_env, j_this, ptrField)
-    cdef object py_obj = <object><void *>jptr
-
-    # extract the method information
-    cdef JavaClass method = Method(noinstance=True)
-    cdef LocalRef ref = create_local_ref(j_env, j_method)
-    method.instanciate_from(create_local_ref(j_env, j_method))
-    ret_signature = get_signature(method.getReturnType())
-    args_signature = [get_signature(x) for x in method.getParameterTypes()]
-
-    # convert java argument to python object
-    # native java type are given with java.lang.*, even if the signature say
-    # it's a native type.
+    cdef jfieldID ptrField
+    cdef jlong jptr
+    cdef object py_obj
+    cdef JavaClass method
+    cdef LocalRef ref
     cdef jobject j_arg
-    py_args = []
-    convert_signature = {
-        'Z': 'Ljava/lang/Boolean;',
-        'B': 'Ljava/lang/Byte;',
-        'C': 'Ljava/lang/Character;',
-        'S': 'Ljava/lang/Short;',
-        'I': 'Ljava/lang/Integer;',
-        'J': 'Ljava/lang/Long;',
-        'F': 'Ljava/lang/Float;',
-        'D': 'Ljava/lang/Double;'}
-
-    for index, arg_signature in enumerate(args_signature):
-        arg_signature = convert_signature.get(arg_signature, arg_signature)
-        j_arg = j_env[0].GetObjectArrayElement(j_env, args, index)
-        py_arg = convert_jobject_to_python(j_env, arg_signature, j_arg)
-        py_args.append(py_arg)
-
-    # really invoke the python method
-    name = method.getName()
-    ret = py_obj.invoke(method, *py_args)
-
-    # convert back to the return type
-    # use the populate_args(), but in the reverse way :)
-    t = ret_signature[:1]
-
-    # did python returned a "native" type ?
-    jtype = None
-
-    if ret_signature == 'Ljava/lang/Object;':
-        # generic object, try to manually convert it
-        tp = type(ret)
-        if tp == int:
-            jtype = 'J'
-        elif tp == float:
-            jtype = 'D'
-        elif tp == bool:
-            jtype = 'Z'
-    elif len(ret_signature) == 1:
-        jtype = ret_signature
 
     try:
-        return convert_python_to_jobject(j_env, jtype or ret_signature, ret)
-    except Exception as e:
-        traceback.print_exc(e)
+        push_jnienv(j_env)
+
+        # get the python object
+        ptrField = j_env[0].GetFieldID(j_env,
+            j_env[0].GetObjectClass(j_env, j_this), "ptr", "J")
+        jptr = j_env[0].GetLongField(j_env, j_this, ptrField)
+        py_obj = <object><void *>jptr
+
+        # extract the method information
+        method = Method(noinstance=True)
+        ref = create_local_ref(j_env, j_method)
+        method.instanciate_from(create_local_ref(j_env, j_method))
+        ret_signature = get_signature(method.getReturnType())
+        args_signature = [get_signature(x) for x in method.getParameterTypes()]
+
+        # convert java argument to python object
+        # native java type are given with java.lang.*, even if the signature say
+        # it's a native type.
+        py_args = []
+        convert_signature = {
+            'Z': 'Ljava/lang/Boolean;',
+            'B': 'Ljava/lang/Byte;',
+            'C': 'Ljava/lang/Character;',
+            'S': 'Ljava/lang/Short;',
+            'I': 'Ljava/lang/Integer;',
+            'J': 'Ljava/lang/Long;',
+            'F': 'Ljava/lang/Float;',
+            'D': 'Ljava/lang/Double;'}
+
+        for index, arg_signature in enumerate(args_signature):
+            arg_signature = convert_signature.get(arg_signature, arg_signature)
+            j_arg = j_env[0].GetObjectArrayElement(j_env, args, index)
+            py_arg = convert_jobject_to_python(j_env, arg_signature, j_arg)
+            py_args.append(py_arg)
+
+        # really invoke the python method
+        name = method.getName()
+        ret = py_obj.invoke(method, *py_args)
+
+        # convert back to the return type
+        # use the populate_args(), but in the reverse way :)
+        t = ret_signature[:1]
+
+        # did python returned a "native" type ?
+        jtype = None
+
+        if ret_signature == 'Ljava/lang/Object;':
+            # generic object, try to manually convert it
+            tp = type(ret)
+            if tp == int:
+                jtype = 'J'
+            elif tp == float:
+                jtype = 'D'
+            elif tp == bool:
+                jtype = 'Z'
+        elif len(ret_signature) == 1:
+            jtype = ret_signature
+
+        try:
+            return convert_python_to_jobject(j_env, jtype or ret_signature, ret)
+        except Exception as e:
+            traceback.print_exc(e)
+
+    finally:
+        pop_jnienv()
 
 
 # now we need to create a proxy and pass it an invocation handler

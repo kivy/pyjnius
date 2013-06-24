@@ -1,20 +1,18 @@
 
 cdef class LocalRef:
     cdef jobject obj
-    cdef JNIEnv *env
 
     def __cinit__(self):
         self.obj = NULL
-        self.env = NULL
 
     def __dealloc__(self):
+        cdef JNIEnv *j_env
         if self.obj != NULL:
-            self.env[0].DeleteGlobalRef(self.env, self.obj)
+            j_env = get_jnienv()
+            j_env[0].DeleteGlobalRef(j_env, self.obj)
         self.obj = NULL
-        self.env = NULL
 
     cdef void create(self, JNIEnv *env, jobject obj):
-        self.env = env
         self.obj = env[0].NewGlobalRef(env, obj)
 
     def __repr__(self):

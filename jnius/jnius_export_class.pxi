@@ -16,11 +16,9 @@ cdef class JavaObject(object):
 
 
 cdef class JavaClassStorage:
-    cdef JNIEnv *j_env
     cdef jclass j_cls
 
     def __cinit__(self):
-        self.j_env = NULL
         self.j_cls = NULL
 
 
@@ -50,72 +48,60 @@ class MetaJavaClass(type):
         cdef jmethodID getProxyClass, getClassLoader
         cdef jclass *interfaces
         cdef jobject *jargs
-
-        jcs.j_env = get_jnienv()
-        if jcs.j_env == NULL:
-            raise JavaException('Unable to get the JNI Environment')
+        cdef JNIEnv *j_env = get_jnienv()
 
         if __javainterfaces__ and __javabaseclass__:
-            baseclass = jcs.j_env[0].FindClass(jcs.j_env, <char*>__javabaseclass__)
+            baseclass = j_env[0].FindClass(j_env, <char*>__javabaseclass__)
             interfaces = <jclass *>malloc(sizeof(jclass) * len(__javainterfaces__))
 
             for n, i in enumerate(__javainterfaces__):
-                interfaces[n] = jcs.j_env[0].FindClass(jcs.j_env, <char*>i)
+                interfaces[n] = j_env[0].FindClass(j_env, <char*>i)
 
-            getProxyClass = jcs.j_env[0].GetStaticMethodID(
-                jcs.j_env, baseclass, "getProxyClass",
+            getProxyClass = j_env[0].GetStaticMethodID(
+                j_env, baseclass, "getProxyClass",
                 "(Ljava/lang/ClassLoader,[Ljava/lang/Class;)Ljava/lang/Class;")
 
-            getClassLoader = jcs.j_env[0].GetStaticMethodID(
-                jcs.j_env, baseclass, "getClassLoader", "()Ljava/lang/Class;")
+            getClassLoader = j_env[0].GetStaticMethodID(
+                j_env, baseclass, "getClassLoader", "()Ljava/lang/Class;")
 
-            classLoader = jcs.j_env[0].CallStaticObjectMethodA(
-                    jcs.j_env, baseclass, getClassLoader, [])
+            classLoader = j_env[0].CallStaticObjectMethodA(
+                    j_env, baseclass, getClassLoader, [])
 
             jargs = <jobject*>malloc(sizeof(jobject) * 2)
             jargs[0] = classLoader
             jargs[1] = interfaces
-            jcs.j_cls = jcs.j_env[0].CallStaticObjectMethod(
-                    jcs.j_env, baseclass, getProxyClass, jargs)
+            jcs.j_cls = j_env[0].CallStaticObjectMethod(
+                    j_env, baseclass, getProxyClass, jargs)
 
             if jcs.j_cls == NULL:
                 raise JavaException('Unable to create the class'
                         ' {0}'.format(__javaclass__))
         else:
-            jcs.j_cls = jcs.j_env[0].FindClass(jcs.j_env,
+            jcs.j_cls = j_env[0].FindClass(j_env,
                     <char *>__javaclass__)
             if jcs.j_cls == NULL:
                 raise JavaException('Unable to find the class'
                         ' {0}'.format(__javaclass__))
 
         # XXX do we need to grab a ref here?
-        # jcs.j_cls = jcs.j_env[0].NewGlobalRef(jcs.j_env, jcs.j_cls)
+        # jcs.j_cls = j_env[0].NewGlobalRef(j_env, jcs.j_cls)
 
         classDict['__cls_storage'] = jcs
 
         # search all the static JavaMethod within our class, and resolve them
         cdef JavaMethod jm
         cdef JavaMultipleMethod jmm
-        cdef PythonMethod pm
         for name, value in classDict.iteritems():
             if isinstance(value, JavaMethod):
                 jm = value
                 if not jm.is_static:
                     continue
-                jm.set_resolve_info(jcs.j_env, jcs.j_cls, None,
+                jm.set_resolve_info(j_env, jcs.j_cls, None,
                     name, __javaclass__)
             elif isinstance(value, JavaMultipleMethod):
                 jmm = value
-                jmm.set_resolve_info(jcs.j_env, jcs.j_cls, None,
+                jmm.set_resolve_info(j_env, jcs.j_cls, None,
                     name, __javaclass__)
-            elif isinstance(value, PythonMethod):
-                if '__javabaseclass__' not in classDict:
-                    raise JavaException("Can't use PythonMethod on a java "
-                    "class, you must use inheritance to implement a java "
-                    "interface")
-                pm = value
-                pm.set_resolve_info(jcs.j_env, jcs.j_cls, jcs.j_self,
-                    name, jcs.__javaclass__)
 
 
         # search all the static JavaField within our class, and resolve them
@@ -126,7 +112,7 @@ class MetaJavaClass(type):
             jf = value
             if not jf.is_static:
                 continue
-            jf.set_resolve_info(jcs.j_env, jcs.j_cls, None,
+            jf.set_resolve_info(j_env, jcs.j_cls, None,
                 name, __javaclass__)
 
 
@@ -139,7 +125,6 @@ cdef class JavaClass(object):
     cdef LocalRef j_self
 
     def __cinit__(self, *args, **kwargs):
-        self.j_env = NULL
         self.j_cls = NULL
         self.j_self = None
 
@@ -147,7 +132,6 @@ cdef class JavaClass(object):
         super(JavaClass, self).__init__()
         # copy the current attribute in the storage to our class
         cdef JavaClassStorage jcs = self.__cls_storage
-        self.j_env = jcs.j_env
         self.j_cls = jcs.j_cls
 
         if 'noinstance' not in kwargs:
@@ -166,6 +150,7 @@ cdef class JavaClass(object):
         cdef jvalue *j_args = NULL
         cdef jobject j_self = NULL
         cdef jmethodID constructor = NULL
+        cdef JNIEnv *j_env = get_jnienv()
 
         # get the constructor definition if exist
         definitions = [('()V', False)]
@@ -212,23 +197,23 @@ cdef class JavaClass(object):
                 j_args = <jvalue *>malloc(sizeof(jvalue) * len(d_args))
                 if j_args == NULL:
                     raise MemoryError('Unable to allocate memory for java args')
-                populate_args(self.j_env, d_args, j_args, args_)
+                populate_args(j_env, d_args, j_args, args_)
 
             # get the java constructor
-            constructor = self.j_env[0].GetMethodID(
-                self.j_env, self.j_cls, '<init>', <char *><bytes>definition)
+            constructor = j_env[0].GetMethodID(
+                j_env, self.j_cls, '<init>', <char *><bytes>definition)
             if constructor == NULL:
                 raise JavaException('Unable to found the constructor'
                         ' for {0}'.format(self.__javaclass__))
 
             # create the object
-            j_self = self.j_env[0].NewObjectA(self.j_env, self.j_cls,
+            j_self = j_env[0].NewObjectA(j_env, self.j_cls,
                     constructor, j_args)
             if j_self == NULL:
                 raise JavaException('Unable to instanciate {0}'.format(
                     self.__javaclass__))
 
-            self.j_self = create_local_ref(self.j_env, j_self)
+            self.j_self = create_local_ref(j_env, j_self)
         finally:
             if j_args != NULL:
                 free(j_args)
@@ -237,33 +222,30 @@ cdef class JavaClass(object):
         # search all the JavaMethod within our class, and resolve them
         cdef JavaMethod jm
         cdef JavaMultipleMethod jmm
-        cdef PythonMethod pm
+        cdef JNIEnv *j_env = get_jnienv()
         for name, value in self.__class__.__dict__.iteritems():
             if isinstance(value, JavaMethod):
                 jm = value
                 if jm.is_static:
                     continue
-                jm.set_resolve_info(self.j_env, self.j_cls, self.j_self,
+                jm.set_resolve_info(j_env, self.j_cls, self.j_self,
                     name, self.__javaclass__)
             elif isinstance(value, JavaMultipleMethod):
                 jmm = value
-                jmm.set_resolve_info(self.j_env, self.j_cls, self.j_self,
-                    name, self.__javaclass__)
-            elif isinstance(value, PythonMethod):
-                pm = value
-                pm.set_resolve_info(self.j_env, self.j_cls, self.j_self,
+                jmm.set_resolve_info(j_env, self.j_cls, self.j_self,
                     name, self.__javaclass__)
 
     cdef void resolve_fields(self) except *:
         # search all the JavaField within our class, and resolve them
         cdef JavaField jf
+        cdef JNIEnv *j_env = get_jnienv()
         for name, value in self.__class__.__dict__.iteritems():
             if not isinstance(value, JavaField):
                 continue
             jf = value
             if jf.is_static:
                 continue
-            jf.set_resolve_info(self.j_env, self.j_cls, self.j_self,
+            jf.set_resolve_info(j_env, self.j_cls, self.j_self,
                 name, self.__javaclass__)
 
     def __repr__(self):
@@ -286,7 +268,6 @@ cdef class JavaField(object):
 
     def __cinit__(self, definition, **kwargs):
         self.j_field = NULL
-        self.j_env = NULL
         self.j_cls = NULL
         self.j_self = None
 
@@ -297,22 +278,23 @@ cdef class JavaField(object):
 
     cdef void set_resolve_info(self, JNIEnv *j_env, jclass j_cls, LocalRef j_self,
             bytes name, bytes classname):
+        j_env = get_jnienv()
         self.name = name
         self.classname = classname
-        self.j_env = j_env
         self.j_cls = j_cls
         self.j_self = j_self
 
     cdef void ensure_field(self) except *:
+        cdef JNIEnv *j_env = get_jnienv()
         if self.j_field != NULL:
             return
         if self.is_static:
-            self.j_field = self.j_env[0].GetStaticFieldID(
-                    self.j_env, self.j_cls, <char *>self.name,
+            self.j_field = j_env[0].GetStaticFieldID(
+                    j_env, self.j_cls, <char *>self.name,
                     <char *>self.definition)
         else:
-            self.j_field = self.j_env[0].GetFieldID(
-                    self.j_env, self.j_cls, <char *>self.name,
+            self.j_field = j_env[0].GetFieldID(
+                    j_env, self.j_cls, <char *>self.name,
                     <char *>self.definition)
         if self.j_field == NULL:
             raise JavaException('Unable to found the field {0}'.format(self.name))
@@ -339,63 +321,64 @@ cdef class JavaField(object):
         cdef JavaObject ret_jobject
         cdef JavaClass ret_jc
         cdef jobject j_self = self.j_self.obj
+        cdef JNIEnv *j_env = get_jnienv()
 
         # return type of the java method
         r = self.definition[0]
 
         # now call the java method
         if r == 'Z':
-            j_boolean = self.j_env[0].GetBooleanField(
-                    self.j_env, j_self, self.j_field)
+            j_boolean = j_env[0].GetBooleanField(
+                    j_env, j_self, self.j_field)
             ret = True if j_boolean else False
         elif r == 'B':
-            j_byte = self.j_env[0].GetByteField(
-                    self.j_env, j_self, self.j_field)
+            j_byte = j_env[0].GetByteField(
+                    j_env, j_self, self.j_field)
             ret = <char>j_byte
         elif r == 'C':
-            j_char = self.j_env[0].GetCharField(
-                    self.j_env, j_self, self.j_field)
+            j_char = j_env[0].GetCharField(
+                    j_env, j_self, self.j_field)
             ret = chr(<char>j_char)
         elif r == 'S':
-            j_short = self.j_env[0].GetShortField(
-                    self.j_env, j_self, self.j_field)
+            j_short = j_env[0].GetShortField(
+                    j_env, j_self, self.j_field)
             ret = <short>j_short
         elif r == 'I':
-            j_int = self.j_env[0].GetIntField(
-                    self.j_env, j_self, self.j_field)
+            j_int = j_env[0].GetIntField(
+                    j_env, j_self, self.j_field)
             ret = <int>j_int
         elif r == 'J':
-            j_long = self.j_env[0].GetLongField(
-                    self.j_env, j_self, self.j_field)
+            j_long = j_env[0].GetLongField(
+                    j_env, j_self, self.j_field)
             ret = <long>j_long
         elif r == 'F':
-            j_float = self.j_env[0].GetFloatField(
-                    self.j_env, j_self, self.j_field)
+            j_float = j_env[0].GetFloatField(
+                    j_env, j_self, self.j_field)
             ret = <float>j_float
         elif r == 'D':
-            j_double = self.j_env[0].GetDoubleField(
-                    self.j_env, j_self, self.j_field)
+            j_double = j_env[0].GetDoubleField(
+                    j_env, j_self, self.j_field)
             ret = <double>j_double
         elif r == 'L':
-            j_object = self.j_env[0].GetObjectField(
-                    self.j_env, j_self, self.j_field)
-            check_exception(self.j_env)
+            j_object = j_env[0].GetObjectField(
+                    j_env, j_self, self.j_field)
+            check_exception(j_env)
             if j_object != NULL:
                 ret = convert_jobject_to_python(
-                        self.j_env, self.definition, j_object)
-                self.j_env[0].DeleteLocalRef(self.j_env, j_object)
+                        j_env, self.definition, j_object)
+                j_env[0].DeleteLocalRef(j_env, j_object)
         elif r == '[':
             r = self.definition[1:]
-            j_object = self.j_env[0].GetObjectField(
-                    self.j_env, j_self, self.j_field)
-            check_exception(self.j_env)
+            j_object = j_env[0].GetObjectField(
+                    j_env, j_self, self.j_field)
+            check_exception(j_env)
             if j_object != NULL:
-                ret = convert_jarray_to_python(self.j_env, r, j_object)
-                self.j_env[0].DeleteLocalRef(self.j_env, j_object)
+                ret = convert_jarray_to_python(j_env, r, j_object)
+                j_env[0].DeleteLocalRef(j_env, j_object)
         else:
             raise Exception('Invalid field definition')
 
-        check_exception(self.j_env)
+        check_exception(j_env)
         return ret
 
     cdef read_static_field(self):
@@ -409,87 +392,65 @@ cdef class JavaField(object):
         cdef jdouble j_double
         cdef jobject j_object
         cdef object ret = None
+        cdef JNIEnv *j_env = get_jnienv()
 
         # return type of the java method
         r = self.definition[0]
 
         # now call the java method
         if r == 'Z':
-            j_boolean = self.j_env[0].GetStaticBooleanField(
-                    self.j_env, self.j_cls, self.j_field)
+            j_boolean = j_env[0].GetStaticBooleanField(
+                    j_env, self.j_cls, self.j_field)
             ret = True if j_boolean else False
         elif r == 'B':
-            j_byte = self.j_env[0].GetStaticByteField(
-                    self.j_env, self.j_cls, self.j_field)
+            j_byte = j_env[0].GetStaticByteField(
+                    j_env, self.j_cls, self.j_field)
             ret = <char>j_byte
         elif r == 'C':
-            j_char = self.j_env[0].GetStaticCharField(
-                    self.j_env, self.j_cls, self.j_field)
+            j_char = j_env[0].GetStaticCharField(
+                    j_env, self.j_cls, self.j_field)
             ret = chr(<char>j_char)
         elif r == 'S':
-            j_short = self.j_env[0].GetStaticShortField(
-                    self.j_env, self.j_cls, self.j_field)
+            j_short = j_env[0].GetStaticShortField(
+                    j_env, self.j_cls, self.j_field)
             ret = <short>j_short
         elif r == 'I':
-            j_int = self.j_env[0].GetStaticIntField(
-                    self.j_env, self.j_cls, self.j_field)
+            j_int = j_env[0].GetStaticIntField(
+                    j_env, self.j_cls, self.j_field)
             ret = <int>j_int
         elif r == 'J':
-            j_long = self.j_env[0].GetStaticLongField(
-                    self.j_env, self.j_cls, self.j_field)
+            j_long = j_env[0].GetStaticLongField(
+                    j_env, self.j_cls, self.j_field)
             ret = <long>j_long
         elif r == 'F':
-            j_float = self.j_env[0].GetStaticFloatField(
-                    self.j_env, self.j_cls, self.j_field)
+            j_float = j_env[0].GetStaticFloatField(
+                    j_env, self.j_cls, self.j_field)
             ret = <float>j_float
         elif r == 'D':
-            j_double = self.j_env[0].GetStaticDoubleField(
-                    self.j_env, self.j_cls, self.j_field)
+            j_double = j_env[0].GetStaticDoubleField(
+                    j_env, self.j_cls, self.j_field)
             ret = <double>j_double
         elif r == 'L':
-            j_object = self.j_env[0].GetStaticObjectField(
-                    self.j_env, self.j_cls, self.j_field)
-            check_exception(self.j_env)
+            j_object = j_env[0].GetStaticObjectField(
+                    j_env, self.j_cls, self.j_field)
+            check_exception(j_env)
             if j_object != NULL:
                 ret = convert_jobject_to_python(
-                        self.j_env, self.definition, j_object)
-                self.j_env[0].DeleteLocalRef(self.j_env, j_object)
+                        j_env, self.definition, j_object)
+                j_env[0].DeleteLocalRef(j_env, j_object)
         elif r == '[':
             r = self.definition[1:]
-            j_object = self.j_env[0].GetStaticObjectField(
-                    self.j_env, self.j_cls, self.j_field)
-            check_exception(self.j_env)
+            j_object = j_env[0].GetStaticObjectField(
+                    j_env, self.j_cls, self.j_field)
+            check_exception(j_env)
             if j_object != NULL:
-                ret = convert_jarray_to_python(self.j_env, r, j_object)
-                self.j_env[0].DeleteLocalRef(self.j_env, j_object)
+                ret = convert_jarray_to_python(j_env, r, j_object)
+                j_env[0].DeleteLocalRef(j_env, j_object)
         else:
             raise Exception('Invalid field definition')
 
-        check_exception(self.j_env)
+        check_exception(j_env)
         return ret
-
-
-cdef class PythonMethod(object):
-    '''Used to register python method in the java class, so java can call it
-    '''
-    cdef bytes definition
-    cdef bint is_static
-    cdef bint is_varargs
-    cdef bytes name
-    cdef bytes classname
-    # XXX
-
-    cdef void set_resolve_info(self, JNIEnv *j_env, jclass j_cls, LocalRef j_self,
-            bytes name, bytes classname):
-        '''
-        XXX TODO
-        self.name = name
-        self.classname = classname
-        self.j_env = j_env
-        self.j_cls = j_cls
-        self.j_self = j_self
-        '''
-        pass
 
 
 cdef class JavaMethod(object):
@@ -509,7 +470,6 @@ cdef class JavaMethod(object):
 
     def __cinit__(self, definition, **kwargs):
         self.j_method = NULL
-        self.j_env = NULL
         self.j_cls = NULL
         self.j_self = None
 
@@ -524,13 +484,16 @@ cdef class JavaMethod(object):
     cdef void ensure_method(self) except *:
         if self.j_method != NULL:
             return
+        cdef JNIEnv *j_env = get_jnienv()
+        if self.name is None:
+            raise JavaException('Unable to find a None method!')
         if self.is_static:
-            self.j_method = self.j_env[0].GetStaticMethodID(
-                    self.j_env, self.j_cls, <char *>self.name,
+            self.j_method = j_env[0].GetStaticMethodID(
+                    j_env, self.j_cls, <char *>self.name,
                     <char *>self.definition)
         else:
-            self.j_method = self.j_env[0].GetMethodID(
-                    self.j_env, self.j_cls, <char *>self.name,
+            self.j_method = j_env[0].GetMethodID(
+                    j_env, self.j_cls, <char *>self.name,
                     <char *>self.definition)
 
         if self.j_method == NULL:
@@ -541,7 +504,6 @@ cdef class JavaMethod(object):
             LocalRef j_self, bytes name, bytes classname):
         self.name = name
         self.classname = classname
-        self.j_env = j_env
         self.j_cls = j_cls
         self.j_self = j_self
 
@@ -558,13 +520,15 @@ cdef class JavaMethod(object):
         # argument array to pass to the method
         cdef jvalue *j_args = NULL
         cdef tuple d_args = self.definition_args
+        cdef JNIEnv *j_env = get_jnienv()
+
         if self.is_varargs:
             args = args[:len(d_args) - 1] + (args[len(d_args) - 1:],)
 
         if len(args) != len(d_args):
             raise JavaException('Invalid call, number of argument mismatch')
 
-        if not self.is_static and self.j_env == NULL:
+        if not self.is_static and j_env == NULL:
             raise JavaException('Cannot call instance method on a un-instanciated class')
 
         self.ensure_method()
@@ -575,21 +539,21 @@ cdef class JavaMethod(object):
                 j_args = <jvalue *>malloc(sizeof(jvalue) * len(d_args))
                 if j_args == NULL:
                     raise MemoryError('Unable to allocate memory for java args')
-                populate_args(self.j_env, self.definition_args, j_args, args)
+                populate_args(j_env, self.definition_args, j_args, args)
 
             try:
                 # do the call
                 if self.is_static:
-                    return self.call_staticmethod(j_args)
-                return self.call_method(j_args)
+                    return self.call_staticmethod(j_env, j_args)
+                return self.call_method(j_env, j_args)
             finally:
-                release_args(self.j_env, self.definition_args, j_args, args)
+                release_args(j_env, self.definition_args, j_args, args)
 
         finally:
             if j_args != NULL:
                 free(j_args)
 
-    cdef call_method(self, jvalue *j_args):
+    cdef call_method(self, JNIEnv *j_env, jvalue *j_args):
         cdef jboolean j_boolean
         cdef jbyte j_byte
         cdef jchar j_char
@@ -611,63 +575,63 @@ cdef class JavaMethod(object):
 
         # now call the java method
         if r == 'V':
-            self.j_env[0].CallVoidMethodA(
-                    self.j_env, j_self, self.j_method, j_args)
+            j_env[0].CallVoidMethodA(
+                    j_env, j_self, self.j_method, j_args)
         elif r == 'Z':
-            j_boolean = self.j_env[0].CallBooleanMethodA(
-                    self.j_env, j_self, self.j_method, j_args)
+            j_boolean = j_env[0].CallBooleanMethodA(
+                    j_env, j_self, self.j_method, j_args)
             ret = True if j_boolean else False
         elif r == 'B':
-            j_byte = self.j_env[0].CallByteMethodA(
-                    self.j_env, j_self, self.j_method, j_args)
+            j_byte = j_env[0].CallByteMethodA(
+                    j_env, j_self, self.j_method, j_args)
             ret = <char>j_byte
         elif r == 'C':
-            j_char = self.j_env[0].CallCharMethodA(
-                    self.j_env, j_self, self.j_method, j_args)
+            j_char = j_env[0].CallCharMethodA(
+                    j_env, j_self, self.j_method, j_args)
             ret = chr(<char>j_char)
         elif r == 'S':
-            j_short = self.j_env[0].CallShortMethodA(
-                    self.j_env, j_self, self.j_method, j_args)
+            j_short = j_env[0].CallShortMethodA(
+                    j_env, j_self, self.j_method, j_args)
             ret = <short>j_short
         elif r == 'I':
-            j_int = self.j_env[0].CallIntMethodA(
-                    self.j_env, j_self, self.j_method, j_args)
+            j_int = j_env[0].CallIntMethodA(
+                    j_env, j_self, self.j_method, j_args)
             ret = <int>j_int
         elif r == 'J':
-            j_long = self.j_env[0].CallLongMethodA(
-                    self.j_env, j_self, self.j_method, j_args)
+            j_long = j_env[0].CallLongMethodA(
+                    j_env, j_self, self.j_method, j_args)
             ret = <long>j_long
         elif r == 'F':
-            j_float = self.j_env[0].CallFloatMethodA(
-                    self.j_env, j_self, self.j_method, j_args)
+            j_float = j_env[0].CallFloatMethodA(
+                    j_env, j_self, self.j_method, j_args)
             ret = <float>j_float
         elif r == 'D':
-            j_double = self.j_env[0].CallDoubleMethodA(
-                    self.j_env, j_self, self.j_method, j_args)
+            j_double = j_env[0].CallDoubleMethodA(
+                    j_env, j_self, self.j_method, j_args)
             ret = <double>j_double
         elif r == 'L':
-            j_object = self.j_env[0].CallObjectMethodA(
-                    self.j_env, j_self, self.j_method, j_args)
-            check_exception(self.j_env)
+            j_object = j_env[0].CallObjectMethodA(
+                    j_env, j_self, self.j_method, j_args)
+            check_exception(j_env)
             if j_object != NULL:
                 ret = convert_jobject_to_python(
-                        self.j_env, self.definition_return, j_object)
-                self.j_env[0].DeleteLocalRef(self.j_env, j_object)
+                        j_env, self.definition_return, j_object)
+                j_env[0].DeleteLocalRef(j_env, j_object)
         elif r == '[':
             r = self.definition_return[1:]
-            j_object = self.j_env[0].CallObjectMethodA(
-                    self.j_env, j_self, self.j_method, j_args)
-            check_exception(self.j_env)
+            j_object = j_env[0].CallObjectMethodA(
+                    j_env, j_self, self.j_method, j_args)
+            check_exception(j_env)
             if j_object != NULL:
-                ret = convert_jarray_to_python(self.j_env, r, j_object)
-                self.j_env[0].DeleteLocalRef(self.j_env, j_object)
+                ret = convert_jarray_to_python(j_env, r, j_object)
+                j_env[0].DeleteLocalRef(j_env, j_object)
         else:
             raise Exception('Invalid return definition?')
 
-        check_exception(self.j_env)
+        check_exception(j_env)
         return ret
 
-    cdef call_staticmethod(self, jvalue *j_args):
+    cdef call_staticmethod(self, JNIEnv *j_env, jvalue *j_args):
         cdef jboolean j_boolean
         cdef jbyte j_byte
         cdef jchar j_char
@@ -682,66 +646,67 @@ cdef class JavaMethod(object):
         cdef object ret = None
         cdef JavaObject ret_jobject
         cdef JavaClass ret_jc
+        j_env = get_jnienv()
 
         # return type of the java method
         r = self.definition_return[0]
 
         # now call the java method
         if r == 'V':
-            self.j_env[0].CallStaticVoidMethodA(
-                    self.j_env, self.j_cls, self.j_method, j_args)
+            j_env[0].CallStaticVoidMethodA(
+                    j_env, self.j_cls, self.j_method, j_args)
         elif r == 'Z':
-            j_boolean = self.j_env[0].CallStaticBooleanMethodA(
-                    self.j_env, self.j_cls, self.j_method, j_args)
+            j_boolean = j_env[0].CallStaticBooleanMethodA(
+                    j_env, self.j_cls, self.j_method, j_args)
             ret = True if j_boolean else False
         elif r == 'B':
-            j_byte = self.j_env[0].CallStaticByteMethodA(
-                    self.j_env, self.j_cls, self.j_method, j_args)
+            j_byte = j_env[0].CallStaticByteMethodA(
+                    j_env, self.j_cls, self.j_method, j_args)
             ret = <char>j_byte
         elif r == 'C':
-            j_char = self.j_env[0].CallStaticCharMethodA(
-                    self.j_env, self.j_cls, self.j_method, j_args)
+            j_char = j_env[0].CallStaticCharMethodA(
+                    j_env, self.j_cls, self.j_method, j_args)
             ret = chr(<char>j_char)
         elif r == 'S':
-            j_short = self.j_env[0].CallStaticShortMethodA(
-                    self.j_env, self.j_cls, self.j_method, j_args)
+            j_short = j_env[0].CallStaticShortMethodA(
+                    j_env, self.j_cls, self.j_method, j_args)
             ret = <short>j_short
         elif r == 'I':
-            j_int = self.j_env[0].CallStaticIntMethodA(
-                    self.j_env, self.j_cls, self.j_method, j_args)
+            j_int = j_env[0].CallStaticIntMethodA(
+                    j_env, self.j_cls, self.j_method, j_args)
             ret = <int>j_int
         elif r == 'J':
-            j_long = self.j_env[0].CallStaticLongMethodA(
-                    self.j_env, self.j_cls, self.j_method, j_args)
+            j_long = j_env[0].CallStaticLongMethodA(
+                    j_env, self.j_cls, self.j_method, j_args)
             ret = <long>j_long
         elif r == 'F':
-            j_float = self.j_env[0].CallStaticFloatMethodA(
-                    self.j_env, self.j_cls, self.j_method, j_args)
+            j_float = j_env[0].CallStaticFloatMethodA(
+                    j_env, self.j_cls, self.j_method, j_args)
             ret = <float>j_float
         elif r == 'D':
-            j_double = self.j_env[0].CallStaticDoubleMethodA(
-                    self.j_env, self.j_cls, self.j_method, j_args)
+            j_double = j_env[0].CallStaticDoubleMethodA(
+                    j_env, self.j_cls, self.j_method, j_args)
             ret = <double>j_double
         elif r == 'L':
-            j_object = self.j_env[0].CallStaticObjectMethodA(
-                    self.j_env, self.j_cls, self.j_method, j_args)
-            check_exception(self.j_env)
+            j_object = j_env[0].CallStaticObjectMethodA(
+                    j_env, self.j_cls, self.j_method, j_args)
+            check_exception(j_env)
             if j_object != NULL:
                 ret = convert_jobject_to_python(
-                        self.j_env, self.definition_return, j_object)
-                self.j_env[0].DeleteLocalRef(self.j_env, j_object)
+                        j_env, self.definition_return, j_object)
+                j_env[0].DeleteLocalRef(j_env, j_object)
         elif r == '[':
             r = self.definition_return[1:]
-            j_object = self.j_env[0].CallStaticObjectMethodA(
-                    self.j_env, self.j_cls, self.j_method, j_args)
-            check_exception(self.j_env)
+            j_object = j_env[0].CallStaticObjectMethodA(
+                    j_env, self.j_cls, self.j_method, j_args)
+            check_exception(j_env)
             if j_object != NULL:
-                ret = convert_jarray_to_python(self.j_env, r, j_object)
-                self.j_env[0].DeleteLocalRef(self.j_env, j_object)
+                ret = convert_jarray_to_python(j_env, r, j_object)
+                j_env[0].DeleteLocalRef(j_env, j_object)
         else:
             raise Exception('Invalid return definition?')
 
-        check_exception(self.j_env)
+        check_exception(j_env)
         return ret
 
 

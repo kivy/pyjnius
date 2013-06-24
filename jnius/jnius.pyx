@@ -101,6 +101,7 @@ IF JNIUS_PLATFORM == "android":
 ELSE:
     include "jnius_jvm_desktop.pxi"
 
+include "jnius_env.pxi"
 include "jnius_utils.pxi"
 include "jnius_conversion.pxi"
 include "jnius_localref.pxi"

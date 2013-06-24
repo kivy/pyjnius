@@ -14,7 +14,7 @@ cdef extern from "jni.h":
         char *optionString
         void *extraInfo
 
-cdef JNIEnv *default_env = NULL
+cdef JNIEnv *_platform_default_env = NULL
 
 def classpath():
     import platform
@@ -59,9 +59,9 @@ cdef void create_jnienv():
     args.nOptions = 1
     args.ignoreUnrecognized = JNI_FALSE
 
-    JNI_CreateJavaVM(&jvm, <void **>&default_env, &args)
+    JNI_CreateJavaVM(&jvm, <void **>&_platform_default_env, &args)
 
-cdef JNIEnv *get_jnienv():
-    if default_env == NULL:
+cdef JNIEnv *get_platform_jnienv():
+    if _platform_default_env == NULL:
         create_jnienv()
-    return default_env
+    return _platform_default_env
