@@ -115,97 +115,97 @@ cdef extern from "jni.h":
         jboolean    (*IsInstanceOf)(JNIEnv*, jobject, jclass)
         jmethodID   (*GetMethodID)(JNIEnv*, jclass, const_char*, const_char*)
 
-        jobject     (*CallObjectMethod)(JNIEnv*, jobject, jmethodID, ...)
-        jobject     (*CallObjectMethodV)(JNIEnv*, jobject, jmethodID, va_list)
-        jobject     (*CallObjectMethodA)(JNIEnv*, jobject, jmethodID, jvalue*)
-        jboolean    (*CallBooleanMethod)(JNIEnv*, jobject, jmethodID, ...)
-        jboolean    (*CallBooleanMethodV)(JNIEnv*, jobject, jmethodID, va_list)
-        jboolean    (*CallBooleanMethodA)(JNIEnv*, jobject, jmethodID, jvalue*)
-        jbyte       (*CallByteMethod)(JNIEnv*, jobject, jmethodID, ...)
-        jbyte       (*CallByteMethodV)(JNIEnv*, jobject, jmethodID, va_list)
-        jbyte       (*CallByteMethodA)(JNIEnv*, jobject, jmethodID, jvalue*)
-        jchar       (*CallCharMethod)(JNIEnv*, jobject, jmethodID, ...)
-        jchar       (*CallCharMethodV)(JNIEnv*, jobject, jmethodID, va_list)
-        jchar       (*CallCharMethodA)(JNIEnv*, jobject, jmethodID, jvalue*)
-        jshort      (*CallShortMethod)(JNIEnv*, jobject, jmethodID, ...)
-        jshort      (*CallShortMethodV)(JNIEnv*, jobject, jmethodID, va_list)
-        jshort      (*CallShortMethodA)(JNIEnv*, jobject, jmethodID, jvalue*)
-        jint        (*CallIntMethod)(JNIEnv*, jobject, jmethodID, ...)
-        jint        (*CallIntMethodV)(JNIEnv*, jobject, jmethodID, va_list)
-        jint        (*CallIntMethodA)(JNIEnv*, jobject, jmethodID, jvalue*)
-        jlong       (*CallLongMethod)(JNIEnv*, jobject, jmethodID, ...)
-        jlong       (*CallLongMethodV)(JNIEnv*, jobject, jmethodID, va_list)
-        jlong       (*CallLongMethodA)(JNIEnv*, jobject, jmethodID, jvalue*)
-        jfloat      (*CallFloatMethod)(JNIEnv*, jobject, jmethodID, ...)
-        jfloat      (*CallFloatMethodV)(JNIEnv*, jobject, jmethodID, va_list)
-        jfloat      (*CallFloatMethodA)(JNIEnv*, jobject, jmethodID, jvalue*)
-        jdouble     (*CallDoubleMethod)(JNIEnv*, jobject, jmethodID, ...)
-        jdouble     (*CallDoubleMethodV)(JNIEnv*, jobject, jmethodID, va_list)
-        jdouble     (*CallDoubleMethodA)(JNIEnv*, jobject, jmethodID, jvalue*)
-        void        (*CallVoidMethod)(JNIEnv*, jobject, jmethodID, ...)
-        void        (*CallVoidMethodV)(JNIEnv*, jobject, jmethodID, va_list)
-        void        (*CallVoidMethodA)(JNIEnv*, jobject, jmethodID, jvalue*)
+        jobject     (*CallObjectMethod)(JNIEnv*, jobject, jmethodID, ...) nogil
+        jobject     (*CallObjectMethodV)(JNIEnv*, jobject, jmethodID, va_list) nogil
+        jobject     (*CallObjectMethodA)(JNIEnv*, jobject, jmethodID, jvalue*) nogil
+        jboolean    (*CallBooleanMethod)(JNIEnv*, jobject, jmethodID, ...) nogil
+        jboolean    (*CallBooleanMethodV)(JNIEnv*, jobject, jmethodID, va_list) nogil
+        jboolean    (*CallBooleanMethodA)(JNIEnv*, jobject, jmethodID, jvalue*) nogil
+        jbyte       (*CallByteMethod)(JNIEnv*, jobject, jmethodID, ...) nogil
+        jbyte       (*CallByteMethodV)(JNIEnv*, jobject, jmethodID, va_list) nogil
+        jbyte       (*CallByteMethodA)(JNIEnv*, jobject, jmethodID, jvalue*) nogil
+        jchar       (*CallCharMethod)(JNIEnv*, jobject, jmethodID, ...) nogil
+        jchar       (*CallCharMethodV)(JNIEnv*, jobject, jmethodID, va_list) nogil
+        jchar       (*CallCharMethodA)(JNIEnv*, jobject, jmethodID, jvalue*) nogil
+        jshort      (*CallShortMethod)(JNIEnv*, jobject, jmethodID, ...) nogil
+        jshort      (*CallShortMethodV)(JNIEnv*, jobject, jmethodID, va_list) nogil
+        jshort      (*CallShortMethodA)(JNIEnv*, jobject, jmethodID, jvalue*) nogil
+        jint        (*CallIntMethod)(JNIEnv*, jobject, jmethodID, ...) nogil
+        jint        (*CallIntMethodV)(JNIEnv*, jobject, jmethodID, va_list) nogil
+        jint        (*CallIntMethodA)(JNIEnv*, jobject, jmethodID, jvalue*) nogil
+        jlong       (*CallLongMethod)(JNIEnv*, jobject, jmethodID, ...) nogil
+        jlong       (*CallLongMethodV)(JNIEnv*, jobject, jmethodID, va_list) nogil
+        jlong       (*CallLongMethodA)(JNIEnv*, jobject, jmethodID, jvalue*) nogil
+        jfloat      (*CallFloatMethod)(JNIEnv*, jobject, jmethodID, ...) nogil
+        jfloat      (*CallFloatMethodV)(JNIEnv*, jobject, jmethodID, va_list) nogil
+        jfloat      (*CallFloatMethodA)(JNIEnv*, jobject, jmethodID, jvalue*) nogil
+        jdouble     (*CallDoubleMethod)(JNIEnv*, jobject, jmethodID, ...) nogil
+        jdouble     (*CallDoubleMethodV)(JNIEnv*, jobject, jmethodID, va_list) nogil
+        jdouble     (*CallDoubleMethodA)(JNIEnv*, jobject, jmethodID, jvalue*) nogil
+        void        (*CallVoidMethod)(JNIEnv*, jobject, jmethodID, ...) nogil
+        void        (*CallVoidMethodV)(JNIEnv*, jobject, jmethodID, va_list) nogil
+        void        (*CallVoidMethodA)(JNIEnv*, jobject, jmethodID, jvalue*) nogil
 
         jobject     (*CallNonvirtualObjectMethod)(JNIEnv*, jobject, jclass,
-                            jmethodID, ...)
+                            jmethodID, ...) nogil
         jobject     (*CallNonvirtualObjectMethodV)(JNIEnv*, jobject, jclass,
-                            jmethodID, va_list)
+                            jmethodID, va_list) nogil
         jobject     (*CallNonvirtualObjectMethodA)(JNIEnv*, jobject, jclass,
-                            jmethodID, jvalue*)
+                            jmethodID, jvalue*) nogil
         jboolean    (*CallNonvirtualBooleanMethod)(JNIEnv*, jobject, jclass,
-                            jmethodID, ...)
+                            jmethodID, ...) nogil
         jboolean    (*CallNonvirtualBooleanMethodV)(JNIEnv*, jobject, jclass,
-                            jmethodID, va_list)
+                            jmethodID, va_list) nogil
         jboolean    (*CallNonvirtualBooleanMethodA)(JNIEnv*, jobject, jclass,
-                            jmethodID, jvalue*)
+                            jmethodID, jvalue*) nogil
         jbyte       (*CallNonvirtualByteMethod)(JNIEnv*, jobject, jclass,
-                            jmethodID, ...)
+                            jmethodID, ...) nogil
         jbyte       (*CallNonvirtualByteMethodV)(JNIEnv*, jobject, jclass,
-                            jmethodID, va_list)
+                            jmethodID, va_list) nogil
         jbyte       (*CallNonvirtualByteMethodA)(JNIEnv*, jobject, jclass,
-                            jmethodID, jvalue*)
+                            jmethodID, jvalue*) nogil
         jchar       (*CallNonvirtualCharMethod)(JNIEnv*, jobject, jclass,
-                            jmethodID, ...)
+                            jmethodID, ...) nogil
         jchar       (*CallNonvirtualCharMethodV)(JNIEnv*, jobject, jclass,
-                            jmethodID, va_list)
+                            jmethodID, va_list) nogil
         jchar       (*CallNonvirtualCharMethodA)(JNIEnv*, jobject, jclass,
-                            jmethodID, jvalue*)
+                            jmethodID, jvalue*) nogil
         jshort      (*CallNonvirtualShortMethod)(JNIEnv*, jobject, jclass,
-                            jmethodID, ...)
+                            jmethodID, ...) nogil
         jshort      (*CallNonvirtualShortMethodV)(JNIEnv*, jobject, jclass,
-                            jmethodID, va_list)
+                            jmethodID, va_list) nogil
         jshort      (*CallNonvirtualShortMethodA)(JNIEnv*, jobject, jclass,
-                            jmethodID, jvalue*)
+                            jmethodID, jvalue*) nogil
         jint        (*CallNonvirtualIntMethod)(JNIEnv*, jobject, jclass,
-                            jmethodID, ...)
+                            jmethodID, ...) nogil
         jint        (*CallNonvirtualIntMethodV)(JNIEnv*, jobject, jclass,
-                            jmethodID, va_list)
+                            jmethodID, va_list) nogil
         jint        (*CallNonvirtualIntMethodA)(JNIEnv*, jobject, jclass,
-                            jmethodID, jvalue*)
+                            jmethodID, jvalue*) nogil
         jlong       (*CallNonvirtualLongMethod)(JNIEnv*, jobject, jclass,
-                            jmethodID, ...)
+                            jmethodID, ...) nogil
         jlong       (*CallNonvirtualLongMethodV)(JNIEnv*, jobject, jclass,
-                            jmethodID, va_list)
+                            jmethodID, va_list) nogil
         jlong       (*CallNonvirtualLongMethodA)(JNIEnv*, jobject, jclass,
-                            jmethodID, jvalue*)
+                            jmethodID, jvalue*) nogil
         jfloat      (*CallNonvirtualFloatMethod)(JNIEnv*, jobject, jclass,
-                            jmethodID, ...)
+                            jmethodID, ...) nogil
         jfloat      (*CallNonvirtualFloatMethodV)(JNIEnv*, jobject, jclass,
-                            jmethodID, va_list)
+                            jmethodID, va_list) nogil
         jfloat      (*CallNonvirtualFloatMethodA)(JNIEnv*, jobject, jclass,
-                            jmethodID, jvalue*)
+                            jmethodID, jvalue*) nogil
         jdouble     (*CallNonvirtualDoubleMethod)(JNIEnv*, jobject, jclass,
-                            jmethodID, ...)
+                            jmethodID, ...) nogil
         jdouble     (*CallNonvirtualDoubleMethodV)(JNIEnv*, jobject, jclass,
-                            jmethodID, va_list)
+                            jmethodID, va_list) nogil
         jdouble     (*CallNonvirtualDoubleMethodA)(JNIEnv*, jobject, jclass,
-                            jmethodID, jvalue*)
+                            jmethodID, jvalue*) nogil
         void        (*CallNonvirtualVoidMethod)(JNIEnv*, jobject, jclass,
-                            jmethodID, ...)
+                            jmethodID, ...) nogil
         void        (*CallNonvirtualVoidMethodV)(JNIEnv*, jobject, jclass,
-                            jmethodID, va_list)
+                            jmethodID, va_list) nogil
         void        (*CallNonvirtualVoidMethodA)(JNIEnv*, jobject, jclass,
-                            jmethodID, jvalue*)
+                            jmethodID, jvalue*) nogil
 
         jfieldID    (*GetFieldID)(JNIEnv*, jclass, const_char*, const_char*)
 
@@ -229,40 +229,41 @@ cdef extern from "jni.h":
         void        (*SetFloatField)(JNIEnv*, jobject, jfieldID, jfloat)
         void        (*SetDoubleField)(JNIEnv*, jobject, jfieldID, jdouble)
 
-        jmethodID   (*GetStaticMethodID)(JNIEnv*, jclass, const_char*, const_char*)
+        jmethodID   (*GetStaticMethodID)(JNIEnv*, jclass, const_char*,
+                const_char*) nogil
 
-        jobject     (*CallStaticObjectMethod)(JNIEnv*, jclass, jmethodID, ...)
-        jobject     (*CallStaticObjectMethodV)(JNIEnv*, jclass, jmethodID, va_list)
-        jobject     (*CallStaticObjectMethodA)(JNIEnv*, jclass, jmethodID, jvalue*)
-        jboolean    (*CallStaticBooleanMethod)(JNIEnv*, jclass, jmethodID, ...)
+        jobject     (*CallStaticObjectMethod)(JNIEnv*, jclass, jmethodID, ...) nogil
+        jobject     (*CallStaticObjectMethodV)(JNIEnv*, jclass, jmethodID, va_list) nogil
+        jobject     (*CallStaticObjectMethodA)(JNIEnv*, jclass, jmethodID, jvalue*) nogil
+        jboolean    (*CallStaticBooleanMethod)(JNIEnv*, jclass, jmethodID, ...) nogil
         jboolean    (*CallStaticBooleanMethodV)(JNIEnv*, jclass, jmethodID,
-                            va_list)
+                            va_list) nogil
         jboolean    (*CallStaticBooleanMethodA)(JNIEnv*, jclass, jmethodID,
-                            jvalue*)
-        jbyte       (*CallStaticByteMethod)(JNIEnv*, jclass, jmethodID, ...)
-        jbyte       (*CallStaticByteMethodV)(JNIEnv*, jclass, jmethodID, va_list)
-        jbyte       (*CallStaticByteMethodA)(JNIEnv*, jclass, jmethodID, jvalue*)
-        jchar       (*CallStaticCharMethod)(JNIEnv*, jclass, jmethodID, ...)
-        jchar       (*CallStaticCharMethodV)(JNIEnv*, jclass, jmethodID, va_list)
-        jchar       (*CallStaticCharMethodA)(JNIEnv*, jclass, jmethodID, jvalue*)
-        jshort      (*CallStaticShortMethod)(JNIEnv*, jclass, jmethodID, ...)
-        jshort      (*CallStaticShortMethodV)(JNIEnv*, jclass, jmethodID, va_list)
-        jshort      (*CallStaticShortMethodA)(JNIEnv*, jclass, jmethodID, jvalue*)
-        jint        (*CallStaticIntMethod)(JNIEnv*, jclass, jmethodID, ...)
-        jint        (*CallStaticIntMethodV)(JNIEnv*, jclass, jmethodID, va_list)
-        jint        (*CallStaticIntMethodA)(JNIEnv*, jclass, jmethodID, jvalue*)
-        jlong       (*CallStaticLongMethod)(JNIEnv*, jclass, jmethodID, ...)
-        jlong       (*CallStaticLongMethodV)(JNIEnv*, jclass, jmethodID, va_list)
-        jlong       (*CallStaticLongMethodA)(JNIEnv*, jclass, jmethodID, jvalue*)
-        jfloat      (*CallStaticFloatMethod)(JNIEnv*, jclass, jmethodID, ...)
-        jfloat      (*CallStaticFloatMethodV)(JNIEnv*, jclass, jmethodID, va_list)
-        jfloat      (*CallStaticFloatMethodA)(JNIEnv*, jclass, jmethodID, jvalue*)
-        jdouble     (*CallStaticDoubleMethod)(JNIEnv*, jclass, jmethodID, ...)
-        jdouble     (*CallStaticDoubleMethodV)(JNIEnv*, jclass, jmethodID, va_list)
-        jdouble     (*CallStaticDoubleMethodA)(JNIEnv*, jclass, jmethodID, jvalue*)
-        void        (*CallStaticVoidMethod)(JNIEnv*, jclass, jmethodID, ...)
-        void        (*CallStaticVoidMethodV)(JNIEnv*, jclass, jmethodID, va_list)
-        void        (*CallStaticVoidMethodA)(JNIEnv*, jclass, jmethodID, jvalue*)
+                            jvalue*) nogil
+        jbyte       (*CallStaticByteMethod)(JNIEnv*, jclass, jmethodID, ...) nogil
+        jbyte       (*CallStaticByteMethodV)(JNIEnv*, jclass, jmethodID, va_list) nogil
+        jbyte       (*CallStaticByteMethodA)(JNIEnv*, jclass, jmethodID, jvalue*) nogil
+        jchar       (*CallStaticCharMethod)(JNIEnv*, jclass, jmethodID, ...) nogil
+        jchar       (*CallStaticCharMethodV)(JNIEnv*, jclass, jmethodID, va_list) nogil
+        jchar       (*CallStaticCharMethodA)(JNIEnv*, jclass, jmethodID, jvalue*) nogil
+        jshort      (*CallStaticShortMethod)(JNIEnv*, jclass, jmethodID, ...) nogil
+        jshort      (*CallStaticShortMethodV)(JNIEnv*, jclass, jmethodID, va_list) nogil
+        jshort      (*CallStaticShortMethodA)(JNIEnv*, jclass, jmethodID, jvalue*) nogil
+        jint        (*CallStaticIntMethod)(JNIEnv*, jclass, jmethodID, ...) nogil
+        jint        (*CallStaticIntMethodV)(JNIEnv*, jclass, jmethodID, va_list) nogil
+        jint        (*CallStaticIntMethodA)(JNIEnv*, jclass, jmethodID, jvalue*) nogil
+        jlong       (*CallStaticLongMethod)(JNIEnv*, jclass, jmethodID, ...) nogil
+        jlong       (*CallStaticLongMethodV)(JNIEnv*, jclass, jmethodID, va_list) nogil
+        jlong       (*CallStaticLongMethodA)(JNIEnv*, jclass, jmethodID, jvalue*) nogil
+        jfloat      (*CallStaticFloatMethod)(JNIEnv*, jclass, jmethodID, ...) nogil
+        jfloat      (*CallStaticFloatMethodV)(JNIEnv*, jclass, jmethodID, va_list) nogil
+        jfloat      (*CallStaticFloatMethodA)(JNIEnv*, jclass, jmethodID, jvalue*) nogil
+        jdouble     (*CallStaticDoubleMethod)(JNIEnv*, jclass, jmethodID, ...) nogil
+        jdouble     (*CallStaticDoubleMethodV)(JNIEnv*, jclass, jmethodID, va_list) nogil
+        jdouble     (*CallStaticDoubleMethodA)(JNIEnv*, jclass, jmethodID, jvalue*) nogil
+        void        (*CallStaticVoidMethod)(JNIEnv*, jclass, jmethodID, ...) nogil
+        void        (*CallStaticVoidMethodV)(JNIEnv*, jclass, jmethodID, va_list) nogil
+        void        (*CallStaticVoidMethodA)(JNIEnv*, jclass, jmethodID, jvalue*) nogil
 
         jfieldID    (*GetStaticFieldID)(JNIEnv*, jclass, const_char*,
                             const_char*)

@@ -54,6 +54,7 @@ class Object(JavaClass):
     __javaclass__ = 'java/lang/Object'
 
     getClass = JavaMethod('()Ljava/lang/Class;')
+    hashCode = JavaMethod('()I')
 
 
 class Modifier(JavaClass):

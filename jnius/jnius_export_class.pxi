@@ -71,14 +71,14 @@ class MetaJavaClass(type):
             getClassLoader = j_env[0].GetStaticMethodID(
                 j_env, baseclass, "getClassLoader", "()Ljava/lang/Class;")
 
-            classLoader = j_env[0].CallStaticObjectMethodA(
-                    j_env, baseclass, getClassLoader, [])
-
-            jargs = <jobject *>malloc(sizeof(jobject) * 2)
-            jargs[0] = <jobject *>classLoader
-            jargs[1] = interfaces
-            jcs.j_cls = j_env[0].CallStaticObjectMethod(
-                    j_env, baseclass, getProxyClass, jargs)
+            with nogil:
+                classLoader = j_env[0].CallStaticObjectMethodA(
+                        j_env, baseclass, getClassLoader, [])
+                jargs = <jobject *>malloc(sizeof(jobject) * 2)
+                jargs[0] = <jobject *>classLoader
+                jargs[1] = interfaces
+                jcs.j_cls = j_env[0].CallStaticObjectMethod(
+                        j_env, baseclass, getProxyClass, jargs)
 
             if jcs.j_cls == NULL:
                 raise JavaException('Unable to create the class'
@@ -466,7 +466,6 @@ cdef class JavaMethod(object):
     '''Used to resolve a Java method, and do the call
     '''
     cdef jmethodID j_method
-    cdef JNIEnv *j_env
     cdef jclass j_cls
     cdef LocalRef j_self
     cdef bytes name
@@ -584,43 +583,53 @@ cdef class JavaMethod(object):
 
         # now call the java method
         if r == 'V':
-            j_env[0].CallVoidMethodA(
-                    j_env, j_self, self.j_method, j_args)
+            with nogil:
+                j_env[0].CallVoidMethodA(
+                        j_env, j_self, self.j_method, j_args)
         elif r == 'Z':
-            j_boolean = j_env[0].CallBooleanMethodA(
-                    j_env, j_self, self.j_method, j_args)
+            with nogil:
+                j_boolean = j_env[0].CallBooleanMethodA(
+                        j_env, j_self, self.j_method, j_args)
             ret = True if j_boolean else False
         elif r == 'B':
-            j_byte = j_env[0].CallByteMethodA(
-                    j_env, j_self, self.j_method, j_args)
+            with nogil:
+                j_byte = j_env[0].CallByteMethodA(
+                        j_env, j_self, self.j_method, j_args)
             ret = <char>j_byte
         elif r == 'C':
-            j_char = j_env[0].CallCharMethodA(
-                    j_env, j_self, self.j_method, j_args)
+            with nogil:
+                j_char = j_env[0].CallCharMethodA(
+                        j_env, j_self, self.j_method, j_args)
             ret = chr(<char>j_char)
         elif r == 'S':
-            j_short = j_env[0].CallShortMethodA(
-                    j_env, j_self, self.j_method, j_args)
+            with nogil:
+                j_short = j_env[0].CallShortMethodA(
+                        j_env, j_self, self.j_method, j_args)
             ret = <short>j_short
         elif r == 'I':
-            j_int = j_env[0].CallIntMethodA(
-                    j_env, j_self, self.j_method, j_args)
+            with nogil:
+                j_int = j_env[0].CallIntMethodA(
+                        j_env, j_self, self.j_method, j_args)
             ret = <int>j_int
         elif r == 'J':
-            j_long = j_env[0].CallLongMethodA(
-                    j_env, j_self, self.j_method, j_args)
+            with nogil:
+                j_long = j_env[0].CallLongMethodA(
+                        j_env, j_self, self.j_method, j_args)
             ret = <long>j_long
         elif r == 'F':
-            j_float = j_env[0].CallFloatMethodA(
-                    j_env, j_self, self.j_method, j_args)
+            with nogil:
+                j_float = j_env[0].CallFloatMethodA(
+                        j_env, j_self, self.j_method, j_args)
             ret = <float>j_float
         elif r == 'D':
-            j_double = j_env[0].CallDoubleMethodA(
-                    j_env, j_self, self.j_method, j_args)
+            with nogil:
+                j_double = j_env[0].CallDoubleMethodA(
+                        j_env, j_self, self.j_method, j_args)
             ret = <double>j_double
         elif r == 'L':
-            j_object = j_env[0].CallObjectMethodA(
-                    j_env, j_self, self.j_method, j_args)
+            with nogil:
+                j_object = j_env[0].CallObjectMethodA(
+                        j_env, j_self, self.j_method, j_args)
             check_exception(j_env)
             if j_object != NULL:
                 ret = convert_jobject_to_python(
@@ -628,8 +637,9 @@ cdef class JavaMethod(object):
                 j_env[0].DeleteLocalRef(j_env, j_object)
         elif r == '[':
             r = self.definition_return[1:]
-            j_object = j_env[0].CallObjectMethodA(
-                    j_env, j_self, self.j_method, j_args)
+            with nogil:
+                j_object = j_env[0].CallObjectMethodA(
+                        j_env, j_self, self.j_method, j_args)
             check_exception(j_env)
             if j_object != NULL:
                 ret = convert_jarray_to_python(j_env, r, j_object)
@@ -655,50 +665,59 @@ cdef class JavaMethod(object):
         cdef object ret = None
         cdef JavaObject ret_jobject
         cdef JavaClass ret_jc
-        j_env = get_jnienv()
 
         # return type of the java method
         r = self.definition_return[0]
 
         # now call the java method
         if r == 'V':
-            j_env[0].CallStaticVoidMethodA(
-                    j_env, self.j_cls, self.j_method, j_args)
+            with nogil:
+                j_env[0].CallStaticVoidMethodA(
+                        j_env, self.j_cls, self.j_method, j_args)
         elif r == 'Z':
-            j_boolean = j_env[0].CallStaticBooleanMethodA(
-                    j_env, self.j_cls, self.j_method, j_args)
+            with nogil:
+                j_boolean = j_env[0].CallStaticBooleanMethodA(
+                        j_env, self.j_cls, self.j_method, j_args)
             ret = True if j_boolean else False
         elif r == 'B':
-            j_byte = j_env[0].CallStaticByteMethodA(
-                    j_env, self.j_cls, self.j_method, j_args)
+            with nogil:
+                j_byte = j_env[0].CallStaticByteMethodA(
+                        j_env, self.j_cls, self.j_method, j_args)
             ret = <char>j_byte
         elif r == 'C':
-            j_char = j_env[0].CallStaticCharMethodA(
-                    j_env, self.j_cls, self.j_method, j_args)
+            with nogil:
+                j_char = j_env[0].CallStaticCharMethodA(
+                        j_env, self.j_cls, self.j_method, j_args)
             ret = chr(<char>j_char)
         elif r == 'S':
-            j_short = j_env[0].CallStaticShortMethodA(
-                    j_env, self.j_cls, self.j_method, j_args)
+            with nogil:
+                j_short = j_env[0].CallStaticShortMethodA(
+                        j_env, self.j_cls, self.j_method, j_args)
             ret = <short>j_short
         elif r == 'I':
-            j_int = j_env[0].CallStaticIntMethodA(
-                    j_env, self.j_cls, self.j_method, j_args)
+            with nogil:
+                j_int = j_env[0].CallStaticIntMethodA(
+                        j_env, self.j_cls, self.j_method, j_args)
             ret = <int>j_int
         elif r == 'J':
-            j_long = j_env[0].CallStaticLongMethodA(
-                    j_env, self.j_cls, self.j_method, j_args)
+            with nogil:
+                j_long = j_env[0].CallStaticLongMethodA(
+                        j_env, self.j_cls, self.j_method, j_args)
             ret = <long>j_long
         elif r == 'F':
-            j_float = j_env[0].CallStaticFloatMethodA(
-                    j_env, self.j_cls, self.j_method, j_args)
+            with nogil:
+                j_float = j_env[0].CallStaticFloatMethodA(
+                        j_env, self.j_cls, self.j_method, j_args)
             ret = <float>j_float
         elif r == 'D':
-            j_double = j_env[0].CallStaticDoubleMethodA(
-                    j_env, self.j_cls, self.j_method, j_args)
+            with nogil:
+                j_double = j_env[0].CallStaticDoubleMethodA(
+                        j_env, self.j_cls, self.j_method, j_args)
             ret = <double>j_double
         elif r == 'L':
-            j_object = j_env[0].CallStaticObjectMethodA(
-                    j_env, self.j_cls, self.j_method, j_args)
+            with nogil:
+                j_object = j_env[0].CallStaticObjectMethodA(
+                        j_env, self.j_cls, self.j_method, j_args)
             check_exception(j_env)
             if j_object != NULL:
                 ret = convert_jobject_to_python(
@@ -706,8 +725,9 @@ cdef class JavaMethod(object):
                 j_env[0].DeleteLocalRef(j_env, j_object)
         elif r == '[':
             r = self.definition_return[1:]
-            j_object = j_env[0].CallStaticObjectMethodA(
-                    j_env, self.j_cls, self.j_method, j_args)
+            with nogil:
+                j_object = j_env[0].CallStaticObjectMethodA(
+                        j_env, self.j_cls, self.j_method, j_args)
             check_exception(j_env)
             if j_object != NULL:
                 ret = convert_jarray_to_python(j_env, r, j_object)
