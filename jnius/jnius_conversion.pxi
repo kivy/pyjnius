@@ -12,6 +12,11 @@ cdef void release_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, arg
                     argtype in ('Ljava/lang/String;', 'Ljava/lang/Object;'):
                 j_env[0].DeleteLocalRef(j_env, j_args[index].l)
         elif argtype[0] == '[':
+            ret = convert_jarray_to_python(j_env, argtype[1:], j_args[index].l)
+            try:
+                args[index][:] = ret
+            except TypeError:
+                pass
             j_env[0].DeleteLocalRef(j_env, j_args[index].l)
 
 
