@@ -84,13 +84,13 @@ with open(join('jnius', '__init__.py')) as fd:
     version = versionline[0].split("'")[-2]
 
 # create the extension
-setup(name='jnius',
+setup(name='phyjnius',
       version=version,
       cmdclass={'build_ext': build_ext},
       packages=['jnius'],
       url='http://pyjnius.readthedocs.org/',
-      author='Mathieu Virbel and Gabriel Pettier',
-      author_email='mat@kivy.org,gabriel@kivy.org',
+      author='Barry Wark, Mathieu Virbel and Gabriel Pettier',
+      author_email='info@physion.us',
       license='LGPL',
       description='Python library to access Java classes',
       install_requires=install_requires,
