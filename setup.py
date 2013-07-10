@@ -43,12 +43,21 @@ if platform == 'android':
     libraries = ['sdl', 'log']
     library_dirs = ['libs/' + environ['ARCH']]
 elif platform == 'darwin':
-    import objc
-    framework = objc.pathForFramework('JavaVM.framework')
-    if not framework:
-        raise Exception('You must install Java on your Mac OS X distro')
-    extra_link_args = ['-framework', 'JavaVM']
-    include_dirs = [join(framework, 'Versions/A/Headers')]
+    try: # System JavaVM framework
+        import objc
+        framework = objc.pathForFramework('JavaVM.framework')
+        if not framework:
+            raise Exception('You must install Java on your Mac OS X distro')
+        extra_link_args = ['-framework', 'JavaVM']
+        include_dirs = [join(framework, 'Versions/A/Headers')]
+    except ImportError:
+        import subprocess
+        java_home = subprocess.check_output('/usr/libexec/java_home').strip()
+        print(java_home)
+        library_dirs = [join(java_home, 'jre', 'lib', 'server')]
+        libraries = ['jvm']
+        extra_link_args = ['-Wl,-rpath', library_dirs[0]]
+        include_dirs = [join(java_home, 'include'), join(java_home, 'include', 'darwin')]
 elif platform == 'win32':
     jdk_home = environ.get('JDK_HOME')
     jre_home = environ.get('JRE_HOME')
@@ -102,6 +111,7 @@ setup(name='phyjnius',
       license='LGPL',
       description='Python library to access Java classes',
       install_requires=install_requires,
+      setup_requires=['Cython==0.19.1'],
       ext_package='jnius',
       ext_modules=[
           Extension(
