@@ -49,7 +49,13 @@ elif platform == 'darwin':
         raise Exception('You must install Java on your Mac OS X distro')
     extra_link_args = ['-framework', 'JavaVM']
     include_dirs = [join(framework, 'Versions/A/Headers')]
-else:
+elif platform == 'win32':
+    jdk_home = environ.get('JDK_HOME')
+    jre_home = environ.get('JRE_HOME')
+    include_dirs = [ join(jdk_home, 'include'), join(jdk_home, 'include', platform)]
+    library_dirs = [ join(jdk_home, 'lib') ]
+    libraries = ['jvm'] 
+elif platform == 'linux2':
     import subprocess
     # otherwise, we need to search the JDK_HOME
     jdk_home = environ.get('JDK_HOME')
@@ -74,6 +80,8 @@ else:
     library_dirs = [join(jre_home, 'lib', cpu, 'server')]
     extra_link_args = ['-Wl,-rpath', library_dirs[0]]
     libraries = ['jvm']
+else:
+    raise Exception("Unsupported platform {}".format(platform))
 
 # generate the config.pxi
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:

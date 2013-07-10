@@ -1,7 +1,7 @@
 # on desktop, we need to create an env :)
 # example taken from http://www.inonit.com/cygwin/jni/invocationApi/c.html
 
-cdef extern jint JNI_CreateJavaVM(JavaVM **pvm, void **penv, void *args)
+cdef extern jint __stdcall JNI_CreateJavaVM(JavaVM **pvm, void **penv, void *args)
 cdef extern from "jni.h":
     int JNI_VERSION_1_4
     jboolean JNI_FALSE
