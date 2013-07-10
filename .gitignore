@@ -7,3 +7,7 @@ build
 .*.swp
 *.class
 .idea
+
+MANIFEST
+
+dist
