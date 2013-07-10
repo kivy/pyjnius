@@ -59,31 +59,21 @@ elif platform == 'darwin':
         libraries = ['jvm']
         extra_link_args = ['-Wl,-rpath', library_dirs[0]]
         include_dirs = [join(java_home, 'include'), join(java_home, 'include', 'darwin')]
-else:
+elif platform == 'win32':
+    jdk_home = environ.get('JDK_HOME')
+    jre_home = environ.get('JRE_HOME')
+    include_dirs = [ join(jdk_home, 'include'), join(jdk_home, 'include', platform)]
+    library_dirs = [ join(jdk_home, 'lib') ]
+    libraries = ['jvm'] 
+elif platform == 'linux2':
     import subprocess
     # otherwise, we need to search the JDK_HOME
     jdk_home = environ.get('JDK_HOME')
-    if not jdk_home:
-        jdk_home = subprocess.Popen('readlink -f `which javac` | sed "s:bin/javac::"',
-                shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
-    if not jdk_home:
-        raise Exception('Unable to determine JDK_HOME')
-
-    jre_home = environ.get('JRE_HOME')
-    if exists(join(jdk_home, 'jre')):
-        jre_home = join(jdk_home, 'jre')
-    if not jre_home:
-        jre_home = subprocess.Popen('readlink -f `which java` | sed "s:bin/java::"',
-                shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
-    if not jre_home:
-        raise Exception('Unable to determine JRE_HOME')
-    cpu = 'i386' if sys.maxint == 2147483647 else 'amd64'
-    include_dirs = [
-            join(jdk_home, 'include'),
-            join(jdk_home, 'include', 'linux')]
     library_dirs = [join(jre_home, 'lib', cpu, 'server')]
     extra_link_args = ['-Wl,-rpath', library_dirs[0]]
     libraries = ['jvm']
+else:
+    raise Exception("Unsupported platform {}".format(platform))
 
 # generate the config.pxi
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
