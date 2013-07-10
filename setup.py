@@ -43,7 +43,8 @@ if platform == 'android':
     libraries = ['sdl', 'log']
     library_dirs = ['libs/' + environ['ARCH']]
 elif platform == 'darwin':
-    try: # System JavaVM framework
+    
+    try:
         import objc
         framework = objc.pathForFramework('JavaVM.framework')
         if not framework:
@@ -58,13 +59,7 @@ elif platform == 'darwin':
         libraries = ['jvm']
         extra_link_args = ['-Wl,-rpath', library_dirs[0]]
         include_dirs = [join(java_home, 'include'), join(java_home, 'include', 'darwin')]
-elif platform == 'win32':
-    jdk_home = environ.get('JDK_HOME')
-    jre_home = environ.get('JRE_HOME')
-    include_dirs = [ join(jdk_home, 'include'), join(jdk_home, 'include', platform)]
-    library_dirs = [ join(jdk_home, 'lib') ]
-    libraries = ['jvm'] 
-elif platform == 'linux2':
+else:
     import subprocess
     # otherwise, we need to search the JDK_HOME
     jdk_home = environ.get('JDK_HOME')
@@ -89,8 +84,6 @@ elif platform == 'linux2':
     library_dirs = [join(jre_home, 'lib', cpu, 'server')]
     extra_link_args = ['-Wl,-rpath', library_dirs[0]]
     libraries = ['jvm']
-else:
-    raise Exception("Unsupported platform {}".format(platform))
 
 # generate the config.pxi
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
@@ -101,17 +94,16 @@ with open(join('jnius', '__init__.py')) as fd:
     version = versionline[0].split("'")[-2]
 
 # create the extension
-setup(name='phyjnius',
+setup(name='jnius',
       version=version,
       cmdclass={'build_ext': build_ext},
       packages=['jnius'],
-      url='http://pyjnius.readthedocs.org/',
-      author='Barry Wark, Mathieu Virbel and Gabriel Pettier',
-      author_email='info@physion.us',
+      url='http://physion.us/',
+      author='Physion LLC. Original pyjnius code by Mathieu Virbel and Gabriel Pettier',
+      author_email='dev@physion.us',
       license='LGPL',
       description='Python library to access Java classes',
       install_requires=install_requires,
-      setup_requires=['Cython==0.19.1'],
       ext_package='jnius',
       ext_modules=[
           Extension(
