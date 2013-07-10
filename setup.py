@@ -94,11 +94,11 @@ with open(join('jnius', '__init__.py')) as fd:
     version = versionline[0].split("'")[-2]
 
 # create the extension
-setup(name='jnius',
+setup(name='phyjnius',
       version=version,
       cmdclass={'build_ext': build_ext},
       packages=['jnius'],
-      url='http://physion.us/',
+      url='https://github.com/physion/pyjnius',
       author='Physion LLC. Original pyjnius code by Mathieu Virbel and Gabriel Pettier',
       author_email='dev@physion.us',
       license='LGPL',
