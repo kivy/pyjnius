@@ -30,12 +30,10 @@ if ndkplatform is not None and environ.get('LIBLINK'):
 # detect cython
 try:
     from Cython.Distutils import build_ext
-    install_requires.append('cython')
 except ImportError:
     from distutils.command.build_ext import build_ext
     if platform != 'android':
-        print '\n\nYou need Cython to compile Pyjnius.\n\n'
-        raise
+        print('\n\nWarning: You need Cython to compile Pyjnius.\n\n')
     files = [fn[:-3] + 'c' for fn in files if fn.endswith('pyx')]
 
 if platform == 'android':

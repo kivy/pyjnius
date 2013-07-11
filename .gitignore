@@ -8,6 +8,10 @@ build
 *.class
 .idea
 
+# distribution
 MANIFEST
-
 dist
+*.egg-info
+
+# Tox
+.tox
