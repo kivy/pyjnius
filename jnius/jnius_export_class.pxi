@@ -225,6 +225,7 @@ cdef class JavaClass(object):
                     self.__javaclass__))
 
             self.j_self = create_local_ref(j_env, j_self)
+            j_env[0].DeleteLocalRef(j_env, j_self)
         finally:
             if j_args != NULL:
                 free(j_args)
