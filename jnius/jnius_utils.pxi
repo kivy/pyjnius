@@ -77,6 +77,9 @@ cdef bytes lookup_java_object_name(JNIEnv *j_env, jobject j_obj):
     cdef jmethodID jmeth = j_env[0].GetMethodID(j_env, jcls2, 'getName', '()Ljava/lang/String;')
     cdef jobject js = j_env[0].CallObjectMethod(j_env, jcls, jmeth)
     name = convert_jobject_to_python(j_env, b'Ljava/lang/String;', js)
+    j_env[0].DeleteLocalRef(j_env, js)
+    j_env[0].DeleteLocalRef(j_env, jcls)
+    j_env[0].DeleteLocalRef(j_env, jcls2)
     return name.replace('.', '/')
 
 
