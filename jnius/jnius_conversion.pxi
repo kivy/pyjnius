@@ -416,8 +416,8 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
             float: 'F',
             basestring: 'Ljava/lang/String;',
         }
-        for type, override in conversions.iteritems():
-            if isinstance(pyarray[0], type):
+        for _type, override in conversions.iteritems():
+            if isinstance(pyarray[0], _type):
                 definition = override
                 break
 
