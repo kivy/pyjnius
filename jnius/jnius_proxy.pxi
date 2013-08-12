@@ -68,7 +68,7 @@ cdef class PythonJavaClass(object):
                 '\nJava method name:', method_name,
                 '\nSignature: ({}){}'.format(''.join(args_signature), ret_signature),
                 '\n=======================================\n']))
-            raise NotImplemented('The method {} is not implemented'.format(key))
+            raise NotImplementedError('The method {} is not implemented'.format(key))
 
         return py_method(*args)
 
