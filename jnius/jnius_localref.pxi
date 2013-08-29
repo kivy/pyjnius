@@ -1,4 +1,3 @@
-
 cdef class LocalRef:
     cdef jobject obj
 
@@ -16,7 +15,7 @@ cdef class LocalRef:
         self.obj = env[0].NewGlobalRef(env, obj)
 
     def __repr__(self):
-        return '<LocalRef obj=0x{:x} at 0x{:x}>'.format(
+        return '<LocalRef obj=0x{0:x} at 0x{1:x}>'.format(
             <long><void *>self.obj, id(self))
 
 
