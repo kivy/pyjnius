@@ -101,7 +101,4 @@ class BasicsTest(unittest.TestCase):
 
     def test_return_array_as_object_of_integers(self):
         test = autoclass('org.jnius.BasicsTest')()
-        print 'begin'
-        c = test.methodReturnIntegers()
-        print 'end'
-        self.assertEquals(c, [1, 2])
+        self.assertEquals(test.methodReturnIntegers(), [1, 2])

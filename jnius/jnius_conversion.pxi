@@ -109,7 +109,15 @@ cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object
 
     # we got a generic object -> lookup for the real name instead.
     if r == 'java/lang/Object':
-        r = lookup_java_object_name(j_env, j_object)
+        r = definition = lookup_java_object_name(j_env, j_object)
+
+    if definition[0] == '[':
+        return convert_jarray_to_python(j_env, definition[1:], j_object)
+
+    # XXX what about others native type?
+    # It seem, in case of the proxy, that they are never passed directly,
+    # and always passed as "class" type instead.
+    # Ie, B would be passed as Ljava/lang/Character;
 
     # if we got a string, just convert back to Python str.
     if r == 'java/lang/String':
@@ -153,9 +161,6 @@ cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object
         retmeth = j_env[0].GetMethodID(j_env, retclass, 'charValue', '()C')
         return ord(j_env[0].CallCharMethod(j_env, j_object, retmeth))
 
-    if r[0] == '[':
-        return convert_jarray_to_python(j_env, r[1:], j_object)
-
     if r not in jclass_register:
         if r.startswith('$Proxy'):
             # only for $Proxy on android, don't use autoclass. The dalvik vm is
@@ -170,7 +175,6 @@ cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object
         ret_jc = jclass_register[r](noinstance=True)
     ret_jc.instanciate_from(create_local_ref(j_env, j_object))
     return ret_jc
-
 
 cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
     cdef jboolean iscopy
