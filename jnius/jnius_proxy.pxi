@@ -73,14 +73,13 @@ cdef class PythonJavaClass(object):
         return py_method(*args)
 
 cdef jobject py_invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
-        j_method, jobjectArray args) with gil:
+        j_method, jobjectArray args) except * with gil:
 
     from .reflect import get_signature, Method
     cdef jfieldID ptrField
     cdef jlong jptr
     cdef object py_obj
     cdef JavaClass method
-    cdef LocalRef ref
     cdef jobject j_arg
 
     # get the python object
@@ -91,7 +90,6 @@ cdef jobject py_invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
 
     # extract the method information
     method = Method(noinstance=True)
-    ref = create_local_ref(j_env, j_method)
     method.instanciate_from(create_local_ref(j_env, j_method))
     ret_signature = get_signature(method.getReturnType())
     args_signature = [get_signature(x) for x in method.getParameterTypes()]
