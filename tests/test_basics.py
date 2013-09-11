@@ -54,6 +54,7 @@ class BasicsTest(unittest.TestCase):
     def test_instances_methods_array(self):
         test = autoclass('org.jnius.BasicsTest')()
         self.assertEquals(test.methodArrayZ(), [True] * 3)
+        self.assertEquals(test.methodArrayB()[0], 127)
         self.assertEquals(test.methodArrayB(), [127] * 3)
         self.assertEquals(test.methodArrayC(), ['k'] * 3)
         self.assertEquals(test.methodArrayS(), [32767] * 3)
@@ -94,6 +95,12 @@ class BasicsTest(unittest.TestCase):
     def test_instances_methods_params_object_list_long(self):
         test = autoclass('org.jnius.BasicsTest')()
         self.assertEquals(test.methodParamsObject([1L, 2L]), True)
+
+    def test_instances_methods_params_array_byte(self):
+        test = autoclass('org.jnius.BasicsTest')()
+        self.assertEquals(test.methodParamsArrayByte([127, 127, 127]), True)
+        ret = test.methodArrayB()
+        self.assertEquals(test.methodParamsArrayByte(ret), True)
 
     def test_return_array_as_object_array_of_strings(self):
         test = autoclass('org.jnius.BasicsTest')()

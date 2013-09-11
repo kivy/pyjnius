@@ -106,6 +106,7 @@ include "jnius_env.pxi"
 include "jnius_utils.pxi"
 include "jnius_conversion.pxi"
 include "jnius_localref.pxi"
+include "jnius_nativetypes.pxi"
 
 include "jnius_export_func.pxi"
 include "jnius_export_class.pxi"

@@ -208,7 +208,11 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
                 score += 10
                 continue
 
-            if not isinstance(arg, tuple) and not isinstance(arg, list):
+            if r == '[B' and isinstance(arg, ByteArray):
+                score += 10
+                continue
+
+            if not isinstance(arg, (list, tuple)):
                 return -1
 
             # calculate the score for our subarray
