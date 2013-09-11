@@ -1,5 +1,5 @@
-.. _api:
 
+.. _api:
 API
 ===
 
@@ -169,6 +169,10 @@ Reflection functions
     >>> autoclass('java.lang.System')
     <class 'jnius.java.lang.System'>
 
+    autoclass can also represent a nested Java class:
+
+    >>> autoclass('android.provider.Settings$Secure')
+    <class 'jnius.reflect.android.provider.Settings$Secure'>
 
 Java class implementation in Python
 -----------------------------------
