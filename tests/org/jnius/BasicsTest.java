@@ -43,6 +43,11 @@ public class BasicsTest {
 	public double fieldD = 1.23456789;
 	public String fieldString = new String("helloworld");
 
+    public BasicsTest() {}
+    public BasicsTest(byte fieldBVal) {
+        fieldB = fieldBVal;
+    }
+
 	public boolean[] methodArrayZ() {
 		boolean[] x = new boolean[3];
 		x[0] = x[1] = x[2] = true;
@@ -93,7 +98,7 @@ public class BasicsTest {
 	public boolean methodParamsZBCSIJFD(boolean x1, byte x2, char x3, short x4,
 			int x5, long x6, float x7, double x8) {
 		// ADD float / double, but dunno how to do with approx
-		return (x1 == true && x2 == 127 && x3 == 'k' && x4 == 32767 && 
+		return (x1 == true && x2 == 127 && x3 == 'k' && x4 == 32767 &&
 				x5 == 2147483467 && x6 == 2147483467);
 	}
 

@@ -50,6 +50,10 @@ class BasicsTest(unittest.TestCase):
         self.assertAlmostEquals(test.fieldF, 1.23456789)
         self.assertEquals(test.fieldD, 1.23456789)
         self.assertEquals(test.fieldString, 'helloworld')
+        test2 = autoclass('org.jnius.BasicsTest')(10)
+        self.assertEquals(test2.fieldB, 10)
+        self.assertEquals(test.fieldB, 127)
+        self.assertEquals(test2.fieldB, 10)
 
     def test_instances_methods_array(self):
         test = autoclass('org.jnius.BasicsTest')()
