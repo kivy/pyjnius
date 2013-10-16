@@ -219,6 +219,9 @@ cdef class JavaClass(object):
             j_self = j_env[0].NewObjectA(j_env, self.j_cls,
                     constructor, j_args)
 
+            # release our arguments
+            release_args(j_env, d_args, j_args, args_)
+
             check_exception(j_env)
             if j_self == NULL:
                 raise JavaException('Unable to instanciate {0}'.format(
