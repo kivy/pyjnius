@@ -121,7 +121,7 @@ class MetaJavaClass(type):
             jf = value
             if not jf.is_static:
                 continue
-            jf.set_resolve_info(j_env, jcs.j_cls, None,
+            jf.set_resolve_info(j_env, jcs.j_cls,
                 name, __javaclass__)
 
 
@@ -260,7 +260,7 @@ cdef class JavaClass(object):
             jf = value
             if jf.is_static:
                 continue
-            jf.set_resolve_info(j_env, self.j_cls, self.j_self,
+            jf.set_resolve_info(j_env, self.j_cls,
                 name, self.__javaclass__)
 
     def __repr__(self):
@@ -275,7 +275,6 @@ cdef class JavaField(object):
     cdef jfieldID j_field
     cdef JNIEnv *j_env
     cdef jclass j_cls
-    cdef LocalRef j_self
     cdef bytes definition
     cdef object is_static
     cdef bytes name
@@ -284,20 +283,18 @@ cdef class JavaField(object):
     def __cinit__(self, definition, **kwargs):
         self.j_field = NULL
         self.j_cls = NULL
-        self.j_self = None
 
     def __init__(self, definition, **kwargs):
         super(JavaField, self).__init__()
         self.definition = definition
         self.is_static = kwargs.get('static', False)
 
-    cdef void set_resolve_info(self, JNIEnv *j_env, jclass j_cls, LocalRef j_self,
+    cdef void set_resolve_info(self, JNIEnv *j_env, jclass j_cls,
             bytes name, bytes classname):
         j_env = get_jnienv()
         self.name = name
         self.classname = classname
         self.j_cls = j_cls
-        self.j_self = j_self
 
     cdef void ensure_field(self) except *:
         cdef JNIEnv *j_env = get_jnienv()
@@ -315,12 +312,16 @@ cdef class JavaField(object):
             raise JavaException('Unable to found the field {0}'.format(self.name))
 
     def __get__(self, obj, objtype):
+        cdef jobject j_self
+
         self.ensure_field()
         if obj is None:
             return self.read_static_field()
-        return self.read_field()
 
-    cdef read_field(self):
+        j_self = (<JavaClass?>obj).j_self.obj
+        return self.read_field(j_self)
+
+    cdef read_field(self, jobject j_self):
         cdef jboolean j_boolean
         cdef jbyte j_byte
         cdef jchar j_char
@@ -335,7 +336,6 @@ cdef class JavaField(object):
         cdef object ret = None
         cdef JavaObject ret_jobject
         cdef JavaClass ret_jc
-        cdef jobject j_self = self.j_self.obj
         cdef JNIEnv *j_env = get_jnienv()
 
         # return type of the java method
@@ -840,5 +840,3 @@ class JavaStaticField(JavaField):
     def __init__(self, definition, **kwargs):
         kwargs['static'] = True
         super(JavaStaticField, self).__init__(definition, **kwargs)
-
-
