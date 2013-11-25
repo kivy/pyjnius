@@ -68,12 +68,14 @@ else:
     if not jre_home:
         raise Exception('Unable to determine JRE_HOME')
     cpu = 'i386' if sys.maxint == 2147483647 else 'amd64'
-	
+
     include_dirs = [
             join(jdk_home, 'include'),
             join(jdk_home, 'include', platform)]
     if platform == 'win32':
-        library_dirs = [ join(jre_home, 'lib') ]
+        library_dirs = [
+                join(jdk_home, 'lib'),
+                join(jre_home, 'bin', 'server')]
     else:
         library_dirs = [join(jre_home, 'lib', cpu, 'server')]
     extra_link_args = ['-Wl,-rpath', library_dirs[0]]
