@@ -54,9 +54,18 @@ else:
     # otherwise, we need to search the JDK_HOME
     jdk_home = environ.get('JDK_HOME')
     if not jdk_home:
-        jdk_home = subprocess.Popen('readlink -f `which javac` | sed "s:bin/javac::"',
-                shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
-    if not jdk_home:
+        if platform == 'win32':
+            env_var = environ.get('JAVA_HOME')
+            if 'jdk' in env_var:
+                jdk_home = env_var
+
+                # Remove /bin if it's appended to JAVA_HOME
+                if jdk_home and jdk_home[-3:] == 'bin':
+                    jdk_home = jdk_home[:-4]
+        else:
+            jdk_home = subprocess.Popen('readlink -f `which javac` | sed "s:bin/javac::"',
+                    shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+    if not jdk_home or not exists(jdk_home):
         raise Exception('Unable to determine JDK_HOME')
 
     jre_home = environ.get('JRE_HOME')
