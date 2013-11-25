@@ -54,9 +54,18 @@ else:
     # otherwise, we need to search the JDK_HOME
     jdk_home = environ.get('JDK_HOME')
     if not jdk_home:
-        jdk_home = subprocess.Popen('readlink -f `which javac` | sed "s:bin/javac::"',
-                shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
-    if not jdk_home:
+        if platform == 'win32':
+            env_var = environ.get('JAVA_HOME')
+            if 'jdk' in env_var:
+                jdk_home = env_var
+
+                # Remove /bin if it's appended to JAVA_HOME
+                if jdk_home and jdk_home[-3:] == 'bin':
+                    jdk_home = jdk_home[:-4]
+        else:
+            jdk_home = subprocess.Popen('readlink -f `which javac` | sed "s:bin/javac::"',
+                    shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+    if not jdk_home or not exists(jdk_home):
         raise Exception('Unable to determine JDK_HOME')
 
     jre_home = environ.get('JRE_HOME')
@@ -68,10 +77,16 @@ else:
     if not jre_home:
         raise Exception('Unable to determine JRE_HOME')
     cpu = 'i386' if sys.maxint == 2147483647 else 'amd64'
+
     include_dirs = [
             join(jdk_home, 'include'),
-            join(jdk_home, 'include', 'linux')]
-    library_dirs = [join(jre_home, 'lib', cpu, 'server')]
+            join(jdk_home, 'include', platform)]
+    if platform == 'win32':
+        library_dirs = [
+                join(jdk_home, 'lib'),
+                join(jre_home, 'bin', 'server')]
+    else:
+        library_dirs = [join(jre_home, 'lib', cpu, 'server')]
     extra_link_args = ['-Wl,-rpath', library_dirs[0]]
     libraries = ['jvm']
 
