@@ -70,7 +70,7 @@ else:
     cpu = 'i386' if sys.maxint == 2147483647 else 'amd64'
     include_dirs = [
             join(jdk_home, 'include'),
-            join(jdk_home, 'include', 'linux')]
+            join(jdk_home, 'include', platform)]
     library_dirs = [join(jre_home, 'lib', cpu, 'server')]
     extra_link_args = ['-Wl,-rpath', library_dirs[0]]
     libraries = ['jvm']
