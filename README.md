@@ -3,7 +3,7 @@ Phyjnius
 
 Phyjnius is a fork of the [kivy/pyjnius](https://github.com/kivy/pyjnius) project. Phyjnius provides a Java-Python bridge to access Java class as Python class, using JNI and Java reflection. Phyjnius aims to provide a "Pythonic" Java-Python bridge that allows Python developers to use Java libraries efficiently and comfortably.
 
-PhyJNIus is used by the [ovation](https://github.com/physion/ovation-python) package, a Python API for the [Ovation Scientific Data Management System](ovation.io).
+Phyjnius is used by the [ovation](https://github.com/physion/ovation-python) package, a Python API for the [Ovation Scientific Data Management System](ovation.io).
 
 
 Quick overview
@@ -74,6 +74,6 @@ mailto:pyjnius-dev@googlegroups.com
 License
 --------
 
-Copyright (c) 2013, Physion Consulting LLC. Original PyJnius code is copyright its original authors.
+Copyright (c) 2013, Physion LLC. Original PyJnius code is copyright its original authors.
 
 Distribution and usage is licensed under the terms of the GNU Lesser General Public License ([LGPL](http://www.gnu.org/licenses/lgpl.html "LGPL")).
