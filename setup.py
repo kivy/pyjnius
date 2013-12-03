@@ -111,7 +111,7 @@ setup(name='phyjnius',
       license='LGPL',
       description='Python library to access Java classes',
       install_requires=install_requires,
-      setup_requires=['Cython==0.19.1'],
+      setup_requires=['Cython>=0.19.1'],
       ext_package='jnius',
       ext_modules=[
           Extension(
