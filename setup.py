@@ -30,12 +30,10 @@ if ndkplatform is not None and environ.get('LIBLINK'):
 # detect cython
 try:
     from Cython.Distutils import build_ext
-    install_requires.append('cython')
 except ImportError:
     from distutils.command.build_ext import build_ext
     if platform != 'android':
-        print '\n\nYou need Cython to compile Pyjnius.\n\n'
-        raise
+        print('\n\nWarning: You need Cython to compile Pyjnius.\n\n')
     files = [fn[:-3] + 'c' for fn in files if fn.endswith('pyx')]
 
 if platform == 'android':
@@ -43,7 +41,8 @@ if platform == 'android':
     libraries = ['sdl', 'log']
     library_dirs = ['libs/' + environ['ARCH']]
 elif platform == 'darwin':
-    try: # System JavaVM framework
+    
+    try:
         import objc
         framework = objc.pathForFramework('JavaVM.framework')
         if not framework:
@@ -68,24 +67,6 @@ elif platform == 'linux2':
     import subprocess
     # otherwise, we need to search the JDK_HOME
     jdk_home = environ.get('JDK_HOME')
-    if not jdk_home:
-        jdk_home = subprocess.Popen('readlink -f `which javac` | sed "s:bin/javac::"',
-                shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
-    if not jdk_home:
-        raise Exception('Unable to determine JDK_HOME')
-
-    jre_home = environ.get('JRE_HOME')
-    if exists(join(jdk_home, 'jre')):
-        jre_home = join(jdk_home, 'jre')
-    if not jre_home:
-        jre_home = subprocess.Popen('readlink -f `which java` | sed "s:bin/java::"',
-                shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
-    if not jre_home:
-        raise Exception('Unable to determine JRE_HOME')
-    cpu = 'i386' if sys.maxint == 2147483647 else 'amd64'
-    include_dirs = [
-            join(jdk_home, 'include'),
-            join(jdk_home, 'include', 'linux')]
     library_dirs = [join(jre_home, 'lib', cpu, 'server')]
     extra_link_args = ['-Wl,-rpath', library_dirs[0]]
     libraries = ['jvm']
@@ -105,9 +86,9 @@ setup(name='phyjnius',
       version=version,
       cmdclass={'build_ext': build_ext},
       packages=['jnius'],
-      url='http://pyjnius.readthedocs.org/',
-      author='Barry Wark, Mathieu Virbel and Gabriel Pettier',
-      author_email='info@physion.us',
+      url='https://github.com/physion/pyjnius',
+      author='Physion LLC. Original pyjnius code by Mathieu Virbel and Gabriel Pettier',
+      author_email='dev@physion.us',
       license='LGPL',
       description='Python library to access Java classes',
       install_requires=install_requires,
