@@ -55,7 +55,7 @@ else:
     jdk_home = environ.get('JDK_HOME')
     if not jdk_home:
         jdk_home = subprocess.Popen('readlink -f `which javac` | sed "s:bin/javac::"',
-                shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+                                    shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
     if not jdk_home:
         raise Exception('Unable to determine JDK_HOME')
 
@@ -64,10 +64,25 @@ else:
         jre_home = join(jdk_home, 'jre')
     if not jre_home:
         jre_home = subprocess.Popen('readlink -f `which java` | sed "s:bin/java::"',
-                shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+                                    shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
     if not jre_home:
         raise Exception('Unable to determine JRE_HOME')
-    cpu = 'i386' if sys.maxint == 2147483647 else 'amd64'
+    
+    arch2cpu = {"armhf"   : "arm",
+                "armel"   : "arm",
+                "powerpc" : "ppc",
+                }
+    # haven't looked for more
+    if "/usr/lib/jvm/java-" in jre_home:
+        arch = jre_home.split("/")[1:-1][-1].split("-")[-1]
+        if arch in arch2cpu.keys():
+            cpu = arch2cpu[arch]
+        else:
+            cpu = arch
+    else: # not needed any more, but leaving it as it might fit to some non-linux cases I don't know..
+        cpu = 'i386' if sys.maxint == 2147483647 else 'amd64'
+  
+    
     include_dirs = [
             join(jdk_home, 'include'),
             join(jdk_home, 'include', 'linux')]
