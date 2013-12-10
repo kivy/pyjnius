@@ -73,17 +73,10 @@ else:
                 "powerpc" : "ppc",
                 }
     # haven't looked for more
-    if "/usr/lib/jvm/java-" in jre_home:
+    if "/usr/lib/jvm/java-" in jre_home and "oracle" not in jre_home:
         arch = jre_home.split("/")[1:-1][-1].split("-")[-1]
         if arch in arch2cpu.keys():
             cpu = arch2cpu[arch]
-        elif "oracle" is arch:
-            cpu = None
-            for arch in ["i386", "amd64"]: # assuming oracle is just built for these targets
-                if exists(join(jre_home, 'lib', arch, 'server')):
-                    cpu = arch
-            if cpu is None:
-                raise Exception('Unable to determine arch for Orcale JRE')
         else:
             cpu = arch
     else: # not needed anymore, but leaving it as it might fit to some non-linux cases I don't know..
