@@ -27,6 +27,10 @@ cdef parse_definition(definition):
         if c == 'L':
             c, argdef = argdef.split(';', 1)
             args.append(prefix + c + ';')
+            continue
+
+        raise Exception('Invalid "{}" character in definition "{}"'.format(
+            c, definition[1:]))
 
     return ret, tuple(args)
 
