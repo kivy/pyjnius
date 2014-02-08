@@ -3,14 +3,15 @@
 Installation
 ============
 
-Pyjnius depends on `Cython <http://cython.org/>`_ and `Java
-<http://www.oracle.com/javase>`_.
+Pyjnius depends on `Cython <http://cython.org/>`_, 
+`PyObjC <http://packages.python.org/pyobjc/install.html>`_, and 
+`Java <http://www.oracle.com/javase>`_.
 
 
 Installation on the Desktop
 ---------------------------
 
-You need the Java JDK and JRE installed (openjdk will do), and Cython. Then,
+You need the Java JDK and JRE installed (openjdk will do), PyObjC, and Cython. Then,
 just type::
 
     sudo python setup.py install
@@ -32,4 +33,3 @@ If you use `Python for android <http://github.com/kivy/python-for-android>`,
 you just need to compile a distribution with the pyjnius module::
 
     ./distribute.sh -m 'pyjnius kivy'
-

@@ -26,15 +26,16 @@ hello
 Usage on desktop
 ----------------
 
-You need a java JDK installed (openjdk will do), cython, and make to build it
+You need a [Java JDK][] installed (openjdk will do), [cython][], [pyobjc][] and make to 
+build it:
 
     make
 
-That's it! you can run the tests with
+That's it! you can run the tests with:
 
     make tests
 
-To make sure everything is running right.
+to make sure everything is running right.
 
 Usage with python-for-android
 -----------------------------
@@ -116,3 +117,8 @@ Support/Discussion
 ------------------
 
 mailto:pyjnius-dev@googlegroups.com
+
+
+[Java JDK]: http://www.oracle.com/technetwork/java/javase/downloads/index.html
+[cython]: http://www.cython.org/
+[pyobjc]: http://packages.python.org/pyobjc/install.html
