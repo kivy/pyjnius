@@ -21,8 +21,9 @@ screen::
     metrics = DisplayMetrics()
     print 'DPI', metrics.getDeviceDensity()
 
-Note: To access nested classes, use `$` like:
-`autoclass('android.provider.MediaStore$Images$Media')`.
+.. Note ::
+  To access nested classes, use `$` like:
+  `autoclass('android.provider.MediaStore$Images$Media')`.
 
 Recording an audio file
 -----------------------
