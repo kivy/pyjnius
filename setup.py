@@ -1,4 +1,4 @@
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 from os import environ
 from os.path import dirname, join, exists
 import sys
@@ -67,7 +67,45 @@ elif platform == 'linux2':
     import subprocess
     # otherwise, we need to search the JDK_HOME
     jdk_home = environ.get('JDK_HOME')
-    library_dirs = [join(jre_home, 'lib', cpu, 'server')]
+    if not jdk_home:
+        if platform == 'win32':
+            env_var = environ.get('JAVA_HOME')
+            if env_var and 'jdk' in env_var:
+                jdk_home = env_var
+
+                # Remove /bin if it's appended to JAVA_HOME
+                if jdk_home[-3:] == 'bin':
+                    jdk_home = jdk_home[:-4]
+        else:
+            jdk_home = subprocess.Popen('readlink -f `which javac` | sed "s:bin/javac::"',
+                    shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+    if not jdk_home or not exists(jdk_home):
+        raise Exception('Unable to determine JDK_HOME')
+
+    jre_home = environ.get('JRE_HOME')
+    if exists(join(jdk_home, 'jre')):
+        jre_home = join(jdk_home, 'jre')
+    if not jre_home:
+        jre_home = subprocess.Popen('readlink -f `which java` | sed "s:bin/java::"',
+                shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+    if not jre_home:
+        raise Exception('Unable to determine JRE_HOME')
+    cpu = 'i386' if sys.maxint == 2147483647 else 'amd64'
+
+    if platform == 'win32':
+        incl_dir = join(jdk_home, 'include', 'win32')
+    else:
+        incl_dir = join(jdk_home, 'include', 'linux')
+
+    include_dirs = [
+            join(jdk_home, 'include'),
+            incl_dir]
+    if platform == 'win32':
+        library_dirs = [
+                join(jdk_home, 'lib'),
+                join(jre_home, 'bin', 'server')]
+    else:
+        library_dirs = [join(jre_home, 'lib', cpu, 'server')]
     extra_link_args = ['-Wl,-rpath', library_dirs[0]]
     libraries = ['jvm']
 else:
