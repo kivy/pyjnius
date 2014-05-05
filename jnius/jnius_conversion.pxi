@@ -274,6 +274,20 @@ cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
             obj = convert_jobject_to_python(j_env, definition, j_object_item)
             ret.append(obj)
             j_env[0].DeleteLocalRef(j_env, j_object_item)
+
+    elif r == '[':
+        r = definition[1:]
+        ret = []
+        for i in range(array_size):
+            j_object_item = j_env[0].GetObjectArrayElement(
+                    j_env, j_object, i)
+            if j_object_item == NULL:
+                ret.append(None)
+                continue
+            obj = convert_jarray_to_python(j_env, r, j_object_item)
+            ret.append(obj)
+            j_env[0].DeleteLocalRef(j_env, j_object_item)
+
     else:
         raise JavaException('Invalid return definition for array')
 
@@ -525,6 +539,17 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
                         j_env, <jobjectArray>ret, i, jo.obj)
             else:
                 raise JavaException('Invalid variable used for L array', definition, pyarray)
+
+    elif definition[0] == '[':
+        subdef = definition[1:]
+        eproto = convert_pyarray_to_java(j_env, subdef, pyarray[0])
+        ret = j_env[0].NewObjectArray(
+                j_env, array_size, j_env[0].GetObjectClass(j_env, eproto), NULL)
+        j_env[0].SetObjectArrayElement(
+                    j_env, <jobjectArray>ret, 0, eproto)
+        for i in range(1, array_size):
+            j_env[0].SetObjectArrayElement(
+                    j_env, <jobjectArray>ret, i, convert_pyarray_to_java(j_env, subdef, pyarray[i]))
 
     else:
         raise JavaException('Invalid array definition', definition, pyarray)

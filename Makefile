@@ -14,4 +14,5 @@ tests: build_ext
 	cd tests && javac org/jnius/SimpleEnum.java
 	cd tests && javac org/jnius/InterfaceWithPublicEnum.java
 	cd tests && javac org/jnius/ClassArgument.java
+	cd tests && javac org/jnius/MultipleDimensions.java
 	cd tests && env PYTHONPATH=..:$(PYTHONPATH) nosetests-2.7 -v
