@@ -96,14 +96,6 @@ class TestImplem(PythonJavaClass):
         return it
 
 
-class TestBadSignature(PythonJavaClass):
-    __javainterfaces__ = ['java/util/List']
-
-    @java_method('(Landroid/bluetooth/BluetoothDevice;IB[])V')
-    def bad_signature(self, *args):
-        pass
-
-
 print '2: instanciate the class, with some data'
 a = TestImplem(*range(10))
 print a
@@ -148,6 +140,3 @@ print '-> Collections.max(a)'
 print Collections.max(a2)
 #print '-> Collections.shuffle(a)'
 #print Collections.shuffle(a2)
-
-# test bad signature
-TestBadSignature()

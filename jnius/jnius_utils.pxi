@@ -29,7 +29,7 @@ cdef parse_definition(definition):
             args.append(prefix + c + ';')
             continue
 
-        raise Exception('Invalid "{}" character in definition "{}"'.format(
+        raise ValueError('Invalid "{}" character in definition "{}"'.format(
             c, definition[1:]))
 
     return ret, tuple(args)
