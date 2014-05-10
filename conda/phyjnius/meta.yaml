@@ -27,6 +27,7 @@ build:
 requirements:
   build:
     - python
+    - cython
 
   run:
     - python
