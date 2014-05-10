@@ -120,7 +120,7 @@ with open(join('jnius', '__init__.py')) as fd:
     version = versionline[0].split("'")[-2]
 
 # create the extension
-setup(name='phyjnius',
+setup(name='pyjnius',
       version=version,
       cmdclass={'build_ext': build_ext},
       packages=['jnius'],
