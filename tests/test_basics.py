@@ -50,10 +50,15 @@ class BasicsTest(unittest.TestCase):
         self.assertAlmostEquals(test.fieldF, 1.23456789)
         self.assertEquals(test.fieldD, 1.23456789)
         self.assertEquals(test.fieldString, 'helloworld')
+        test2 = autoclass('org.jnius.BasicsTest')(10)
+        self.assertEquals(test2.fieldB, 10)
+        self.assertEquals(test.fieldB, 127)
+        self.assertEquals(test2.fieldB, 10)
 
     def test_instances_methods_array(self):
         test = autoclass('org.jnius.BasicsTest')()
         self.assertEquals(test.methodArrayZ(), [True] * 3)
+        self.assertEquals(test.methodArrayB()[0], 127)
         self.assertEquals(test.methodArrayB(), [127] * 3)
         self.assertEquals(test.methodArrayC(), ['k'] * 3)
         self.assertEquals(test.methodArrayS(), [32767] * 3)
@@ -95,13 +100,16 @@ class BasicsTest(unittest.TestCase):
         test = autoclass('org.jnius.BasicsTest')()
         self.assertEquals(test.methodParamsObject([1L, 2L]), True)
 
+    def test_instances_methods_params_array_byte(self):
+        test = autoclass('org.jnius.BasicsTest')()
+        self.assertEquals(test.methodParamsArrayByte([127, 127, 127]), True)
+        ret = test.methodArrayB()
+        self.assertEquals(test.methodParamsArrayByte(ret), True)
+
     def test_return_array_as_object_array_of_strings(self):
         test = autoclass('org.jnius.BasicsTest')()
         self.assertEquals(test.methodReturnStrings(), ['Hello', 'world'])
 
     def test_return_array_as_object_of_integers(self):
         test = autoclass('org.jnius.BasicsTest')()
-        print 'begin'
-        c = test.methodReturnIntegers()
-        print 'end'
-        self.assertEquals(c, [1, 2])
+        self.assertEquals(test.methodReturnIntegers(), [1, 2])

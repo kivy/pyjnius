@@ -68,19 +68,18 @@ cdef class PythonJavaClass(object):
                 '\nJava method name:', method_name,
                 '\nSignature: ({}){}'.format(''.join(args_signature), ret_signature),
                 '\n=======================================\n']))
-            raise NotImplemented('The method {} is not implemented'.format(key))
+            raise NotImplementedError('The method {} is not implemented'.format(key))
 
         return py_method(*args)
 
 cdef jobject py_invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
-        j_method, jobjectArray args) with gil:
+        j_method, jobjectArray args) except * with gil:
 
     from .reflect import get_signature, Method
     cdef jfieldID ptrField
     cdef jlong jptr
     cdef object py_obj
     cdef JavaClass method
-    cdef LocalRef ref
     cdef jobject j_arg
 
     # get the python object
@@ -91,7 +90,6 @@ cdef jobject py_invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
 
     # extract the method information
     method = Method(noinstance=True)
-    ref = create_local_ref(j_env, j_method)
     method.instanciate_from(create_local_ref(j_env, j_method))
     ret_signature = get_signature(method.getReturnType())
     args_signature = [get_signature(x) for x in method.getParameterTypes()]
@@ -114,6 +112,7 @@ cdef jobject py_invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
         arg_signature = convert_signature.get(arg_signature, arg_signature)
         j_arg = j_env[0].GetObjectArrayElement(j_env, args, index)
         py_arg = convert_jobject_to_python(j_env, arg_signature, j_arg)
+        j_env[0].DeleteLocalRef(j_env, j_arg)
         py_args.append(py_arg)
 
     # really invoke the python method

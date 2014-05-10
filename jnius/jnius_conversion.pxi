@@ -87,8 +87,10 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                     py_arg = map(ord, py_arg)
                 elif argtype == '[C':
                     py_arg = list(py_arg)
-            if not isinstance(py_arg, list) and \
-                    not isinstance(py_arg, tuple):
+            if isinstance(py_arg, ByteArray) and argtype != '[B':
+                raise JavaException(
+                    'Cannot use ByteArray for signature {}'.format(argtype))
+            if not isinstance(py_arg, (list, tuple, ByteArray)):
                 raise JavaException('Expecting a python list/tuple, got '
                         '{0!r}'.format(py_arg))
             j_args[index].l = convert_pyarray_to_java(
@@ -109,7 +111,15 @@ cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object
 
     # we got a generic object -> lookup for the real name instead.
     if r == 'java/lang/Object':
-        r = lookup_java_object_name(j_env, j_object)
+        r = definition = lookup_java_object_name(j_env, j_object)
+
+    if definition[0] == '[':
+        return convert_jarray_to_python(j_env, definition[1:], j_object)
+
+    # XXX what about others native type?
+    # It seem, in case of the proxy, that they are never passed directly,
+    # and always passed as "class" type instead.
+    # Ie, B would be passed as Ljava/lang/Character;
 
     # if we got a string, just convert back to Python str.
     if r == 'java/lang/String':
@@ -153,9 +163,6 @@ cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object
         retmeth = j_env[0].GetMethodID(j_env, retclass, 'charValue', '()C')
         return ord(j_env[0].CallCharMethod(j_env, j_object, retmeth))
 
-    if r[0] == '[':
-        return convert_jarray_to_python(j_env, r[1:], j_object)
-
     if r not in jclass_register:
         if r.startswith('$Proxy'):
             # only for $Proxy on android, don't use autoclass. The dalvik vm is
@@ -170,7 +177,6 @@ cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object
         ret_jc = jclass_register[r](noinstance=True)
     ret_jc.instanciate_from(create_local_ref(j_env, j_object))
     return ret_jc
-
 
 cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
     cdef jboolean iscopy
@@ -191,6 +197,7 @@ cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
     cdef bytes py_str
     cdef JavaObject ret_jobject
     cdef JavaClass ret_jc
+    cdef ByteArray ret_as_bytearray
 
     if j_object == NULL:
         return None
@@ -209,9 +216,9 @@ cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
     elif r == 'B':
         j_bytes = j_env[0].GetByteArrayElements(
                 j_env, j_object, &iscopy)
-        ret = [(<char>j_bytes[i]) for i in range(array_size)]
-        j_env[0].ReleaseByteArrayElements(
-                j_env, j_object, j_bytes, 0)
+        ret_as_bytearray = ByteArray()
+        ret_as_bytearray.set_buffer(j_env, j_object, array_size, j_bytes)
+        return ret_as_bytearray
 
     elif r == 'C':
         j_chars = j_env[0].GetCharArrayElements(
@@ -405,6 +412,8 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
     cdef JavaObject jo
     cdef JavaClass jc
 
+    cdef ByteArray a_bytes
+
 
     if definition == 'Ljava/lang/Object;' and len(pyarray) > 0:
         # then the method will accept any array type as param
@@ -416,8 +425,8 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
             float: 'F',
             basestring: 'Ljava/lang/String;',
         }
-        for type, override in conversions.iteritems():
-            if isinstance(pyarray[0], type):
+        for _type, override in conversions.iteritems():
+            if isinstance(pyarray[0], _type):
                 definition = override
                 break
 
@@ -430,10 +439,15 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
 
     elif definition == 'B':
         ret = j_env[0].NewByteArray(j_env, array_size)
-        for i in range(array_size):
-            j_byte = pyarray[i]
+        if isinstance(pyarray, ByteArray):
+            a_bytes = pyarray
             j_env[0].SetByteArrayRegion(j_env,
-                    ret, i, 1, &j_byte)
+                ret, 0, array_size, a_bytes._buf)
+        else:
+            for i in range(array_size):
+                j_byte = pyarray[i]
+                j_env[0].SetByteArrayRegion(j_env,
+                        ret, i, 1, &j_byte)
 
     elif definition == 'C':
         ret = j_env[0].NewCharArray(j_env, array_size)

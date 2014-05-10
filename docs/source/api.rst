@@ -1,5 +1,5 @@
-.. _api:
 
+.. _api:
 API
 ===
 
@@ -169,6 +169,10 @@ Reflection functions
     >>> autoclass('java.lang.System')
     <class 'jnius.java.lang.System'>
 
+    autoclass can also represent a nested Java class:
+
+    >>> autoclass('android.provider.Settings$Secure')
+    <class 'jnius.reflect.android.provider.Settings$Secure'>
 
 Java class implementation in Python
 -----------------------------------
@@ -289,7 +293,7 @@ All the types for any part of the signature can be one of:
 * D = represent a java/lang/Double;
 * V = represent void, available only for the return type
 
-All the types can have the `[]` suffix to design an array. The return type can be `V` or empty.
+All the types can have the `[` prefix to design an array. The return type can be `V` or empty.
 
 A signature like::
 
@@ -298,10 +302,14 @@ A signature like::
     -> argument 2 is a java.util.List object
     -> the method doesn't return anything.
 
-    (java.util.Collection, java.lang.Object[]);
+    (java.util.Collection;[java.lang.Object;)V
     -> argument 1 is a Collection
     -> argument 2 is an array of Object
     -> nothing is returned
+
+    ([B)Z
+    -> argument 1 is a Byte []
+    -> a boolean is returned
     
 
 When you implement Java in Python, the signature of the Java method must match.

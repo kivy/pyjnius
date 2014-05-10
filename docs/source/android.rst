@@ -3,37 +3,40 @@
 Android
 =======
 
-Android have a great and extensive API to control the device, your application
-etc. Some part of the Android API is accessible directly with Pyjnius, but some
-of them requires you to code in Java.
+Android has a great and extensive API to control devices, your application
+etc. Some parts of the Android API are directly accessible with Pyjnius but
+some of them require you to code in Java.
 
 
 Get the DPI
 -----------
 
 The `DisplayMetrics
-<http://developer.android.com/reference/android/util/DisplayMetrics.html>`_ contains multiple fields that can return a lot of information about the device's screen::
+<http://developer.android.com/reference/android/util/DisplayMetrics.html>`_
+contains multiple fields that can return a lot of information about the device's
+screen::
 
     from jnius import autoclass
     DisplayMetrics = autoclass('android.util.DisplayMetrics')
     metrics = DisplayMetrics()
     print 'DPI', metrics.getDeviceDensity()
 
-Note: To access nested classes, use `$` like:
-`autoclass('android.provider.MediaStore$Images$Media')`.
+.. Note ::
+  To access nested classes, use `$` like:
+  `autoclass('android.provider.MediaStore$Images$Media')`.
 
 Recording an audio file
 -----------------------
 
 By looking at the `Audio Capture
 <http://developer.android.com/guide/topics/media/audio-capture.html>`_ guide
-from Android, you can see the simple step to do for recording an audio file.
-Let's do in with Pyjnius::
+for Android, you can see the simple steps for recording an audio file.
+Let's do it with Pyjnius::
 
     from jnius import autoclass
     from time import sleep
 
-    # get the needed Java class
+    # get the needed Java classes
     MediaRecorder = autoclass('android.media.MediaRecorder')
     AudioSource = autoclass('android.media.MediaRecorder$AudioSource')
     OutputFormat = autoclass('android.media.MediaRecorder$OutputFormat')
@@ -83,16 +86,17 @@ using the Android Media Player too::
     mPlayer.release()
 
 
-Accessing to the Activity
--------------------------
+Accessing the Activity
+----------------------
 
-This example will show how to start a new Intent. Be careful, some Intent
-require you to setup some parts in the `AndroidManifest.xml`, and have some
-actions done within your own Activity. This is out of the scope of Pyjnius, but
-we'll show you what is the best approach for playing with it.
+This example will show how to start a new Intent. Be careful: some Intents
+require you to setup parts in the `AndroidManifest.xml` and have some
+actions performed within your Activity. This is out of the scope of Pyjnius but
+we'll show you what the best approach is for playing with it.
 
-On Python-for-android project, you can access to the default `PythonActivity`.
-Let's see an example that demonstrate the `Intent.ACTION_VIEW`::
+Using the Python-for-android project, you can access the default
+`PythonActivity`. Let's look at an example that demonstrates the
+`Intent.ACTION_VIEW`::
 
     from jnius import cast
     from jnius import autoclass
@@ -108,9 +112,9 @@ Let's see an example that demonstrate the `Intent.ACTION_VIEW`::
     intent.setData(Uri.parse('http://kivy.org'))
 
     # PythonActivity.mActivity is the instance of the current Activity
-    # BUT, startActivity is a method from the Activity class, not our
+    # BUT, startActivity is a method from the Activity class, not from our
     # PythonActivity.
-    # We need to cast our class into an activity, and use it
+    # We need to cast our class into an activity and use it
     currentActivity = cast('android.app.Activity', PythonActivity.mActivity)
     currentActivity.startActivity(intent)
 
@@ -120,12 +124,12 @@ Let's see an example that demonstrate the `Intent.ACTION_VIEW`::
 Accelerometer access
 --------------------
 
-The accelerometer is a good example that show how you need to wrote a little
+The accelerometer is a good example that shows how to write a little
 Java code that you can access later with Pyjnius.
 
 The `SensorManager
 <http://developer.android.com/reference/android/hardware/SensorManager.html>`_
-lets you access to the device's sensors. To use it, you need to register a
+lets you access the device's sensors. To use it, you need to register a
 `SensorEventListener
 <http://developer.android.com/reference/android/hardware/SensorEventListener.html>`_
 and overload 2 abstract methods: `onAccuracyChanged` and `onSensorChanged`.
@@ -215,8 +219,7 @@ You'll obtain something like this::
 Using TextToSpeech
 ------------------
 
-Same as the audio capture, by looking at the
-By looking at the `An introduction to Text-To-Speech in Android
+Same as the audio capture, by looking at the `An introduction to Text-To-Speech in Android
 <http://android-developers.blogspot.fr/2009/09/introduction-to-text-to-speech-in.html>`_ blog post, it's easy to do it with Pyjnius::
 
     from jnius import autoclass

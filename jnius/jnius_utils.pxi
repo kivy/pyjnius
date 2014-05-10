@@ -27,6 +27,10 @@ cdef parse_definition(definition):
         if c == 'L':
             c, argdef = argdef.split(';', 1)
             args.append(prefix + c + ';')
+            continue
+
+        raise Exception('Invalid "{}" character in definition "{}"'.format(
+            c, definition[1:]))
 
     return ret, tuple(args)
 
@@ -77,6 +81,9 @@ cdef bytes lookup_java_object_name(JNIEnv *j_env, jobject j_obj):
     cdef jmethodID jmeth = j_env[0].GetMethodID(j_env, jcls2, 'getName', '()Ljava/lang/String;')
     cdef jobject js = j_env[0].CallObjectMethod(j_env, jcls, jmeth)
     name = convert_jobject_to_python(j_env, b'Ljava/lang/String;', js)
+    j_env[0].DeleteLocalRef(j_env, js)
+    j_env[0].DeleteLocalRef(j_env, jcls)
+    j_env[0].DeleteLocalRef(j_env, jcls2)
     return name.replace('.', '/')
 
 
@@ -205,7 +212,11 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
                 score += 10
                 continue
 
-            if not isinstance(arg, tuple) and not isinstance(arg, list):
+            if r == '[B' and isinstance(arg, ByteArray):
+                score += 10
+                continue
+
+            if not isinstance(arg, (list, tuple)):
                 return -1
 
             # calculate the score for our subarray
