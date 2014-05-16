@@ -36,11 +36,20 @@ cdef parse_definition(definition):
 
 
 cdef void check_exception(JNIEnv *j_env) except *:
+    cdef jmethodID toString = NULL
+    cdef jstring e_string
+    cdef jboolean isCopy
     cdef jthrowable exc = j_env[0].ExceptionOccurred(j_env)
     if exc:
         j_env[0].ExceptionDescribe(j_env)
         j_env[0].ExceptionClear(j_env)
-        raise JavaException('JVM exception occured')
+
+        toString = j_env[0].GetMethodID(j_env, j_env[0].FindClass(j_env, "java/lang/Object"), "toString", "()Ljava/lang/String;");
+        e_string = j_env[0].CallObjectMethod(j_env, exc, toString);
+
+        pystr = convert_jobject_to_python(j_env, <bytes> 'Ljava/lang/String;', e_string)
+
+        raise JavaException('JVM exception occurred: ' + pystr)
 
 
 cdef dict assignable_from = {}

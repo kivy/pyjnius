@@ -21,3 +21,12 @@ class BadDeclarationTest(unittest.TestCase):
         Stack = autoclass('java.util.Stack')
         stack = Stack()
         self.assertRaises(JavaException, stack.push, 'hello', 'world', 123)
+
+    def test_java_exception_handling(self):
+        Stack = autoclass('java.util.Stack')
+        stack = Stack()
+        try:
+            stack.pop()
+            self.fail("Expected exception to be thrown")
+        except JavaException as je:
+            self.assertIn("EmptyStackException", str(je))
