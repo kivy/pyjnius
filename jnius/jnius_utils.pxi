@@ -37,19 +37,79 @@ cdef parse_definition(definition):
 
 cdef void check_exception(JNIEnv *j_env) except *:
     cdef jmethodID toString = NULL
-    cdef jstring e_string
+    cdef jmethodID getCause = NULL
+    cdef jmethodID getStackTrace = NULL
+    cdef jmethodID getMessage = NULL
+    cdef jstring e_msg
     cdef jboolean isCopy
     cdef jthrowable exc = j_env[0].ExceptionOccurred(j_env)
     if exc:
-        j_env[0].ExceptionDescribe(j_env)
+        # ExceptionDescribe always writes to stderr, preventing tidy exception
+        # handling, so should only be for debugging
+        # j_env[0].ExceptionDescribe(j_env)
         j_env[0].ExceptionClear(j_env)
 
         toString = j_env[0].GetMethodID(j_env, j_env[0].FindClass(j_env, "java/lang/Object"), "toString", "()Ljava/lang/String;");
-        e_string = j_env[0].CallObjectMethod(j_env, exc, toString);
+        getMessage = j_env[0].GetMethodID(j_env, j_env[0].FindClass(j_env, "java/lang/Throwable"), "getMessage", "()Ljava/lang/String;");
+        getCause = j_env[0].GetMethodID(j_env, j_env[0].FindClass(j_env, "java/lang/Throwable"), "getCause", "()Ljava/lang/Throwable;");
+        getStackTrace = j_env[0].GetMethodID(j_env, j_env[0].FindClass(j_env, "java/lang/Throwable"), "getStackTrace", "()[Ljava/lang/StackTraceElement;");
 
-        pystr = convert_jobject_to_python(j_env, <bytes> 'Ljava/lang/String;', e_string)
+        e_msg = j_env[0].CallObjectMethod(j_env, exc, getMessage);
+        pymsg = None if e_msg == NULL else convert_jobject_to_python(j_env, <bytes> 'Ljava/lang/String;', e_msg)
 
-        raise JavaException('JVM exception occurred: ' + pystr)
+        pystack = []
+        _append_exception_trace_messages(j_env, pystack, exc, getCause, getStackTrace, toString)
+
+        pyexcclass = lookup_java_object_name(j_env, exc).replace('/', '.')
+
+        raise JavaException('JVM exception occurred: %s' % (pymsg if pymsg is not None else pyexcclass), pyexcclass, pymsg, pystack)
+
+
+cdef void _append_exception_trace_messages(
+    JNIEnv*      j_env,
+    list         pystack,
+    jthrowable   exc,
+    jmethodID    mid_getCause,
+    jmethodID    mid_getStackTrace,
+    jmethodID    mid_toString):
+
+    # Get the array of StackTraceElements.
+    cdef jobjectArray frames = j_env[0].CallObjectMethod(j_env, exc, mid_getStackTrace)
+    cdef jsize frames_length = j_env[0].GetArrayLength(j_env, frames)
+    cdef jstring msg_obj
+    cdef jobject frame
+    cdef jthrowable cause
+
+    # Add Throwable.toString() before descending stack trace messages.
+    if frames != NULL:
+        msg_obj = j_env[0].CallObjectMethod(j_env, exc, mid_toString)
+        pystr = None if msg_obj == NULL else convert_jobject_to_python(j_env, <bytes> 'Ljava/lang/String;', msg_obj)
+        # If this is not the top-of-the-trace then this is a cause.
+        if len(pystack) > 0:
+            pystack.append("Caused by:")
+        pystack.append(pystr)
+        j_env[0].DeleteLocalRef(j_env, msg_obj)
+
+    # Append stack trace messages if there are any.
+    if frames_length > 0:
+        for i in range(frames_length):
+            # Get the string returned from the 'toString()' method of the next frame and append it to the error message.
+            frame = j_env[0].GetObjectArrayElement(j_env, frames, i)
+            msg_obj = j_env[0].CallObjectMethod(j_env, frame, mid_toString)
+            pystr = None if msg_obj == NULL else convert_jobject_to_python(j_env, <bytes> 'Ljava/lang/String;', msg_obj)
+            pystack.append(pystr)
+            j_env[0].DeleteLocalRef(j_env, msg_obj)
+            j_env[0].DeleteLocalRef(j_env, frame)
+
+    # If 'exc' has a cause then append the stack trace messages from the cause.
+    if frames != NULL:
+        cause = j_env[0].CallObjectMethod(j_env, exc, mid_getCause)
+        if cause != NULL:
+            _append_exception_trace_messages(j_env, pystack, cause,
+                                             mid_getCause, mid_getStackTrace, mid_toString)
+        j_env[0].DeleteLocalRef(j_env, cause)
+
+    j_env[0].DeleteLocalRef(j_env, frames)
 
 
 cdef dict assignable_from = {}

@@ -29,4 +29,23 @@ class BadDeclarationTest(unittest.TestCase):
             stack.pop()
             self.fail("Expected exception to be thrown")
         except JavaException as je:
-            self.assertIn("EmptyStackException", str(je))
+            # print "Got JavaException: " + str(je)
+            # print "Got Exception Class: " + je.classname
+            # print "Got stacktrace: \n" + '\n'.join(je.stacktrace)
+            self.assertEquals("java.util.EmptyStackException", je.classname)
+
+    def test_java_exception_chaining(self):
+        BasicsTest = autoclass('org.jnius.BasicsTest')
+        basics = BasicsTest()
+        try:
+            basics.methodExceptionChained()
+            self.fail("Expected exception to be thrown")
+        except JavaException as je:
+            # print "Got JavaException: " + str(je)
+            # print "Got Exception Class: " + je.classname
+            # print "Got Exception Message: " + je.innermessage
+            # print "Got stacktrace: \n" + '\n'.join(je.stacktrace)
+            self.assertEquals("java.lang.IllegalArgumentException", je.classname)
+            self.assertEquals("helloworld2", je.innermessage)
+            self.assertIn("Caused by:", je.stacktrace)
+            self.assertEquals(11, len(je.stacktrace))
