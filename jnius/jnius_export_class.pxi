@@ -73,7 +73,7 @@ class MetaJavaClass(type):
 
             with nogil:
                 classLoader = j_env[0].CallStaticObjectMethodA(
-                        j_env, baseclass, getClassLoader, [])
+                        j_env, baseclass, getClassLoader, NULL)
                 jargs = <jobject *>malloc(sizeof(jobject) * 2)
                 jargs[0] = <jobject *>classLoader
                 jargs[1] = interfaces
