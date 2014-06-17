@@ -1,4 +1,4 @@
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 from os import environ
 from os.path import dirname, join, exists
 import sys
@@ -30,12 +30,10 @@ if ndkplatform is not None and environ.get('LIBLINK'):
 # detect cython
 try:
     from Cython.Distutils import build_ext
-    install_requires.append('cython')
 except ImportError:
     from distutils.command.build_ext import build_ext
     if platform != 'android':
-        print '\n\nYou need Cython to compile Pyjnius.\n\n'
-        raise
+        print('\n\nWarning: You need Cython to compile Pyjnius.\n\n')
     files = [fn[:-3] + 'c' for fn in files if fn.endswith('pyx')]
 
 if platform == 'android':
@@ -43,13 +41,29 @@ if platform == 'android':
     libraries = ['sdl', 'log']
     library_dirs = ['libs/' + environ['ARCH']]
 elif platform == 'darwin':
-    import objc
-    framework = objc.pathForFramework('JavaVM.framework')
-    if not framework:
-        raise Exception('You must install Java on your Mac OS X distro')
-    extra_link_args = ['-framework', 'JavaVM']
-    include_dirs = [join(framework, 'Versions/A/Headers')]
-else:
+    
+    try:
+        import objc
+        framework = objc.pathForFramework('JavaVM.framework')
+        if not framework:
+            raise Exception('You must install Java on your Mac OS X distro')
+        extra_link_args = ['-framework', 'JavaVM']
+        include_dirs = [join(framework, 'Versions/A/Headers')]
+    except ImportError:
+        import subprocess
+        java_home = subprocess.check_output('/usr/libexec/java_home').strip()
+        print(java_home)
+        library_dirs = [join(java_home, 'jre', 'lib', 'server')]
+        libraries = ['jvm']
+        extra_link_args = ['-Wl,-rpath', library_dirs[0]]
+        include_dirs = [join(java_home, 'include'), join(java_home, 'include', 'darwin')]
+elif platform == 'win32':
+    jdk_home = environ.get('JDK_HOME')
+    jre_home = environ.get('JRE_HOME')
+    include_dirs = [ join(jdk_home, 'include'), join(jdk_home, 'include', platform)]
+    library_dirs = [ join(jdk_home, 'lib') ]
+    libraries = ['jvm'] 
+elif platform == 'linux2':
     import subprocess
     # otherwise, we need to search the JDK_HOME
     jdk_home = environ.get('JDK_HOME')
@@ -94,6 +108,8 @@ else:
         library_dirs = [join(jre_home, 'lib', cpu, 'server')]
     extra_link_args = ['-Wl,-rpath', library_dirs[0]]
     libraries = ['jvm']
+else:
+    raise Exception("Unsupported platform {}".format(platform))
 
 # generate the config.pxi
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
@@ -104,16 +120,17 @@ with open(join('jnius', '__init__.py')) as fd:
     version = versionline[0].split("'")[-2]
 
 # create the extension
-setup(name='jnius',
+setup(name='pyjnius',
       version=version,
       cmdclass={'build_ext': build_ext},
       packages=['jnius'],
-      url='http://pyjnius.readthedocs.org/',
-      author='Mathieu Virbel and Gabriel Pettier',
-      author_email='mat@kivy.org,gabriel@kivy.org',
+      url='https://github.com/physion/pyjnius',
+      author='Physion LLC. Original pyjnius code by Mathieu Virbel and Gabriel Pettier',
+      author_email='dev@physion.us',
       license='LGPL',
       description='Python library to access Java classes',
       install_requires=install_requires,
+      setup_requires=['Cython>=0.19.1'],
       ext_package='jnius',
       ext_modules=[
           Extension(
