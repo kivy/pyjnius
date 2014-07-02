@@ -3,6 +3,7 @@ cdef void release_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, arg
     cdef JavaObject jo
     cdef JavaClass jc
     cdef int index
+
     for index, argtype in enumerate(definition_args):
         py_arg = args[index]
         if argtype[0] == 'L':
@@ -27,6 +28,7 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
     cdef JavaClass jc
     cdef PythonJavaClass pc
     cdef int index
+
     for index, argtype in enumerate(definition_args):
         py_arg = args[index]
         if argtype == 'Z':
@@ -205,7 +207,21 @@ cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
     array_size = j_env[0].GetArrayLength(j_env, j_object)
 
     r = definition[0]
-    if r == 'Z':
+
+    if r == '[':
+        r = definition[1:-1]
+        ret = []
+        for i in range(array_size):
+            j_object_item = j_env[0].GetObjectArrayElement(
+                    j_env, j_object, i)
+            if j_object_item == NULL:
+                ret.append(None)
+                continue
+            obj = convert_jarray_to_python(j_env, definition[1:], j_object_item)
+            ret.append(obj)
+            j_env[0].DeleteLocalRef(j_env, j_object_item)
+
+    elif r == 'Z':
         j_booleans = j_env[0].GetBooleanArrayElements(
                 j_env, j_object, &iscopy)
         ret = [(True if j_booleans[i] else False)
@@ -414,7 +430,6 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
 
     cdef ByteArray a_bytes
 
-
     if definition == 'Ljava/lang/Object;' and len(pyarray) > 0:
         # then the method will accept any array type as param
         # let's be as precise as we can
@@ -430,7 +445,17 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
                 definition = override
                 break
 
-    if definition == 'Z':
+    if len(pyarray) > 0 and definition[0] == '[':
+        j_class = j_env[0].FindClass(
+                j_env, <bytes>'java/lang/Object')
+        ret = j_env[0].NewObjectArray(
+                      j_env, array_size, j_class, NULL)
+        for i in range(array_size):
+            j_env[0].SetObjectArrayElement(
+                j_env, <jobjectArray>ret, i,
+                convert_pyarray_to_java(j_env, definition[1:], pyarray[i]))
+
+    elif definition == 'Z':
         ret = j_env[0].NewBooleanArray(j_env, array_size)
         for i in range(array_size):
             j_boolean = 1 if pyarray[i] else 0
