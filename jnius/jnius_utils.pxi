@@ -51,6 +51,14 @@ cdef void check_assignable_from(JNIEnv *env, JavaClass jc, bytes signature) exce
     if signature == 'java/lang/Object':
         return
 
+    # FIXME Android/libART specific check
+    # check_jni.cc crash when calling the IsAssignableFrom with
+    # org/jnius/NativeInvocationHandler java/lang/reflect/InvocationHandler
+    # Because we know it's ok, just return here.
+    if signature == 'java/lang/reflect/InvocationHandler' and \
+        jc.__javaclass__ == 'org/jnius/NativeInvocationHandler':
+        return
+
     # if the signature is a direct match, it's ok too :)
     if jc.__javaclass__ == signature:
         return
@@ -67,6 +75,7 @@ cdef void check_assignable_from(JNIEnv *env, JavaClass jc, bytes signature) exce
                 signature))
 
         result = bool(env[0].IsAssignableFrom(env, jc.j_cls, cls))
+        env[0].ExceptionDescribe(env)
         env[0].ExceptionClear(env)
         assignable_from[(jc.__javaclass__, signature)] = bool(result)
 
