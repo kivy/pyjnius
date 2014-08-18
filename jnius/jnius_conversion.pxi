@@ -1,3 +1,6 @@
+from future.builtins import map
+from past.builtins import basestring 
+
 cdef void release_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, args) except *:
     # do the conversion from a Python object to Java from a Java definition
     cdef JavaObject jo
@@ -8,7 +11,7 @@ cdef void release_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, arg
         if argtype[0] == 'L':
             if py_arg is None:
                 j_args[index].l = NULL
-            if isinstance(py_arg, basestring) and \
+            if isinstance(py_arg, str) and \
                     argtype in ('Ljava/lang/String;', 'Ljava/lang/Object;'):
                 j_env[0].DeleteLocalRef(j_env, j_args[index].l)
         elif argtype[0] == '[':
@@ -51,7 +54,7 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
             elif isinstance(py_arg, basestring) and \
                     argtype in ('Ljava/lang/String;', 'Ljava/lang/Object;'):
                 j_args[index].l = j_env[0].NewStringUTF(
-                        j_env, <char *><bytes>py_arg.encode('utf-8'))
+                    j_env, <char *><bytes>py_arg.encode('utf-8'))
             elif isinstance(py_arg, JavaClass):
                 jc = py_arg
                 check_assignable_from(j_env, jc, argtype[1:-1])
@@ -82,11 +85,16 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
             if py_arg is None:
                 j_args[index].l = NULL
                 continue
-            if isinstance(py_arg, basestring):
+            if isinstance(py_arg, str):
                 if argtype == '[B':
-                    py_arg = map(ord, py_arg)
+                    py_arg = list(map(ord, py_arg))
                 elif argtype == '[C':
                     py_arg = list(py_arg)
+            elif 'decode' in dir(py_arg):#It's Python 3 with byte array_size
+                if argtype == '[B':
+                    py_arg = list(map(ord, py_arg.decode()))
+                elif argtype == '[C':
+                    py_arg = list(py_arg.decode())
             if isinstance(py_arg, ByteArray) and argtype != '[B':
                 raise JavaException(
                     'Cannot use ByteArray for signature {}'.format(argtype))
@@ -97,13 +105,13 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                     j_env, argtype[1:], py_arg)
 
 
-cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object):
+cdef convert_jobject_to_python(JNIEnv *j_env, str definition, jobject j_object):
     # Convert a Java Object to a Python object, according to the definition.
     # If the definition is a java/lang/Object, then try to determine what is it
     # exactly.
     cdef char *c_str
-    cdef bytes py_str
-    cdef bytes r = definition[1:-1]
+    cdef str py_str
+    cdef str r = definition[1:-1]
     cdef JavaObject ret_jobject
     cdef JavaClass ret_jc
     cdef jclass retclass
@@ -124,7 +132,7 @@ cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object
     # if we got a string, just convert back to Python str.
     if r == 'java/lang/String':
         c_str = <char *>j_env[0].GetStringUTFChars(j_env, j_object, NULL)
-        py_str = <bytes>c_str
+        py_str = str(c_str.decode('utf-8'))
         j_env[0].ReleaseStringUTFChars(j_env, j_object, c_str)
         return py_str
 
@@ -171,7 +179,7 @@ cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object
             from .reflect import Object
             ret_jc = Object(noinstance=True)
         else:
-            from reflect import autoclass
+            from .reflect import autoclass
             ret_jc = autoclass(r.replace('/', '.'))(noinstance=True)
     else:
         ret_jc = jclass_register[r](noinstance=True)
@@ -295,7 +303,7 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
     elif definition[0] == 'L':
         if obj is None:
             return NULL
-        elif isinstance(obj, basestring) and \
+        elif isinstance(obj, str) and \
                 definition in ('Ljava/lang/String;', 'Ljava/lang/Object;'):
             return j_env[0].NewStringUTF(j_env, <char *><bytes>obj)
         elif isinstance(obj, (int, long)) and \
@@ -342,7 +350,7 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
             bool: 'Z',
             long: 'J',
             float: 'F',
-            basestring: 'Ljava/lang/String;',
+            str: 'Ljava/lang/String;',
         }
         retclass = j_env[0].FindClass(j_env, 'java/lang/Object')
         retobject = j_env[0].NewObjectArray(j_env, len(obj), retclass, NULL)
@@ -423,7 +431,7 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
             bool: 'Z',
             long: 'J',
             float: 'F',
-            basestring: 'Ljava/lang/String;',
+            str: 'Ljava/lang/String;',
         }
         for _type, override in conversions.iteritems():
             if isinstance(pyarray[0], _type):
@@ -493,7 +501,7 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
 
     elif definition[0] == 'L':
         j_class = j_env[0].FindClass(
-                j_env, <bytes>definition[1:-1])
+                j_env, <bytes>definition[1:-1].encode('utf-8'))
         if j_class == NULL:
             raise JavaException('Cannot create array with a class not '
                     'found {0!r}'.format(definition[1:-1]))
@@ -504,10 +512,10 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
             if arg is None:
                 j_env[0].SetObjectArrayElement(
                         j_env, <jobjectArray>ret, i, NULL)
-            elif isinstance(arg, basestring) and \
+            elif isinstance(arg, str) and \
                     definition in ('Ljava/lang/String;', 'Ljava/lang/Object;'):
                 j_string = j_env[0].NewStringUTF(
-                        j_env, <bytes>arg)
+                        j_env, <bytes>arg.encode('utf-8'))
                 j_env[0].SetObjectArrayElement(
                         j_env, <jobjectArray>ret, i, j_string)
             elif isinstance(arg, JavaClass):

@@ -1,3 +1,5 @@
+from future.builtins import range
+
 cdef python_op(int op, object a, object b):
     if op == 0:
         return a < b
@@ -47,8 +49,12 @@ cdef class ByteArray:
     def __len__(self):
         return self._size
 
-    def __getitem__(self, long index):
-        return self._arr[index]
+    def __getitem__(self, n):
+        if isinstance(n, slice):
+            start, stop, step = n.indices(len(self))
+            return [self._arr[i] for i in range(start, stop, step)]
+        else: # for integer indices, do what we used to
+            return self._arr[n]
 
     def __richcmp__(self, other, op):
         cdef ByteArray b_other
@@ -59,9 +65,6 @@ cdef class ByteArray:
             return python_op(op, self.tostring(), other.tostring())
         else:
             return False
-
-    def __getslice__(self, long i, long j):
-        return self._arr[i:j]
 
     def tolist(self):
         return list(self[:])
