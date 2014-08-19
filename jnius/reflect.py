@@ -6,8 +6,11 @@ from jnius import (
 )
 
 
-class Class(JavaClass):
-    __metaclass__ = MetaJavaClass
+# Workaround for the new metaclass syntax in Python 3
+ClassBase = MetaJavaClass('ClassBase', (JavaClass, ), {})
+
+
+class Class(ClassBase):
     __javaclass__ = 'java/lang/Class'
 
     desiredAssertionStatus = JavaMethod('()Z;')
@@ -49,16 +52,14 @@ class Class(JavaClass):
     toString = JavaMethod('()Ljava/lang/String;')
 
 
-class Object(JavaClass):
-    __metaclass__ = MetaJavaClass
+class Object(ClassBase):
     __javaclass__ = 'java/lang/Object'
 
     getClass = JavaMethod('()Ljava/lang/Class;')
     hashCode = JavaMethod('()I')
 
 
-class Modifier(JavaClass):
-    __metaclass__ = MetaJavaClass
+class Modifier(ClassBase):
     __javaclass__ = 'java/lang/reflect/Modifier'
 
     isAbstract = JavaStaticMethod('(I)Z')
@@ -75,8 +76,7 @@ class Modifier(JavaClass):
     isVolatile = JavaStaticMethod('(I)Z')
 
 
-class Method(JavaClass):
-    __metaclass__ = MetaJavaClass
+class Method(ClassBase):
     __javaclass__ = 'java/lang/reflect/Method'
 
     getName = JavaMethod('()Ljava/lang/String;')
@@ -87,8 +87,7 @@ class Method(JavaClass):
     isVarArgs = JavaMethod('()Z')
 
 
-class Field(JavaClass):
-    __metaclass__ = MetaJavaClass
+class Field(ClassBase):
     __javaclass__ = 'java/lang/reflect/Field'
 
     getName = JavaMethod('()Ljava/lang/String;')
@@ -97,8 +96,7 @@ class Field(JavaClass):
     getModifiers = JavaMethod('()I')
 
 
-class Constructor(JavaClass):
-    __metaclass__ = MetaJavaClass
+class Constructor(ClassBase):
     __javaclass__ = 'java/lang/reflect/Constructor'
 
     toString = JavaMethod('()Ljava/lang/String;')
@@ -144,6 +142,7 @@ def autoclass(clsname):
     if cls:
         return cls
 
+    clsname = str(clsname)
     classDict = {}
 
     #c = Class.forName(clsname)
@@ -154,8 +153,8 @@ def autoclass(clsname):
 
     constructors = []
     for constructor in c.getConstructors():
-        sig = '({0})V'.format(
-            ''.join([get_signature(x) for x in constructor.getParameterTypes()]))
+        sig = '({0})V'.format(''.join(
+            [get_signature(x) for x in constructor.getParameterTypes()]))
         constructors.append((sig, constructor.isVarArgs()))
     classDict['__javaconstructor__'] = constructors
 

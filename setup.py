@@ -64,7 +64,8 @@ else:
                     jdk_home = jdk_home[:-4]
         else:
             jdk_home = subprocess.Popen('readlink -f `which javac` | sed "s:bin/javac::"',
-                    shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+                    shell=True, universal_newlines=True,
+                    stdout=subprocess.PIPE).communicate()[0].strip()
     if not jdk_home or not exists(jdk_home):
         raise Exception('Unable to determine JDK_HOME')
 
@@ -73,10 +74,11 @@ else:
         jre_home = join(jdk_home, 'jre')
     if not jre_home:
         jre_home = subprocess.Popen('readlink -f `which java` | sed "s:bin/java::"',
-                shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+                shell=True, universal_newlines=True,
+                stdout=subprocess.PIPE).communicate()[0].strip()
     if not jre_home:
         raise Exception('Unable to determine JRE_HOME')
-    cpu = 'i386' if sys.maxint == 2147483647 else 'amd64'
+    cpu = 'i386' if sys.maxsize== 2147483647 else 'amd64'
 
     if platform == 'win32':
         incl_dir = join(jdk_home, 'include', 'win32')

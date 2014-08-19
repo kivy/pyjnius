@@ -43,6 +43,7 @@ def classpath():
     result = split_char.join(paths)
     return result
 
+
 cdef void create_jnienv():
     cdef JavaVM* jvm
     cdef JavaVMInitArgs args
@@ -50,16 +51,18 @@ cdef void create_jnienv():
     cdef bytes py_bytes
 
     cp = classpath()
-    py_bytes = <bytes>('-Djava.class.path={0}'.format(cp))
+    py_bytes = <bytes>('-Djava.class.path={0}'.format(cp).encode())
     options[0].optionString = py_bytes
-    options[0].extraInfo = NULL
+    options[0].extraInfo = NULL 
 
     args.version = JNI_VERSION_1_4
     args.options = options
     args.nOptions = 1
     args.ignoreUnrecognized = JNI_FALSE
 
-    JNI_CreateJavaVM(&jvm, <void **>&_platform_default_env, &args)
+    retorno = JNI_CreateJavaVM(&jvm, <void **>&_platform_default_env, &args)
+    print("Creado")
+    print(retorno)
 
 cdef JNIEnv *get_platform_jnienv():
     if _platform_default_env == NULL:

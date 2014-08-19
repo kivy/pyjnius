@@ -1,13 +1,15 @@
 language: python
 python:
   - "2.7"
+  - "3.3"
 # command to install dependencies
 before_install:
   - sudo apt-get update
   - sudo apt-get install python-pip openjdk-7-jdk
+  - pip install cython future
 
 install:
-  - pip install --upgrade cython --use-mirrors
+  - pip install --upgrade cython future --use-mirrors
   - make
 
 # command to run tests

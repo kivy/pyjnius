@@ -1,4 +1,6 @@
-cdef parse_definition(definition):
+from past.builtins import basestring 
+
+cdef parse_definition(str definition):
     # not a function, just a field
     if definition[0] != '(':
         return definition, None
@@ -44,7 +46,7 @@ cdef void check_exception(JNIEnv *j_env) except *:
 
 
 cdef dict assignable_from = {}
-cdef void check_assignable_from(JNIEnv *env, JavaClass jc, bytes signature) except *:
+cdef void check_assignable_from(JNIEnv *env, JavaClass jc, str signature) except *:
     cdef jclass cls
 
     # if we have a JavaObject, it's always ok.
@@ -69,7 +71,7 @@ cdef void check_assignable_from(JNIEnv *env, JavaClass jc, bytes signature) exce
 
         # we got an object that doesn't match with the signature
         # check if we can use it.
-        cls = env[0].FindClass(env, signature)
+        cls = env[0].FindClass(env, <bytes>signature.encode('utf-8'))
         if cls == NULL:
             raise JavaException('Unable to found the class for {0!r}'.format(
                 signature))
@@ -84,12 +86,12 @@ cdef void check_assignable_from(JNIEnv *env, JavaClass jc, bytes signature) exce
             jc.__javaclass__, signature))
 
 
-cdef bytes lookup_java_object_name(JNIEnv *j_env, jobject j_obj):
+cdef str lookup_java_object_name(JNIEnv *j_env, jobject j_obj):
     cdef jclass jcls = j_env[0].GetObjectClass(j_env, j_obj)
     cdef jclass jcls2 = j_env[0].GetObjectClass(j_env, jcls)
     cdef jmethodID jmeth = j_env[0].GetMethodID(j_env, jcls2, 'getName', '()Ljava/lang/String;')
     cdef jobject js = j_env[0].CallObjectMethod(j_env, jcls, jmeth)
-    name = convert_jobject_to_python(j_env, b'Ljava/lang/String;', js)
+    name = convert_jobject_to_python(j_env, 'Ljava/lang/String;', js)
     j_env[0].DeleteLocalRef(j_env, js)
     j_env[0].DeleteLocalRef(j_env, jcls)
     j_env[0].DeleteLocalRef(j_env, jcls2)
@@ -99,7 +101,7 @@ cdef bytes lookup_java_object_name(JNIEnv *j_env, jobject j_obj):
 cdef int calculate_score(sign_args, args, is_varargs=False) except *:
     cdef int index
     cdef int score = 0
-    cdef bytes r
+    cdef str r
     cdef JavaClass jc
 
     if len(args) != len(sign_args) and not is_varargs:
@@ -136,7 +138,7 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
             continue
 
         if r == 'C':
-            if not isinstance(arg, str) or len(arg) != 1:
+            if not isinstance(arg, basestring) or len(arg) != 1:
                 return -1
             score += 10
             continue

@@ -1,5 +1,6 @@
 import unittest
 from jnius.reflect import autoclass
+from future.builtins import int
 
 class BasicsTest(unittest.TestCase):
 
@@ -98,7 +99,7 @@ class BasicsTest(unittest.TestCase):
 
     def test_instances_methods_params_object_list_long(self):
         test = autoclass('org.jnius.BasicsTest')()
-        self.assertEquals(test.methodParamsObject([1L, 2L]), True)
+        self.assertEquals(test.methodParamsObject([int(1), int(2)]), True)
 
     def test_instances_methods_params_array_byte(self):
         test = autoclass('org.jnius.BasicsTest')()

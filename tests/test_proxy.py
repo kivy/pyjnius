@@ -1,6 +1,7 @@
+from __future__ import print_function
 from jnius import autoclass, java_method, PythonJavaClass, cast
 
-print '1: declare a TestImplem that implement Collection'
+print('1: declare a TestImplem that implement Collection')
 
 
 class TestImplemIterator(PythonJavaClass):
@@ -90,7 +91,7 @@ class TestImplem(PythonJavaClass):
         return it
 
     @java_method('(I)Ljava/util/ListIterator;',
-                         name='ListIterator')
+                 name='ListIterator')
     def listIteratorI(self, index):
         it = TestImplemIterator(self, index)
         return it
@@ -104,50 +105,50 @@ class TestBadSignature(PythonJavaClass):
         pass
 
 
-print '2: instanciate the class, with some data'
+print('2: instanciate the class, with some data')
 a = TestImplem(*range(10))
-print a
-print dir(a)
+print(a)
+print(dir(a))
 
-print 'tries to get a ListIterator'
+print('tries to get a ListIterator')
 iterator = a.listIterator()
-print 'iterator is', iterator
+print('iterator is', iterator)
 while iterator.hasNext():
-    print 'at index', iterator.index, 'value is', iterator.next()
+    print('at index', iterator.index, 'value is', iterator.next())
 
-print '3: Do cast to a collection'
+print('3: Do cast to a collection')
 a2 = cast('java/util/Collection', a.j_self)
-print a2
+print(a2)
 
-print '4: Try few method on the collection'
+print('4: Try few method on the collection')
 Collections = autoclass('java.util.Collections')
-#print Collections.enumeration(a)
-#print Collections.enumeration(a)
+#print(Collections.enumeration(a)
+#print(Collections.enumeration(a)
 ret = Collections.max(a)
 
-print "reverse"
-print Collections.reverse(a)
-print a.data
+print("reverse")
+print(Collections.reverse(a))
+print(a.data)
 
-print "before swap"
-print Collections.swap(a, 2, 3)
-print "after swap"
-print a.data
+print("before swap")
+print(Collections.swap(a, 2, 3))
+print("after swap")
+print(a.data)
 
-print "rotate"
-print Collections.rotate(a, 5)
-print a.data
+print("rotate")
+print(Collections.rotate(a, 5))
+print(a.data)
 
-print 'Order of data before shuffle()', a.data
-print Collections.shuffle(a)
-print 'Order of data after shuffle()', a.data
+print('Order of data before shuffle()', a.data)
+print(Collections.shuffle(a))
+print('Order of data after shuffle()', a.data)
 
 
 # XXX We have issues for methosd with multiple signature
-print '-> Collections.max(a)'
-print Collections.max(a2)
-#print '-> Collections.shuffle(a)'
-#print Collections.shuffle(a2)
+print('-> Collections.max(a)')
+print(Collections.max(a2))
+#print('-> Collections.shuffle(a)'
+#print(Collections.shuffle(a2)
 
 # test bad signature
 TestBadSignature()
