@@ -2,6 +2,7 @@ from distutils.core import setup, Extension
 from os import environ
 from os.path import dirname, join, exists
 import sys
+from platform import architecture
 
 files = [
     'jni.pxi',
@@ -76,7 +77,7 @@ else:
                 shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
     if not jre_home:
         raise Exception('Unable to determine JRE_HOME')
-    cpu = 'i386' if sys.maxint == 2147483647 else 'amd64'
+    cpu = 'amd64' if architecture()[0] == '64bit' else 'i386'
 
     if platform == 'win32':
         incl_dir = join(jdk_home, 'include', 'win32')
