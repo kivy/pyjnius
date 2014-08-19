@@ -34,7 +34,7 @@ try:
 except ImportError:
     from distutils.command.build_ext import build_ext
     if platform != 'android':
-        print '\n\nYou need Cython to compile Pyjnius.\n\n'
+        print('\n\nYou need Cython to compile Pyjnius.\n\n')
         raise
     files = [fn[:-3] + 'c' for fn in files if fn.endswith('pyx')]
 
