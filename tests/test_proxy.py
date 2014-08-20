@@ -144,11 +144,16 @@ print(Collections.shuffle(a))
 print('Order of data after shuffle()', a.data)
 
 
-# XXX We have issues for methosd with multiple signature
+# XXX We have issues for methods with multiple signature
 print('-> Collections.max(a)')
 print(Collections.max(a2))
 #print('-> Collections.shuffle(a)'
 #print(Collections.shuffle(a2)
 
 # test bad signature
-TestBadSignature()
+try:
+    TestBadSignature()
+    print("ERROR: Not detected bad signature")
+    raise Exception("Bad signature not detected")
+except:
+    print("Detected bad signature")
