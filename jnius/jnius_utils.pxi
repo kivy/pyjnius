@@ -10,10 +10,10 @@ cdef parse_definition(definition):
     while len(argdef):
         c = argdef[0]
 
-        # read the array char
+        # read the array char        
         prefix = ''
-        if c == '[':
-            prefix = c
+        while c == '[':
+            prefix += c
             argdef = argdef[1:]
             c = argdef[0]
 
