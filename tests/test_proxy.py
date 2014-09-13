@@ -150,4 +150,11 @@ print Collections.max(a2)
 #print Collections.shuffle(a2)
 
 # test bad signature
-TestBadSignature()
+print 'testing a bad signature...',
+try:
+    # we expect this to raise an exception
+    TestBadSignature()
+except:
+    print ' ok'
+else:
+    raise Exception("Bad signature not detected!")
