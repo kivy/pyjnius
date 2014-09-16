@@ -27,6 +27,7 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
     cdef JavaClass jc
     cdef PythonJavaClass pc
     cdef int index
+    cdef bytes py_str
     for index, argtype in enumerate(definition_args):
         py_arg = args[index]
         if argtype == 'Z':
@@ -50,8 +51,8 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                 j_args[index].l = NULL
             elif isinstance(py_arg, basestring) and \
                     argtype in ('Ljava/lang/String;', 'Ljava/lang/Object;'):
-                j_args[index].l = j_env[0].NewStringUTF(
-                        j_env, <char *><bytes>py_arg.encode('utf-8'))
+                py_str = <bytes>py_arg.encode('utf-8')
+                j_args[index].l = j_env[0].NewStringUTF(j_env, <char *>py_str)
             elif isinstance(py_arg, JavaClass):
                 jc = py_arg
                 check_assignable_from(j_env, jc, argtype[1:-1])
