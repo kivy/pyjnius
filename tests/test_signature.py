@@ -16,39 +16,39 @@ class TestImplemIterator(PythonJavaClass):
         self.collection = collection
         self.index = index
 
-    @java_signature(jboolean, ())
+    @with_signature(jboolean, ())
     def hasNext(self):
         return self.index < len(self.collection.data) - 1
 
-    @java_signature(JObject, ())
+    @with_signature(JObject, ())
     def next(self):
         obj = self.collection.data[self.index]
         self.index += 1
         return obj
 
-    @java_signature(jboolean, ())
+    @with_signature(jboolean, ())
     def hasPrevious(self):
         return self.index >= 0
 
-    @java_signature(JObject, ())
+    @with_signature(JObject, ())
     def previous(self):
         self.index -= 1
         obj = self.collection.data[self.index]
         return obj
 
-    @java_signature(jint, ())
+    @with_signature(jint, ())
     def previousIndex(self):
         return self.index - 1
 
-    @java_signature(JString, ())
+    @with_signature(JString, ())
     def toString(self):
         return repr(self)
 
-    @java_signature(JObject, (jint, ))
+    @with_signature(JObject, (jint, ))
     def get(self, index):
         return self.collection.data[index - 1]
 
-    @java_signature(jvoid, (JObject, ))
+    @with_signature(jvoid, (JObject, ))
     def set(self, obj):
         self.collection.data[self.index - 1] = obj
 
@@ -60,34 +60,34 @@ class TestImplem(PythonJavaClass):
         super(TestImplem, self).__init__(*args)
         self.data = list(args)
 
-    @java_signature(autoclass("java.util.Iterator"), ())
+    @with_signature(autoclass("java.util.Iterator"), ())
     def iterator(self):
         it = TestImplemIterator(self)
         return it
 
-    @java_signature(JString, ())
+    @with_signature(JString, ())
     def toString(self):
         return repr(self)
 
-    @java_signature(jint, ())
+    @with_signature(jint, ())
     def size(self):
         return len(self.data)
 
-    @java_signature(JObject, (jint,))
+    @with_signature(JObject, (jint,))
     def get(self, index):
         return self.data[index]
 
-    @java_signature(JObject, (jint, JObject))
+    @with_signature(JObject, (jint, JObject))
     def set(self, index, obj):
         old_object = self.data[index]
         self.data[index] = obj
         return old_object
 
-    @java_signature(JArray(JObject), ())
+    @with_signature(JArray(JObject), ())
     def toArray(self):
         return self.data
 
-    @java_signature(autoclass("java.util.ListIterator"), ())
+    @with_signature(autoclass("java.util.ListIterator"), ())
     def listIterator(self):
         it = TestImplemIterator(self)
         return it

@@ -40,19 +40,19 @@ jvoid    = _MakeSignaturePrimitive("void", "V")
 def JArray(of_type):
     ''' Marks that this is an array of the given Primitive of JavaClass
     type specified. '''
-    
+
     spec = "[" + _jni_type_spec(of_type)
     return _MakeSignaturePrimitive("array", spec)
 
-def java_signature(returns, takes):
+def with_signature(returns, takes):
     ''' Alternative version of @java_method that takes JavaClass
     objects to produce the method signature. '''
 
-    sig = _produce_sig(returns, takes)
+    sig = signature(returns, takes)
     return java_method(sig)
 
-def _produce_sig(returns, takes):
-    ''' Produces a JNI method signature. '''
+def signature(returns, takes):
+    ''' Produces a JNI method signature, taking the provided arguments and returning the given return type. '''
     out_takes = []
     for arg in takes:
         out_takes.append(_jni_type_spec(arg))
