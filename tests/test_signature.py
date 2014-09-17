@@ -113,5 +113,34 @@ class SignaturesTest(unittest.TestCase):
         self.assertEquals(stack.size(), pyjlist.size())
         array = pyjlist.toArray
 
+    def test_basic_signatures(self):
+
+        # Void
+        sig = signature(jvoid, [])
+        self.assertEquals(sig, "()V")
+
+        # Int method
+        sig = signature(jint, [])
+        self.assertEquals(sig, "()I")
+
+        # Object return method
+        String = autoclass("java.lang.String")
+        sig = signature(String, [])
+        self.assertEquals(sig, "()Ljava/lang/String;")
+
+        # Return void, takes objects as parameters
+        sig = signature(jvoid, [String, String])
+        self.assertEquals(sig, "(Ljava/lang/String;Ljava/lang/String;)V")
+
+        # Array return
+        sig = signature(JArray(jint), [])
+        self.assertEquals(sig, "()[I")
+
+        # Multiple array parameter types
+        sig = signature(jvoid, [JArray(jint), JArray(jboolean)])
+        self.assertEquals(sig, "([I[Z)V")
+
+
+
 
 
