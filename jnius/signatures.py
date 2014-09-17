@@ -94,6 +94,6 @@ def _jni_type_spec(jclass):
 
     if issubclass(jclass, JavaClass):
         return "L" + jclass.__javaclass__ + ";"
-    elif issubclass(jclass, _SignaturePrimitive):
+    elif issubclass(jclass, _JavaSignaturePrimitive):
         return jclass._spec
     
