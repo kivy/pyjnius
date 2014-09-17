@@ -40,15 +40,16 @@ from . import java_method
 
 ''' Type specifiers for primitives '''
 
-class _SignaturePrimitive(object):
+class _JavaSignaturePrimitive(object):
     _spec = ""
 
 def _MakeSignaturePrimitive(name, spec):
-    class __Primitive(_SignaturePrimitive):
+    class __Primitive(_JavaSignaturePrimitive):
         ''' PyJnius signature for Java %s type ''' % name
         _name = name
         _spec = spec
-        __name__ = "j" + name
+    __Primitive.__name__ = "j" + name
+
     return __Primitive
 
 jboolean = _MakeSignaturePrimitive("boolean", "Z")
