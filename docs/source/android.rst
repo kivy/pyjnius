@@ -45,9 +45,9 @@ Let's do it with Pyjnius::
     # create out recorder
     mRecorder = MediaRecorder()
     mRecorder.setAudioSource(AudioSource.MIC)
-    mRecorder.setOutputFormat(OutputFormat.THREE_GPP) 
+    mRecorder.setOutputFormat(OutputFormat.THREE_GPP)
     mRecorder.setOutputFile('/sdcard/testrecorder.3gp')
-    mRecorder.setAudioEncoder(AudioEncoder.ARM_NB)
+    mRecorder.setAudioEncoder(AudioEncoder.AMR_NB)
     mRecorder.prepare()
 
     # record 5 seconds
@@ -151,7 +151,7 @@ everything needed for accessing the accelerometer::
 
         // Contain the last event we got from the listener
         static public SensorEvent lastEvent = null;
-         
+
         // Define a new listener
         static class AccelListener implements SensorEventListener {
             public void onSensorChanged(SensorEvent ev) {
