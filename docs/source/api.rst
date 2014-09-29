@@ -313,7 +313,7 @@ A signature like::
     
 
 When you implement Java in Python, the signature of the Java method must match.
-Java provide a tool named `javap` to get the signature of any java class. For
+Java provides a tool named `javap` to get the signature of any java class. For
 example::
 
     $ javap -s java.util.Iterator
