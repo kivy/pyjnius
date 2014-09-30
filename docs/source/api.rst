@@ -327,3 +327,19 @@ example::
       Signature: ()V
     }
 
+
+JVM options and the class path
+------------------------------
+
+JVM options need to be set before `import jnius` is called, as they cannot be changed after the VM starts up.
+To this end, you can::
+
+    import jnius_config
+    jnius_config.add_options('-Xrs', '-Xmx4096')
+    jnius_config.set_classpath('.', '/usr/local/fem/plugins/*')
+    import jnius
+
+If a classpath is set with these functions, it overrides any CLASSPATH environment variable.
+Multiple options or path entries should be supplied as multiple arguments to the `add_` and `set_` functions.
+If no classpath is provided and CLASSPATH is not set, the path defaults to `'.'`.
+This functionality is not available on Android.
