@@ -41,7 +41,7 @@ except ImportError:
 
 if platform == 'android':
     # for android, we use SDL...
-    libraries = ['sdl', 'log']
+    #libraries = ['sdl', 'log']
     library_dirs = ['libs/' + environ['ARCH']]
 elif platform == 'darwin':
     import objc
