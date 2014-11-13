@@ -44,8 +44,25 @@ cdef void check_exception(JNIEnv *j_env) except *:
 
 
 cdef dict assignable_from = {}
+cdef int assignable_from_order = 0
 cdef void check_assignable_from(JNIEnv *env, JavaClass jc, bytes signature) except *:
-    cdef jclass cls
+    global assignable_from_order
+    cdef jclass cls, clsA, clsB
+    cdef jthrowable exc
+
+    # first call, we need to get over the libart issue, which implemented
+    # IsAssignableFrom the wrong way.
+    # Ref: https://github.com/kivy/pyjnius/issues/92
+    # Google Bug: https://android.googlesource.com/platform/art/+/1268b74%5E!/
+    if assignable_from_order == 0:
+        clsA = env[0].FindClass(env, "java/lang/String")
+        clsB = env[0].FindClass(env, "java/lang/Object")
+        if env[0].IsAssignableFrom(env, clsB, clsA):
+            # Bug triggered, IsAssignableFrom said we can do things like:
+            # String a = Object()
+            assignable_from_order = -1
+        else:
+            assignable_from_order = 1
 
     # if we have a JavaObject, it's always ok.
     if signature == 'java/lang/Object':
@@ -74,9 +91,16 @@ cdef void check_assignable_from(JNIEnv *env, JavaClass jc, bytes signature) exce
             raise JavaException('Unable to found the class for {0!r}'.format(
                 signature))
 
-        result = bool(env[0].IsAssignableFrom(env, jc.j_cls, cls))
-        env[0].ExceptionDescribe(env)
-        env[0].ExceptionClear(env)
+        if assignable_from_order == 1:
+            result = bool(env[0].IsAssignableFrom(env, jc.j_cls, cls))
+        else:
+            result = bool(env[0].IsAssignableFrom(env, cls, jc.j_cls))
+
+        exc = env[0].ExceptionOccurred(env)
+        if exc:
+            env[0].ExceptionDescribe(env)
+            env[0].ExceptionClear(env)
+
         assignable_from[(jc.__javaclass__, signature)] = bool(result)
 
     if result is False:
