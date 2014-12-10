@@ -64,13 +64,20 @@ def get_classpath():
     from os.path import realpath
     global classpath
 
+    # add a path to java classes packaged with jnius
+    from pkg_resources import resource_filename
+    return_classpath = [realpath(resource_filename(__name__, 'jnius/src'))]
+
     if classpath is not None:
-        return list(classpath)
+        return_classpath = classpath + return_classpath
 
-    if 'CLASSPATH' in environ:
-        return environ['CLASSPATH'].split(split_char)
+    elif 'CLASSPATH' in environ:
+        return_classpath = environ['CLASSPATH'].split(split_char) + return_classpath
 
-    return [realpath('.')]
+    else:
+        return_classpath = [realpath('.')] + return_classpath
+
+    return return_classpath
 
 
 def expand_classpath():

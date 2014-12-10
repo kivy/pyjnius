@@ -190,6 +190,9 @@ setup(
             extra_link_args=extra_link_args
         )
     ],
+    package_data={
+        'jnius': [ 'src/org/jnius/*' ]
+    },
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
