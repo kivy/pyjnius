@@ -414,6 +414,7 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
     cdef jobject ret = NULL
     cdef int array_size = len(pyarray)
     cdef int i
+    cdef unsigned char c_tmp
     cdef jboolean j_boolean
     cdef jbyte j_byte
     cdef jchar j_char
@@ -460,7 +461,8 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
                 ret, 0, array_size, a_bytes._buf)
         else:
             for i in range(array_size):
-                j_byte = pyarray[i]
+                c_tmp = pyarray[i]
+                j_byte = <signed char>c_tmp
                 j_env[0].SetByteArrayRegion(j_env,
                         ret, i, 1, &j_byte)
 
