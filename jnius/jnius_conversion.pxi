@@ -224,7 +224,7 @@ cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
     elif r == 'C':
         j_chars = j_env[0].GetCharArrayElements(
                 j_env, j_object, &iscopy)
-        ret = [chr(<char>j_chars[i]) for i in range(array_size)]
+        ret = [unichr(j_chars[i]) for i in range(array_size)]
         j_env[0].ReleaseCharArrayElements(
                 j_env, j_object, j_chars, 0)
 
