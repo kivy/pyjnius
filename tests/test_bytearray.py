@@ -7,3 +7,7 @@ class StringArgumentForByteArrayTest(unittest.TestCase):
         # the ByteBuffer.wrap() accept only byte[].
         ByteBuffer = autoclass('java.nio.ByteBuffer')
         self.assertIsNotNone(ByteBuffer.wrap('hello world'))
+
+    def test_string_arg_with_signed_char(self):
+        ByteBuffer = autoclass('java.nio.ByteBuffer')
+        self.assertIsNotNone(ByteBuffer.wrap('\x00\xffHello World\x7f'))
