@@ -141,4 +141,12 @@ public class BasicsTest {
 			return false;
 		return (x[0] == 127 && x[1] == 127 && x[2] == 127);
 	}
+
+	public void fillByteArray(byte[] x) {
+		if (x.length != 3)
+			return;
+		x[0] = 127;
+		x[1] = 1;
+		x[2] = -127;
+	}
 }
