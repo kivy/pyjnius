@@ -19,3 +19,7 @@ cdef JNIEnv *get_jnienv() except NULL:
     jvm[0].AttachCurrentThread(jvm, &env, NULL)
     return env
 
+
+def detach():
+    jvm[0].DetachCurrentThread(jvm)
+

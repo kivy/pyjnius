@@ -401,4 +401,5 @@ cdef extern from "jni.h":
 
     ctypedef struct JNIInvokeInterface:
         jint        (*AttachCurrentThread)(JavaVM *, JNIEnv **, void *)
+        jint        (*DetachCurrentThread)(JavaVM *)
 

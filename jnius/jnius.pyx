@@ -87,7 +87,7 @@ Python::
 
 __all__ = ('JavaObject', 'JavaClass', 'JavaMethod', 'JavaField',
            'MetaJavaClass', 'JavaException', 'cast', 'find_javaclass',
-           'PythonJavaClass', 'java_method')
+           'PythonJavaClass', 'java_method', 'detach')
 
 from libc.stdlib cimport malloc, free
 from functools import partial
