@@ -343,3 +343,43 @@ If a classpath is set with these functions, it overrides any CLASSPATH environme
 Multiple options or path entries should be supplied as multiple arguments to the `add_` and `set_` functions.
 If no classpath is provided and CLASSPATH is not set, the path defaults to `'.'`.
 This functionality is not available on Android.
+
+
+Pyjnius and threads
+-------------------
+
+.. function:: detach()
+
+    Each time you create a native thread in Python and uses Pyjnius, any call to
+    Pyjnius methods will force attachment of the native thread to the current JVM.
+    But you must detach it before leaving the thread, and Pyjnius cannot do it for
+    you.
+
+Example::
+
+    import threading
+    import jnius
+
+    def run(...):
+        try:
+            # use pyjnius here
+        finally:
+            jnius.detach()
+
+If you don't, it will crash on dalvik and ART / Android::
+
+    D/dalvikvm(16696): threadid=12: thread exiting, not yet detached (count=0)
+    D/dalvikvm(16696): threadid=12: thread exiting, not yet detached (count=1)
+    E/dalvikvm(16696): threadid=12: native thread exited without detaching
+    E/dalvikvm(16696): VM aborting
+
+Or::
+
+    W/art     (21168): Native thread exiting without having called DetachCurrentThread (maybe it's going to use a pthread_key_create destructor?): Thread[16,tid=21293,Native,Thread*=0x4c25c040,peer=0x677eaa70,"Thread-16219"]
+    F/art     (21168): art/runtime/thread.cc:903] Native thread exited without calling DetachCurrentThread: Thread[16,tid=21293,Native,Thread*=0x4c25c040,peer=0x677eaa70,"Thread-16219"]
+    F/art     (21168): art/runtime/runtime.cc:203] Runtime aborting...
+    F/art     (21168): art/runtime/runtime.cc:203] (Aborting thread was not attached to runtime!)
+    F/art     (21168): art/runtime/runtime.cc:203] Dumping all threads without appropriate locks held: thread list lock mutator lock
+    F/art     (21168): art/runtime/runtime.cc:203] All threads:
+    F/art     (21168): art/runtime/runtime.cc:203] DALVIK THREADS (16):
+    ...
