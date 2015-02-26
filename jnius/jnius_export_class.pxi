@@ -321,6 +321,61 @@ cdef class JavaField(object):
         j_self = (<JavaClass?>obj).j_self.obj
         return self.read_field(j_self)
 
+    def __set__(self, obj, value):
+        cdef jobject j_self
+
+        self.ensure_field()
+        if obj is None:
+            # set not implemented for static fields
+            raise NotImplementedError()
+
+        j_self = (<JavaClass?>obj).j_self.obj
+        self.write_field(j_self, value)
+
+    cdef write_field(self, jobject j_self, value):
+        cdef jboolean j_boolean
+        cdef jbyte j_byte
+        cdef jchar j_char
+        cdef jshort j_short
+        cdef jint j_int
+        cdef jlong j_long
+        cdef jfloat j_float
+        cdef jdouble j_double
+        cdef JNIEnv *j_env = get_jnienv()
+
+        # type of the java field
+        r = self.definition[0]
+
+        # set the java field; implemented only for primitive types
+        if r == 'Z':
+            j_boolean = <jboolean>value
+            j_env[0].SetBooleanField(j_env, j_self, self.j_field, j_boolean)
+        elif r == 'B':
+            j_byte = <jbyte>value
+            j_env[0].SetByteField(j_env, j_self, self.j_field, j_byte)
+        elif r == 'C':
+            j_char = <jchar>value
+            j_env[0].SetCharField(j_env, j_self, self.j_field, j_char)
+        elif r == 'S':
+            j_short = <jshort>value
+            j_env[0].SetShortField(j_env, j_self, self.j_field, j_short)
+        elif r == 'I':
+            j_int = <jint>value
+            j_env[0].SetIntField(j_env, j_self, self.j_field, j_int)
+        elif r == 'J':
+            j_long = <jlong>value
+            j_env[0].SetLongField(j_env, j_self, self.j_field, j_long)
+        elif r == 'F':
+            j_float = <jfloat>value
+            j_env[0].SetFloatField(j_env, j_self, self.j_field, j_float)
+        elif r == 'D':
+            j_double = <jdouble>value
+            j_env[0].SetDoubleField(j_env, j_self, self.j_field, j_double)
+        else:
+            raise Exception('Invalid field definition')
+
+        check_exception(j_env)
+
     cdef read_field(self, jobject j_self):
         cdef jboolean j_boolean
         cdef jbyte j_byte
