@@ -9,7 +9,10 @@ cdef void release_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, arg
             if py_arg is None:
                 j_args[index].l = NULL
             if isinstance(py_arg, basestring) and \
-                    argtype in ('Ljava/lang/String;', 'Ljava/lang/Object;'):
+                    argtype in (
+                        'Ljava/lang/String;',
+                        'Ljava/lang/CharSequence;',
+                        'Ljava/lang/Object;'):
                 j_env[0].DeleteLocalRef(j_env, j_args[index].l)
         elif argtype[0] == '[':
             ret = convert_jarray_to_python(j_env, argtype[1:], j_args[index].l)
@@ -50,7 +53,10 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
             if py_arg is None:
                 j_args[index].l = NULL
             elif isinstance(py_arg, basestring) and \
-                    argtype in ('Ljava/lang/String;', 'Ljava/lang/Object;'):
+                    argtype in (
+                        'Ljava/lang/String;',
+                        'Ljava/lang/CharSequence;',
+                        'Ljava/lang/Object;'):
                 py_str = <bytes>py_arg.encode('utf-8')
                 j_args[index].l = j_env[0].NewStringUTF(j_env, <char *>py_str)
             elif isinstance(py_arg, JavaClass):
@@ -123,7 +129,7 @@ cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object
     # Ie, B would be passed as Ljava/lang/Character;
 
     # if we got a string, just convert back to Python str.
-    if r == 'java/lang/String':
+    if r in ('java/lang/String', 'java/lang/CharSequence'):
         c_str = <char *>j_env[0].GetStringUTFChars(j_env, j_object, NULL)
         py_str = <bytes>c_str
         j_env[0].ReleaseStringUTFChars(j_env, j_object, c_str)
@@ -311,7 +317,10 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
         if obj is None:
             return NULL
         elif isinstance(obj, basestring) and \
-                definition in ('Ljava/lang/String;', 'Ljava/lang/Object;'):
+                definition in (
+                    'Ljava/lang/String;',
+                    'Ljava/lang/CharSequence;',
+                    'Ljava/lang/Object;'):
             return j_env[0].NewStringUTF(j_env, <char *><bytes>obj)
         elif isinstance(obj, (int, long)) and \
                 definition in (
@@ -522,7 +531,10 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
                 j_env[0].SetObjectArrayElement(
                         j_env, <jobjectArray>ret, i, NULL)
             elif isinstance(arg, basestring) and \
-                    definition in ('Ljava/lang/String;', 'Ljava/lang/Object;'):
+                    definition in (
+                        'Ljava/lang/String;',
+                        'Ljava/lang/CharSequence;',
+                        'Ljava/lang/Object;'):
                 j_string = j_env[0].NewStringUTF(
                         j_env, <bytes>arg)
                 j_env[0].SetObjectArrayElement(
