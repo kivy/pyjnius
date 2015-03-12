@@ -55,6 +55,26 @@ class BasicsTest(unittest.TestCase):
         self.assertEquals(test.fieldB, 127)
         self.assertEquals(test2.fieldB, 10)
 
+    def test_instance_set_fields(self):
+        test = autoclass('org.jnius.BasicsTest')()
+        test.fieldSetZ = True
+        test.fieldSetB = 127
+        test.fieldSetC = ord('k')
+        test.fieldSetS = 32767
+        test.fieldSetI = 2147483467
+        test.fieldSetJ = 2147483467
+        test.fieldSetF = 1.23456789
+        test.fieldSetD = 1.23456789
+
+        self.assertTrue(test.testFieldSetZ())
+        self.assertTrue(test.testFieldSetB())
+        self.assertTrue(test.testFieldSetC())
+        self.assertTrue(test.testFieldSetS())
+        self.assertTrue(test.testFieldSetI())
+        self.assertTrue(test.testFieldSetJ())
+        self.assertTrue(test.testFieldSetF())
+        self.assertTrue(test.testFieldSetD())
+
     def test_instances_methods_array(self):
         test = autoclass('org.jnius.BasicsTest')()
         self.assertEquals(test.methodArrayZ(), [True] * 3)
