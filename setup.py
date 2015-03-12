@@ -44,12 +44,13 @@ if platform == 'android':
     libraries = ['sdl', 'log']
     library_dirs = ['libs/' + environ['ARCH']]
 elif platform == 'darwin':
-    import objc
-    framework = objc.pathForFramework('JavaVM.framework')
+    import subprocess
+    framework = subprocess.Popen('xcrun --sdk macosx --show-sdk-path',
+            shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
     if not framework:
         raise Exception('You must install Java on your Mac OS X distro')
     extra_link_args = ['-framework', 'JavaVM']
-    include_dirs = [join(framework, 'Versions/A/Headers')]
+    include_dirs = [join(framework, 'System/Library/Frameworks/JavaVM.framework/Versions/Current/Headers')]
 else:
     import subprocess
     # otherwise, we need to search the JDK_HOME
