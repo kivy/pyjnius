@@ -2,7 +2,15 @@
 class JavaException(Exception):
     '''Can be a real java exception, or just an exception from the wrapper.
     '''
-    pass
+    classname = None     # The classname of the exception
+    innermessage = None  # The message of the inner exception
+    stacktrace = None    # The stack trace of the inner exception
+
+    def __init__(self, message, classname=None, innermessage=None, stacktrace=None):
+        self.classname = classname
+        self.innermessage = innermessage
+        self.stacktrace = stacktrace
+        Exception.__init__(self, message)
 
 
 cdef class JavaObject(object):

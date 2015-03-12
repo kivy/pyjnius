@@ -22,6 +22,17 @@ public class BasicsTest {
 	public float methodF() { return 1.23456789f; };
 	public double methodD() { return 1.23456789; };
 	public String methodString() { return new String("helloworld"); }
+	public void methodException(int depth) throws IllegalArgumentException {
+		if (depth == 0) throw new IllegalArgumentException("helloworld");
+		else methodException(depth -1);
+	}
+	public void methodExceptionChained() throws IllegalArgumentException {
+		try {
+			methodException(5);
+		} catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("helloworld2", e);
+		}
+	}
 
 	static public boolean fieldStaticZ = true;
 	static public byte fieldStaticB = 127;
