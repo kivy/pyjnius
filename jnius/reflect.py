@@ -10,7 +10,7 @@ class Class(JavaClass):
     __metaclass__ = MetaJavaClass
     __javaclass__ = 'java/lang/Class'
 
-    desiredAssertionStatus = JavaMethod('()Z;')
+    desiredAssertionStatus = JavaMethod('()Z')
     forName = JavaMultipleMethod([
         ('(Ljava/lang/String,Z,Ljava/lang/ClassLoader;)Ljava/langClass;', True, False),
         ('(Ljava/lang/String;)Ljava/lang/Class;', True, False), ])
@@ -32,7 +32,7 @@ class Class(JavaClass):
     getInterfaces = JavaMethod('()[Ljava/lang/Class;')
     getMethod = JavaMethod('(Ljava/lang/String,[Ljava/lang/Class;)Ljava/lang/reflect/Method;')
     getMethods = JavaMethod('()[Ljava/lang/reflect/Method;')
-    getModifiers = JavaMethod('()[I;')
+    getModifiers = JavaMethod('()[I')
     getName = JavaMethod('()Ljava/lang/String;')
     getPackage = JavaMethod('()Ljava/lang/Package;')
     getProtectionDomain = JavaMethod('()Ljava/security/ProtectionDomain;')
@@ -40,11 +40,11 @@ class Class(JavaClass):
     getResourceAsStream = JavaMethod('(Ljava/lang/String;)Ljava/io/InputStream;')
     getSigners = JavaMethod('()[Ljava/lang/Object;')
     getSuperclass = JavaMethod('()Ljava/lang/reflect/Class;')
-    isArray = JavaMethod('()Z;')
-    isAssignableFrom = JavaMethod('(Ljava/lang/reflect/Class;)Z;')
-    isInstance = JavaMethod('(Ljava/lang/Object;)Z;')
-    isInterface = JavaMethod('()Z;')
-    isPrimitive = JavaMethod('()Z;')
+    isArray = JavaMethod('()Z')
+    isAssignableFrom = JavaMethod('(Ljava/lang/reflect/Class;)Z')
+    isInstance = JavaMethod('(Ljava/lang/Object;)Z')
+    isInterface = JavaMethod('()Z')
+    isPrimitive = JavaMethod('()Z')
     newInstance = JavaMethod('()Ljava/lang/Object;')
     toString = JavaMethod('()Ljava/lang/String;')
 
