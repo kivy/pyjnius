@@ -1,4 +1,5 @@
 from jnius import autoclass, java_method, PythonJavaClass, cast
+from nose.tools import *
 
 print '1: declare a TestImplem that implement Collection'
 
@@ -104,7 +105,7 @@ class TestBadSignature(PythonJavaClass):
         pass
 
 
-print '2: instanciate the class, with some data'
+print '2: instantiate the class, with some data'
 a = TestImplem(*range(10))
 print a
 print dir(a)
@@ -150,4 +151,11 @@ print Collections.max(a2)
 #print Collections.shuffle(a2)
 
 # test bad signature
-TestBadSignature()
+threw = False
+try:
+    TestBadSignature()
+except Exception:
+    threw = True
+
+if not threw:
+    raise Exception("Failed to throw for bad signature")
