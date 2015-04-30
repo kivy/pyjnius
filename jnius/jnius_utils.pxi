@@ -278,6 +278,11 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
                     continue
                 return -1
 
+            # accept an autoclass class for java/lang/Class.
+            if hasattr(arg, '__javaclass__') and r == 'java/lang/Class':
+                score += 10
+                continue
+
             # if we pass a JavaClass, ensure the definition is matching
             # XXX FIXME what if we use a subclass or something ?
             if isinstance(arg, JavaClass):
