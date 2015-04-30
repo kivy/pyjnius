@@ -215,6 +215,12 @@ def autoclass(clsname):
 
         classDict[name] = JavaMultipleMethod(signatures)
 
+    for iclass in c.getInterfaces():
+        if iclass.getName() == 'java.util.List':
+            classDict['__getitem__'] = lambda self, index: self.get(index)
+            classDict['__len__'] = lambda self: self.size()
+            break
+
     for field in c.getFields():
         static = Modifier.isStatic(field.getModifiers())
         sig = get_signature(field.getType())
