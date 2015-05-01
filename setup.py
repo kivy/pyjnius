@@ -44,6 +44,7 @@ if platform == 'android':
     libraries = ['sdl', 'log']
     library_dirs = ['libs/' + environ['ARCH']]
 elif platform == 'darwin':
+    # TODO: this is the old Java 1.6 mechanism. Will need help for 1.7.
     import subprocess
     framework = subprocess.Popen('xcrun --sdk macosx --show-sdk-path',
             shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
