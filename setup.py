@@ -1,3 +1,4 @@
+from __future__ import print_function
 from distutils.core import setup, Extension
 from os import environ
 from os.path import dirname, join, exists
@@ -45,8 +46,9 @@ if platform == 'android':
     library_dirs = ['libs/' + environ['ARCH']]
 elif platform == 'darwin':
     import subprocess
+    # That decode won't work in Py2?
     framework = subprocess.Popen('/usr/libexec/java_home',
-            shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+            shell=True, stdout=subprocess.PIPE).communicate()[0].decode().strip()
     print('java_home: {0}\n'.format(framework));
     if not framework:
         raise Exception('You must install Java on your Mac OS X distro')
@@ -107,7 +109,13 @@ else:
 
 # generate the config.pxi
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
-    fd.write('DEF JNIUS_PLATFORM = {0!r}'.format(platform))
+    fd.write('DEF JNIUS_PLATFORM = {0!r}\n\n'.format(platform))
+    if sys.version_info>=(3,0,0):
+        fd.write('DEF JNIUS_PYTHON3 = True\n\n')
+    else:
+        fd.write('DEF JNIUS_PYTHON3 = False\n\n')
+    if lib_location is not None:
+        fd.write('DEF JNIUS_LIB_SUFFIX = {0!r}\n\n'.format(lib_location))
 
 with open(join('jnius', '__init__.py')) as fd:
     versionline = [x for x in fd.readlines() if x.startswith('__version__')]

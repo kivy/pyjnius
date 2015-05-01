@@ -1,15 +1,19 @@
 language: python
 python:
   - "2.7"
+  - "3.4"
 # command to install dependencies
 before_install:
   - sudo apt-get update
-  - sudo apt-get install python-pip openjdk-7-jdk
+  - sudo apt-get install python-pip openjdk-7-jdk ant
 
 install:
   - pip install --upgrade cython --use-mirrors
+  - pip install --upgrade future --use-mirrors
+  - pip install --upgrade setuptools --use-mirrors
   - make
 
 # command to run tests
 script:
-  - make tests
+  - make clean all tests
+  - make clean all tests PYTHON3=1

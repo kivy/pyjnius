@@ -1,12 +1,20 @@
 all: build_ext
 
-.PHONY: build_ext tests
+.PHONY: build_ext tests tests3
+
+ifdef PYTHON3
+PYTHON=python3
+NOSETESTS=nosetests-3
+else
+PYTHON=python
+NOSETESTS=nosetests-2.7
+endif
 
 ANT=ant
 
 build_ext:
 	$(ANT) all
-	python setup.py build_ext --inplace -f -g
+	$(PYTHON) setup.py build_ext --inplace -f -g
 
 clean:
 	$(ANT) clean
@@ -15,5 +23,5 @@ clean:
 html:
 	$(MAKE) -C docs html
 
-tests: build_ext
-	(cd tests; env CLASSPATH=../build/test-classes:../build/classes PYTHONPATH=..:$(PYTHONPATH) nosetests-2.7 -v)
+tests: 
+	(cd tests; env CLASSPATH=../build/test-classes:../build/classes PYTHONPATH=..:$(PYTHONPATH) $(NOSETESTS) -v)
