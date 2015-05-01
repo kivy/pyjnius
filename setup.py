@@ -44,14 +44,21 @@ if platform == 'android':
     libraries = ['sdl', 'log']
     library_dirs = ['libs/' + environ['ARCH']]
 elif platform == 'darwin':
-    # TODO: this is the old Java 1.6 mechanism. Will need help for 1.7.
     import subprocess
-    framework = subprocess.Popen('xcrun --sdk macosx --show-sdk-path',
+    framework = subprocess.Popen('/usr/libexec/java_home',
             shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+    print('java_home: {0}\n'.format(framework));
     if not framework:
         raise Exception('You must install Java on your Mac OS X distro')
-    extra_link_args = ['-framework', 'JavaVM']
-    include_dirs = [join(framework, 'System/Library/Frameworks/JavaVM.framework/Versions/Current/Headers')]
+    if '1.6' in framework:
+        extra_link_args = ['-framework', 'JavaVM']
+        include_dirs = [join(framework, 'System/Library/Frameworks/JavaVM.framework/Versions/Current/Headers')]
+    else:
+        # TODO: This won't make a dylib that moves from one machine to another.
+        # TODO: it needs a switch to dlopen and a configuration of the path.
+        java_runtime_lib = '{0}/jre/lib/server'.format(framework)
+        extra_link_args = ['-L', java_runtime_lib, '-ljvm', '-rpath', java_runtime_lib]
+        include_dirs = ['{0}/include'.format(framework), '{0}/include/darwin'.format(framework)]
 else:
     import subprocess
     # otherwise, we need to search the JDK_HOME
