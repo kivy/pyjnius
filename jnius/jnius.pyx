@@ -99,8 +99,10 @@ include "config.pxi"
 
 IF JNIUS_PLATFORM == "android":
     include "jnius_jvm_android.pxi"
-ELSE:
+ELIF JNIUS_PLATFORM == "win32":    
     include "jnius_jvm_desktop.pxi"
+ELSE:
+    include "jnius_jvm_dlopen.pxi"
 
 include "jnius_env.pxi"
 include "jnius_utils.pxi"

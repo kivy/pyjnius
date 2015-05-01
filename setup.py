@@ -12,6 +12,7 @@ files = [
     'jnius_export_func.pxi',
     'jnius_jvm_android.pxi',
     'jnius_jvm_desktop.pxi',
+    'jnius_jvm_dlopen.pxi',
     'jnius_localref.pxi',
     'jnius.pyx',
     'jnius_utils.pxi',
@@ -38,6 +39,8 @@ except ImportError:
     if platform != 'android':
         print('\n\nYou need Cython to compile Pyjnius.\n\n')
         raise
+    # On Android we expect to see 'c' files lying about.
+    # and we go ahead with the 'desktop' file? Odd.
     files = [fn[:-3] + 'c' for fn in files if fn.endswith('pyx')]
 
 if platform == 'android':
@@ -53,14 +56,12 @@ elif platform == 'darwin':
     if not framework:
         raise Exception('You must install Java on your Mac OS X distro')
     if '1.6' in framework:
-        extra_link_args = ['-framework', 'JavaVM']
+        lib_location = '../Libraries/libjvm.dylib'
         include_dirs = [join(framework, 'System/Library/Frameworks/JavaVM.framework/Versions/Current/Headers')]
     else:
-        # TODO: This won't make a dylib that moves from one machine to another.
-        # TODO: it needs a switch to dlopen and a configuration of the path.
-        java_runtime_lib = '{0}/jre/lib/server'.format(framework)
-        extra_link_args = ['-L', java_runtime_lib, '-ljvm', '-rpath', java_runtime_lib]
+        lib_location = 'jre/lib/server/libjvm.dylib'
         include_dirs = ['{0}/include'.format(framework), '{0}/include/darwin'.format(framework)]
+
 else:
     import subprocess
     # otherwise, we need to search the JDK_HOME
@@ -92,20 +93,19 @@ else:
 
     if platform == 'win32':
         incl_dir = join(jdk_home, 'include', 'win32')
+        libraries = ['jvm']
     else:
         incl_dir = join(jdk_home, 'include', 'linux')
+        lib_location = 'jre/lib/amd64/server/libjvm.so'
 
     include_dirs = [
             join(jdk_home, 'include'),
             incl_dir]
+
     if platform == 'win32':
         library_dirs = [
                 join(jdk_home, 'lib'),
                 join(jre_home, 'bin', 'server')]
-    else:
-        library_dirs = [join(jre_home, 'lib', cpu, 'server')]
-    extra_link_args = ['-Wl,-rpath', library_dirs[0]]
-    libraries = ['jvm']
 
 # generate the config.pxi
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
