@@ -49,13 +49,13 @@ cdef void create_jnienv() except *:
     if JAVA_HOME is None or JAVA_HOME == '':
        raise SystemError("JAVA_HOME is not set.")
 
-    lib_path = os.path.join(JAVA_HOME, JNIUS_LIB_SUFFIX)
+    lib_path = str_for_c(os.path.join(JAVA_HOME, JNIUS_LIB_SUFFIX))
     
     cdef void *handle = dlopen(lib_path, RTLD_NOW | RTLD_GLOBAL)
     if handle == NULL:
         raise SystemError("Error calling dlopen({0}: {1}".format(lib_path, dlerror()))
 
-    cdef void *jniCreateJVM = dlsym(handle, "JNI_CreateJavaVM")
+    cdef void *jniCreateJVM = dlsym(handle, b"JNI_CreateJavaVM")
 
     if jniCreateJVM == NULL:
        raise SystemError("Error calling dlfcn for JNI_CreateJavaVM: {0}".format(dlerror()))
@@ -65,7 +65,8 @@ cdef void create_jnienv() except *:
 
     options = <JavaVMOption*>malloc(sizeof(JavaVMOption) * len(optarr))
     for i, opt in enumerate(optarr):
-        options[i].optionString = <bytes>(opt)
+        optbytes = str_for_c(opt)
+        options[i].optionString = <bytes>(optbytes)
         options[i].extraInfo = NULL
 
     args.version = JNI_VERSION_1_6
