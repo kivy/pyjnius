@@ -349,6 +349,7 @@ cdef class JavaField(object):
         cdef jlong j_long
         cdef jfloat j_float
         cdef jdouble j_double
+        cdef jobject j_object
         cdef JNIEnv *j_env = get_jnienv()
 
         # type of the java field
@@ -379,6 +380,10 @@ cdef class JavaField(object):
         elif r == 'D':
             j_double = <jdouble>value
             j_env[0].SetDoubleField(j_env, j_self, self.j_field, j_double)
+        elif r == 'L':
+            j_object = <jobject>convert_python_to_jobject(j_env, self.definition, value)
+            j_env[0].SetObjectField(j_env, j_self, self.j_field, j_object)
+            j_env[0].DeleteLocalRef(j_env, j_object)
         else:
             raise Exception('Invalid field definition')
 
