@@ -24,5 +24,6 @@ def find_javaclass(bytes name):
 
     cls = Class(noinstance=True)
     cls.instanciate_from(create_local_ref(j_env, jc))
+    j_env[0].DeleteLocalRef(j_env, jc)
     return cls
 

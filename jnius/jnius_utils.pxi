@@ -43,16 +43,21 @@ cdef void check_exception(JNIEnv *j_env) except *:
     cdef jstring e_msg
     cdef jboolean isCopy
     cdef jthrowable exc = j_env[0].ExceptionOccurred(j_env)
+    cdef jclass cls_object = NULL
+    cdef jclass cls_throwable = NULL
     if exc:
         # ExceptionDescribe always writes to stderr, preventing tidy exception
         # handling, so should only be for debugging
         # j_env[0].ExceptionDescribe(j_env)
         j_env[0].ExceptionClear(j_env)
 
-        toString = j_env[0].GetMethodID(j_env, j_env[0].FindClass(j_env, "java/lang/Object"), "toString", "()Ljava/lang/String;");
-        getMessage = j_env[0].GetMethodID(j_env, j_env[0].FindClass(j_env, "java/lang/Throwable"), "getMessage", "()Ljava/lang/String;");
-        getCause = j_env[0].GetMethodID(j_env, j_env[0].FindClass(j_env, "java/lang/Throwable"), "getCause", "()Ljava/lang/Throwable;");
-        getStackTrace = j_env[0].GetMethodID(j_env, j_env[0].FindClass(j_env, "java/lang/Throwable"), "getStackTrace", "()[Ljava/lang/StackTraceElement;");
+        cls_object = j_env[0].FindClass(j_env, "java/lang/Object")
+        cls_throwable = j_env[0].FindClass(j_env, "java/lang/Throwable")
+
+        toString = j_env[0].GetMethodID(j_env, cls_object, "toString", "()Ljava/lang/String;");
+        getMessage = j_env[0].GetMethodID(j_env, cls_throwable, "getMessage", "()Ljava/lang/String;");
+        getCause = j_env[0].GetMethodID(j_env, cls_throwable, "getCause", "()Ljava/lang/Throwable;");
+        getStackTrace = j_env[0].GetMethodID(j_env, cls_throwable, "getStackTrace", "()[Ljava/lang/StackTraceElement;");
 
         e_msg = j_env[0].CallObjectMethod(j_env, exc, getMessage);
         pymsg = None if e_msg == NULL else convert_jobject_to_python(j_env, <bytes> 'Ljava/lang/String;', e_msg)
@@ -61,6 +66,12 @@ cdef void check_exception(JNIEnv *j_env) except *:
         _append_exception_trace_messages(j_env, pystack, exc, getCause, getStackTrace, toString)
 
         pyexcclass = lookup_java_object_name(j_env, exc).replace('/', '.')
+
+        j_env[0].DeleteLocalRef(j_env, cls_object)
+        j_env[0].DeleteLocalRef(j_env, cls_throwable)
+        if e_msg != NULL:
+            j_env[0].DeleteLocalRef(j_env, e_msg)
+        j_env[0].DeleteLocalRef(j_env, exc)
 
         raise JavaException('JVM exception occurred: %s' % (pymsg if pymsg is not None else pyexcclass), pyexcclass, pymsg, pystack)
 
@@ -88,7 +99,8 @@ cdef void _append_exception_trace_messages(
         if len(pystack) > 0:
             pystack.append("Caused by:")
         pystack.append(pystr)
-        j_env[0].DeleteLocalRef(j_env, msg_obj)
+        if msg_obj != NULL:
+            j_env[0].DeleteLocalRef(j_env, msg_obj)
 
     # Append stack trace messages if there are any.
     if frames_length > 0:
@@ -98,7 +110,8 @@ cdef void _append_exception_trace_messages(
             msg_obj = j_env[0].CallObjectMethod(j_env, frame, mid_toString)
             pystr = None if msg_obj == NULL else convert_jobject_to_python(j_env, <bytes> 'Ljava/lang/String;', msg_obj)
             pystack.append(pystr)
-            j_env[0].DeleteLocalRef(j_env, msg_obj)
+            if msg_obj != NULL:
+                j_env[0].DeleteLocalRef(j_env, msg_obj)
             j_env[0].DeleteLocalRef(j_env, frame)
 
     # If 'exc' has a cause then append the stack trace messages from the cause.
@@ -107,7 +120,7 @@ cdef void _append_exception_trace_messages(
         if cause != NULL:
             _append_exception_trace_messages(j_env, pystack, cause,
                                              mid_getCause, mid_getStackTrace, mid_toString)
-        j_env[0].DeleteLocalRef(j_env, cause)
+            j_env[0].DeleteLocalRef(j_env, cause)
 
     j_env[0].DeleteLocalRef(j_env, frames)
 

@@ -88,6 +88,8 @@ class MetaJavaClass(type):
                 jcs.j_cls = j_env[0].CallStaticObjectMethod(
                         j_env, baseclass, getProxyClass, jargs)
 
+            j_env[0].DeleteLocalRef(j_env, baseclass)
+
             if jcs.j_cls == NULL:
                 raise JavaException('Unable to create the class'
                         ' {0}'.format(__javaclass__))
