@@ -2,15 +2,14 @@ language: python
 
 python:
   - 2.7
-  - 3.4
+  - 3.5
 
 before_install:
   - sudo apt-get update
   - sudo apt-get install python-pip openjdk-7-jdk
 
 install:
-  - pip install --upgrade cython
-  - pip install --upgrade future
+  - pip install --upgrade cython future
 
 script:
   - make
