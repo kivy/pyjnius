@@ -1,6 +1,6 @@
 all: build_ext
 
-.PHONY: build_ext tests tests3
+.PHONY: build_ext tests
 
 ifdef PYTHON3
 PYTHON=python3
@@ -9,6 +9,9 @@ else
 PYTHON=python
 NOSETESTS=nosetests-2.7
 endif
+
+JAVAC_OPTS=-target 1.6 -source 1.6
+JAVAC=javac $(JAVAC_OPTS)
 
 ANT=ant
 
@@ -25,3 +28,4 @@ html:
 
 tests: 
 	(cd tests; env CLASSPATH=../build/test-classes:../build/classes PYTHONPATH=..:$(PYTHONPATH) $(NOSETESTS) -v)
+

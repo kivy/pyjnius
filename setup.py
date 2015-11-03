@@ -49,7 +49,6 @@ if platform == 'android':
     library_dirs = ['libs/' + environ['ARCH']]
 elif platform == 'darwin':
     import subprocess
-    # That decode won't work in Py2?
     framework = subprocess.Popen('/usr/libexec/java_home',
             shell=True, stdout=subprocess.PIPE).communicate()[0].decode().strip()
     print('java_home: {0}\n'.format(framework));
@@ -61,7 +60,6 @@ elif platform == 'darwin':
     else:
         lib_location = 'jre/lib/server/libjvm.dylib'
         include_dirs = ['{0}/include'.format(framework), '{0}/include/darwin'.format(framework)]
-
 else:
     import subprocess
     # otherwise, we need to search the JDK_HOME

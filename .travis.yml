@@ -1,19 +1,25 @@
 language: python
+
 python:
-  - "2.7"
-  - "3.4"
-# command to install dependencies
+  - 2.7
+  - 3.4
+
 before_install:
   - sudo apt-get update
-  - sudo apt-get install python-pip openjdk-7-jdk ant
+  - sudo apt-get install python-pip openjdk-7-jdk
 
 install:
-  - pip install --upgrade cython --use-mirrors
-  - pip install --upgrade future --use-mirrors
-  - pip install --upgrade setuptools --use-mirrors
-  - make
+  - sudo apt-get install python-pip openjdk-7-jdk
+  - pip install --upgrade cython
 
-# command to run tests
 script:
-  - make clean all tests
-  - make clean all tests PYTHON3=1
+  - make
+  - make tests
+
+notifications:
+  webhooks:
+    urls:
+      - http://kivy.org:5000/travisevent
+    on_success: always
+    on_failure: always
+    on_start: always
