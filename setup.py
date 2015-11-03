@@ -5,6 +5,13 @@ from os.path import dirname, join, exists
 import sys
 from platform import architecture
 
+def getenv(key):
+    val = environ.get(key)
+    if val is not None:
+        return val.decode('utf-8')
+    else:
+        return val
+
 files = [
     'jni.pxi',
     'jnius_conversion.pxi',
@@ -26,8 +33,8 @@ install_requires = []
 
 # detect Python for android
 platform = sys.platform
-ndkplatform = environ.get('NDKPLATFORM')
-if ndkplatform is not None and environ.get('LIBLINK'):
+ndkplatform = getenv('NDKPLATFORM')
+if ndkplatform is not None and getenv('LIBLINK'):
     platform = 'android'
 
 # detect cython
@@ -46,7 +53,7 @@ except ImportError:
 if platform == 'android':
     # for android, we use SDL...
     libraries = ['sdl', 'log']
-    library_dirs = ['libs/' + environ['ARCH']]
+    library_dirs = ['libs/' + getenv('ARCH')]
 elif platform == 'darwin':
     import subprocess
     framework = subprocess.Popen('/usr/libexec/java_home',
@@ -63,10 +70,10 @@ elif platform == 'darwin':
 else:
     import subprocess
     # otherwise, we need to search the JDK_HOME
-    jdk_home = environ.get('JDK_HOME')
+    jdk_home = getenv('JDK_HOME')
     if not jdk_home:
         if platform == 'win32':
-            env_var = environ.get('JAVA_HOME')
+            env_var = getenv('JAVA_HOME')
             if env_var and 'jdk' in env_var:
                 jdk_home = env_var
 
@@ -76,10 +83,11 @@ else:
         else:
             jdk_home = subprocess.Popen('readlink -f `which javac` | sed "s:bin/javac::"',
                     shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+            if jdk_home is not None:
+                jdk_home = jdk_home.decode('utf-8')
     if not jdk_home or not exists(jdk_home):
         raise Exception('Unable to determine JDK_HOME')
 
-    jre_home = environ.get('JRE_HOME')
     if exists(join(jdk_home, 'jre')):
         jre_home = join(jdk_home, 'jre')
     if not jre_home:
