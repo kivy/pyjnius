@@ -4,7 +4,7 @@ all: build_ext
 
 ifdef PYTHON3
 PYTHON=python3
-NOSETESTS=nosetests-3
+NOSETESTS=nosetests-3.4
 else
 PYTHON=python
 NOSETESTS=nosetests-2.7
@@ -26,6 +26,9 @@ clean:
 html:
 	$(MAKE) -C docs html
 
-tests: 
-	(cd tests; env CLASSPATH=../build/test-classes:../build/classes PYTHONPATH=..:$(PYTHONPATH) $(NOSETESTS) -v)
+tests: test2 test3
 
+tests2: 
+	(cd tests; env CLASSPATH=../build/test-classes:../build/classes PYTHONPATH=..:$(PYTHONPATH) $(NOSETESTS) -v)
+tests3: 
+	make tests2 PYTHON3=1
