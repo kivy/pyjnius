@@ -1,3 +1,8 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
 import unittest
 from jnius.reflect import autoclass
 
@@ -118,7 +123,7 @@ class BasicsTest(unittest.TestCase):
 
     def test_instances_methods_params_object_list_long(self):
         test = autoclass('org.jnius.BasicsTest')()
-        self.assertEquals(test.methodParamsObject([1L, 2L]), True)
+        self.assertEquals(test.methodParamsObject([1, 2]), True)
 
     def test_instances_methods_params_array_byte(self):
         test = autoclass('org.jnius.BasicsTest')()

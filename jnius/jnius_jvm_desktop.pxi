@@ -1,3 +1,5 @@
+from cpython.version cimport PY_MAJOR_VERSION
+
 # on desktop, we need to create an env :)
 # example taken from http://www.inonit.com/cygwin/jni/invocationApi/c.html
 
@@ -30,6 +32,8 @@ cdef void create_jnienv() except *:
 
     options = <JavaVMOption*>malloc(sizeof(JavaVMOption) * len(optarr))
     for i, opt in enumerate(optarr):
+        if PY_MAJOR_VERSION >= 3:
+           opt = opt.encode('utf-8')
         options[i].optionString = <bytes>(opt)
         options[i].extraInfo = NULL
 

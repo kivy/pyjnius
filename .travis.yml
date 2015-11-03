@@ -6,10 +6,11 @@ python:
 
 before_install:
   - sudo apt-get update
+  - sudo apt-get install python-pip openjdk-7-jdk
 
 install:
-  - sudo apt-get install python-pip openjdk-7-jdk
   - pip install --upgrade cython
+  - pip install --upgrade future
 
 script:
   - make
