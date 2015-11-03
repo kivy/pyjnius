@@ -137,6 +137,11 @@ def ensureclass(clsname):
     registers.append(clsname)
     autoclass(clsname)
 
+def lower_name(s):
+    return s[:1].lower() + s[1:] if s else ''
+
+def bean_getter(s):
+    return (s.startswith('get') and len(s) > 3 and s[3].isupper()) or (s.startswith('is') and len(s) > 2 and s[2].isupper())
 
 def autoclass(clsname):
     jniname = clsname.replace('.', '/')
@@ -176,9 +181,12 @@ def autoclass(clsname):
                 get_signature(method.getReturnType()))
             cls = JavaStaticMethod if static else JavaMethod
             classDict[name] = cls(sig, varargs=varargs)
+            if name != 'getClass' and bean_getter(name) and len(method.getParameterTypes()) == 0:
+                lowername = lower_name(name[3:])
+                classDict[lowername] = (lambda n: property(lambda self: getattr(self, n)()))(name)
             continue
 
-        # multpile signatures
+        # multiple signatures
         signatures = []
         for index, subname in enumerate(methods_name):
             if subname != name:
@@ -206,6 +214,12 @@ def autoclass(clsname):
             signatures.append((sig, Modifier.isStatic(method.getModifiers()), method.isVarArgs()))
 
         classDict[name] = JavaMultipleMethod(signatures)
+
+    for iclass in c.getInterfaces():
+        if iclass.getName() == 'java.util.List':
+            classDict['__getitem__'] = lambda self, index: self.get(index)
+            classDict['__len__'] = lambda self: self.size()
+            break
 
     for field in c.getFields():
         static = Modifier.isStatic(field.getModifiers())
