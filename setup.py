@@ -27,6 +27,7 @@ files = [
 
 libraries = []
 library_dirs = []
+lib_location = None
 extra_link_args = []
 include_dirs = []
 install_requires = []
