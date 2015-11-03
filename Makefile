@@ -7,7 +7,7 @@ PYTHON=python3
 NOSETESTS=nosetests-3.4
 else
 PYTHON=python
-NOSETESTS=nosetests-2.7
+NOSETESTS=nosetests
 endif
 
 JAVAC_OPTS=-target 1.6 -source 1.6
@@ -26,9 +26,7 @@ clean:
 html:
 	$(MAKE) -C docs html
 
-tests: test2 test3
-
-tests2: 
+# for use in travis; tests whatever you got.
+# use PYTHON3=1 to force python3 in other environments.
+tests: 
 	(cd tests; env CLASSPATH=../build/test-classes:../build/classes PYTHONPATH=..:$(PYTHONPATH) $(NOSETESTS) -v)
-tests3: 
-	make tests2 PYTHON3=1
