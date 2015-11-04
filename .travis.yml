@@ -9,7 +9,7 @@ before_install:
   - sudo apt-get install python-pip openjdk-7-jdk
 
 install:
-  - pip install --upgrade cython future six
+  - pip install --upgrade cython six
 
 script:
   - make

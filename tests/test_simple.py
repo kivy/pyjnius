@@ -1,11 +1,9 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
 import unittest
 from jnius import JavaClass, MetaJavaClass, JavaMethod
-from future.utils import with_metaclass
+from six import with_metaclass
 
 class HelloWorldTest(unittest.TestCase):
 
