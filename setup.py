@@ -1,14 +1,22 @@
 from __future__ import print_function
-from distutils.core import setup, Extension
+try:
+    from setuptools import setup, Extension
+except ImportError:
+    from distutils.core import setup, Extension
 from os import environ
 from os.path import dirname, join, exists
 import sys
 from platform import architecture
 
+PY3 = sys.version_info >= (3,0,0)
+
 def getenv(key):
     val = environ.get(key)
     if val is not None:
-        return val.decode('utf-8')
+        if PY3:
+            return val.decode()
+        else:
+            return val
     else:
         return val
 
@@ -30,7 +38,7 @@ library_dirs = []
 lib_location = None
 extra_link_args = []
 include_dirs = []
-install_requires = []
+install_requires = ['six']
 
 # detect Python for android
 platform = sys.platform
@@ -43,7 +51,10 @@ try:
     from Cython.Distutils import build_ext
     install_requires.append('cython')
 except ImportError:
-    from distutils.command.build_ext import build_ext
+    try:
+        from setuptools.command.build_ext import build_ext
+    except ImportError:
+        from distutils.command.build_ext import build_ext
     if platform != 'android':
         print('\n\nYou need Cython to compile Pyjnius.\n\n')
         raise
@@ -58,7 +69,10 @@ if platform == 'android':
 elif platform == 'darwin':
     import subprocess
     framework = subprocess.Popen('/usr/libexec/java_home',
-            shell=True, stdout=subprocess.PIPE).communicate()[0].decode().strip()
+            shell=True, stdout=subprocess.PIPE).communicate()[0]
+    if PY3:
+        framework = framework.decode();
+    framework = framework.strip()
     print('java_home: {0}\n'.format(framework));
     if not framework:
         raise Exception('You must install Java on your Mac OS X distro')
@@ -84,8 +98,8 @@ else:
         else:
             jdk_home = subprocess.Popen('readlink -f `which javac` | sed "s:bin/javac::"',
                     shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
-            if jdk_home is not None:
-                jdk_home = jdk_home.decode('utf-8')
+            if jdk_home is not None and PY3:
+                jdk_home = jdk_home.decode()
     if not jdk_home or not exists(jdk_home):
         raise Exception('Unable to determine JDK_HOME')
 
@@ -117,7 +131,7 @@ else:
 # generate the config.pxi
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
     fd.write('DEF JNIUS_PLATFORM = {0!r}\n\n'.format(platform))
-    if sys.version_info>=(3,0,0):
+    if PY3:
         fd.write('DEF JNIUS_PYTHON3 = True\n\n')
     else:
         fd.write('DEF JNIUS_PYTHON3 = False\n\n')
