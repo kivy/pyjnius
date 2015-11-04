@@ -30,9 +30,3 @@ html:
 # use PYTHON3=1 to force python3 in other environments.
 tests: 
 	(cd tests; env CLASSPATH=../build/test-classes:../build/classes PYTHONPATH=..:$(PYTHONPATH) $(NOSETESTS) -v)
-
-APK_PRIVATE_PATH=/home/noone/devel/python-for-android/tests/testapp
-
-# this is an example of how to build an APK.
-apk:
-	python-for-android apk --requirements=kivy,sdl2 --private $(APK_PRIVATE_PATH) --package=net.inclem.sdl2 --name=sdl2 --version=0.6 --debug
