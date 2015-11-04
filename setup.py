@@ -4,11 +4,15 @@ from os import environ
 from os.path import dirname, join, exists
 import sys
 from platform import architecture
+import six
 
 def getenv(key):
     val = environ.get(key)
     if val is not None:
-        return val.decode('utf-8')
+        if six.PY3:
+            return val.decode()
+        else:
+            return val
     else:
         return val
 
@@ -30,7 +34,7 @@ library_dirs = []
 lib_location = None
 extra_link_args = []
 include_dirs = []
-install_requires = []
+install_requires = ['six']
 
 # detect Python for android
 platform = sys.platform
@@ -58,7 +62,10 @@ if platform == 'android':
 elif platform == 'darwin':
     import subprocess
     framework = subprocess.Popen('/usr/libexec/java_home',
-            shell=True, stdout=subprocess.PIPE).communicate()[0].decode().strip()
+            shell=True, stdout=subprocess.PIPE).communicate()[0]
+    if six.PY3:
+        framework = framework.decode();
+    framework = framework.strip()
     print('java_home: {0}\n'.format(framework));
     if not framework:
         raise Exception('You must install Java on your Mac OS X distro')
@@ -84,8 +91,8 @@ else:
         else:
             jdk_home = subprocess.Popen('readlink -f `which javac` | sed "s:bin/javac::"',
                     shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
-            if jdk_home is not None:
-                jdk_home = jdk_home.decode('utf-8')
+            if jdk_home is not None and six.PY3:
+                jdk_home = jdk_home.decode()
     if not jdk_home or not exists(jdk_home):
         raise Exception('Unable to determine JDK_HOME')
 
