@@ -185,7 +185,8 @@ cdef void check_assignable_from(JNIEnv *env, JavaClass jc, signature) except *:
 
         # we got an object that doesn't match with the signature
         # check if we can use it.
-        cls = env[0].FindClass(env, str_for_c(signature))
+        s = str_for_c(signature)
+        cls = env[0].FindClass(env, s)
         if cls == NULL:
             raise JavaException('Unable to found the class for {0!r}'.format(
                 signature))
