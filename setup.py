@@ -113,9 +113,9 @@ else:
     
     # This dictionary converts values from platform.machine() to a "cpu" string.
     # It is needed to set the correct lib path, found in the jre_home, eg. <jre_home>/lib/<cpu>/.
-    machine2cpu = {"i686"   : "i386"
+    machine2cpu = {"i686"   : "i386",
                    "x86_64" : "amd64",
-                   "armv7l" : "arm"
+                   "armv7l" : "arm",
                    }
     if machine() in machine2cpu.keys():
         cpu = machine2cpu[machine()]
