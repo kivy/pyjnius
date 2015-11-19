@@ -1,9 +1,11 @@
 PyJNIus
 =======
 
-Python module to access Java class as Python class, using JNI.
+A Python module to access Java classes as Python classes using JNI.
 
-(Work in progress.)
+PyJNIus is a "Work In Progress".
+
+[![Build Status](https://travis-ci.org/kivy/pyjnius.svg?branch=master)](https://travis-ci.org/kivy/pyjnius)
 
 Quick overview
 --------------
@@ -26,22 +28,22 @@ hello
 Usage on desktop
 ----------------
 
-You need a java JDK installed (openjdk will do), cython, and make to build it
+You need a java JDK installed (OpenJDK will do), Cython and make to build it.
 
     make
 
-That's it! you can run the tests with
+That's it! You can run the tests using
 
     make tests
 
-To make sure everything is running right.
+to ensure everything is running correctly.
 
 Usage with python-for-android
 -----------------------------
 
 * Get http://github.com/kivy/python-for-android
 * Compile a distribution with `-m "pyjnius kivy"`
-* Then, you can do this kind of things:
+* Then, you can do this kind of thing:
 
 ```python
 from time import sleep
@@ -87,9 +89,9 @@ I/python  ( 5983): [0.13407529890537262, 9.4235782623291016, 2.2026655673980713]
 Advanced example
 ----------------
 
-When you use autoclass, it will discover all the methods and fields within the object, and resolve it.
-For now, it can be better to declare and use only what you need.
-The previous example can be done manually:
+When you use autoclass, it will discover all the methods and fields of the
+object and resolve them. For now, it is better to declare and use only what you
+need. The previous example can be done manually as follows:
 
 ```python
 from time import sleep
@@ -112,7 +114,41 @@ for x in xrange(20):
     sleep(.1)
 ```
 
-Support/Discussion
-------------------
+Support
+-------
 
-mailto:pyjnius-dev@googlegroups.com
+If you need assistance, you can ask for help on our mailing list:
+
+* User Group : https://groups.google.com/group/kivy-users
+* Email      : kivy-users@googlegroups.com
+
+We also have an IRC channel:
+
+* Server  : irc.freenode.net
+* Port    : 6667, 6697 (SSL only)
+* Channel : #kivy
+
+Contributing
+------------
+
+We love pull requests and discussing novel ideas. Check out our
+[contribution guide](http://kivy.org/docs/contribute.html) and
+feel free to improve PyJNIus.
+
+The following mailing list and IRC channel are used exclusively for
+discussions about developing the Kivy framework and its sister projects:
+
+* Dev Group : https://groups.google.com/group/kivy-dev
+* Email     : kivy-dev@googlegroups.com
+
+IRC channel:
+
+* Server  : irc.freenode.net
+* Port    : 6667, 6697 (SSL only)
+* Channel : #kivy-dev
+
+License
+-------
+
+PyJNIus is released under the terms of the MIT License. Please refer to the
+LICENSE file.

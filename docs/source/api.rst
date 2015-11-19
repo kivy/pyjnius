@@ -293,7 +293,7 @@ All the types for any part of the signature can be one of:
 * D = represent a java/lang/Double;
 * V = represent void, available only for the return type
 
-All the types can have the `[]` suffix to design an array. The return type can be `V` or empty.
+All the types can have the `[` prefix to design an array. The return type can be `V` or empty.
 
 A signature like::
 
@@ -302,14 +302,18 @@ A signature like::
     -> argument 2 is a java.util.List object
     -> the method doesn't return anything.
 
-    (java.util.Collection, java.lang.Object[]);
+    (java.util.Collection;[java.lang.Object;)V
     -> argument 1 is a Collection
     -> argument 2 is an array of Object
     -> nothing is returned
+
+    ([B)Z
+    -> argument 1 is a Byte []
+    -> a boolean is returned
     
 
 When you implement Java in Python, the signature of the Java method must match.
-Java provide a tool named `javap` to get the signature of any java class. For
+Java provides a tool named `javap` to get the signature of any java class. For
 example::
 
     $ javap -s java.util.Iterator
@@ -323,3 +327,59 @@ example::
       Signature: ()V
     }
 
+
+JVM options and the class path
+------------------------------
+
+JVM options need to be set before `import jnius` is called, as they cannot be changed after the VM starts up.
+To this end, you can::
+
+    import jnius_config
+    jnius_config.add_options('-Xrs', '-Xmx4096')
+    jnius_config.set_classpath('.', '/usr/local/fem/plugins/*')
+    import jnius
+
+If a classpath is set with these functions, it overrides any CLASSPATH environment variable.
+Multiple options or path entries should be supplied as multiple arguments to the `add_` and `set_` functions.
+If no classpath is provided and CLASSPATH is not set, the path defaults to `'.'`.
+This functionality is not available on Android.
+
+
+Pyjnius and threads
+-------------------
+
+.. function:: detach()
+
+    Each time you create a native thread in Python and uses Pyjnius, any call to
+    Pyjnius methods will force attachment of the native thread to the current JVM.
+    But you must detach it before leaving the thread, and Pyjnius cannot do it for
+    you.
+
+Example::
+
+    import threading
+    import jnius
+
+    def run(...):
+        try:
+            # use pyjnius here
+        finally:
+            jnius.detach()
+
+If you don't, it will crash on dalvik and ART / Android::
+
+    D/dalvikvm(16696): threadid=12: thread exiting, not yet detached (count=0)
+    D/dalvikvm(16696): threadid=12: thread exiting, not yet detached (count=1)
+    E/dalvikvm(16696): threadid=12: native thread exited without detaching
+    E/dalvikvm(16696): VM aborting
+
+Or::
+
+    W/art     (21168): Native thread exiting without having called DetachCurrentThread (maybe it's going to use a pthread_key_create destructor?): Thread[16,tid=21293,Native,Thread*=0x4c25c040,peer=0x677eaa70,"Thread-16219"]
+    F/art     (21168): art/runtime/thread.cc:903] Native thread exited without calling DetachCurrentThread: Thread[16,tid=21293,Native,Thread*=0x4c25c040,peer=0x677eaa70,"Thread-16219"]
+    F/art     (21168): art/runtime/runtime.cc:203] Runtime aborting...
+    F/art     (21168): art/runtime/runtime.cc:203] (Aborting thread was not attached to runtime!)
+    F/art     (21168): art/runtime/runtime.cc:203] Dumping all threads without appropriate locks held: thread list lock mutator lock
+    F/art     (21168): art/runtime/runtime.cc:203] All threads:
+    F/art     (21168): art/runtime/runtime.cc:203] DALVIK THREADS (16):
+    ...

@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import unittest
 from jnius.reflect import autoclass
 
@@ -55,6 +58,26 @@ class BasicsTest(unittest.TestCase):
         self.assertEquals(test.fieldB, 127)
         self.assertEquals(test2.fieldB, 10)
 
+    def test_instance_set_fields(self):
+        test = autoclass('org.jnius.BasicsTest')()
+        test.fieldSetZ = True
+        test.fieldSetB = 127
+        test.fieldSetC = ord('k')
+        test.fieldSetS = 32767
+        test.fieldSetI = 2147483467
+        test.fieldSetJ = 2147483467
+        test.fieldSetF = 1.23456789
+        test.fieldSetD = 1.23456789
+
+        self.assertTrue(test.testFieldSetZ())
+        self.assertTrue(test.testFieldSetB())
+        self.assertTrue(test.testFieldSetC())
+        self.assertTrue(test.testFieldSetS())
+        self.assertTrue(test.testFieldSetI())
+        self.assertTrue(test.testFieldSetJ())
+        self.assertTrue(test.testFieldSetF())
+        self.assertTrue(test.testFieldSetD())
+
     def test_instances_methods_array(self):
         test = autoclass('org.jnius.BasicsTest')()
         self.assertEquals(test.methodArrayZ(), [True] * 3)
@@ -98,7 +121,7 @@ class BasicsTest(unittest.TestCase):
 
     def test_instances_methods_params_object_list_long(self):
         test = autoclass('org.jnius.BasicsTest')()
-        self.assertEquals(test.methodParamsObject([1L, 2L]), True)
+        self.assertEquals(test.methodParamsObject([1, 2]), True)
 
     def test_instances_methods_params_array_byte(self):
         test = autoclass('org.jnius.BasicsTest')()

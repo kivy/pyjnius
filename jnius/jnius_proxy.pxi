@@ -72,6 +72,7 @@ cdef class PythonJavaClass(object):
 
         return py_method(*args)
 
+
 cdef jobject py_invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
         j_method, jobjectArray args) except * with gil:
 

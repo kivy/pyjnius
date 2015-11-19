@@ -1,16 +1,20 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
 __all__ = ('autoclass', 'ensureclass')
+from six import with_metaclass
 
-from jnius import (
+from .jnius import (
     JavaClass, MetaJavaClass, JavaMethod, JavaStaticMethod,
     JavaField, JavaStaticField, JavaMultipleMethod, find_javaclass
 )
 
 
-class Class(JavaClass):
-    __metaclass__ = MetaJavaClass
+class Class(with_metaclass(MetaJavaClass, JavaClass)):
     __javaclass__ = 'java/lang/Class'
 
-    desiredAssertionStatus = JavaMethod('()Z;')
+    desiredAssertionStatus = JavaMethod('()Z')
     forName = JavaMultipleMethod([
         ('(Ljava/lang/String,Z,Ljava/lang/ClassLoader;)Ljava/langClass;', True, False),
         ('(Ljava/lang/String;)Ljava/lang/Class;', True, False), ])
@@ -32,7 +36,7 @@ class Class(JavaClass):
     getInterfaces = JavaMethod('()[Ljava/lang/Class;')
     getMethod = JavaMethod('(Ljava/lang/String,[Ljava/lang/Class;)Ljava/lang/reflect/Method;')
     getMethods = JavaMethod('()[Ljava/lang/reflect/Method;')
-    getModifiers = JavaMethod('()[I;')
+    getModifiers = JavaMethod('()[I')
     getName = JavaMethod('()Ljava/lang/String;')
     getPackage = JavaMethod('()Ljava/lang/Package;')
     getProtectionDomain = JavaMethod('()Ljava/security/ProtectionDomain;')
@@ -40,25 +44,23 @@ class Class(JavaClass):
     getResourceAsStream = JavaMethod('(Ljava/lang/String;)Ljava/io/InputStream;')
     getSigners = JavaMethod('()[Ljava/lang/Object;')
     getSuperclass = JavaMethod('()Ljava/lang/reflect/Class;')
-    isArray = JavaMethod('()Z;')
-    isAssignableFrom = JavaMethod('(Ljava/lang/reflect/Class;)Z;')
-    isInstance = JavaMethod('(Ljava/lang/Object;)Z;')
-    isInterface = JavaMethod('()Z;')
-    isPrimitive = JavaMethod('()Z;')
+    isArray = JavaMethod('()Z')
+    isAssignableFrom = JavaMethod('(Ljava/lang/reflect/Class;)Z')
+    isInstance = JavaMethod('(Ljava/lang/Object;)Z')
+    isInterface = JavaMethod('()Z')
+    isPrimitive = JavaMethod('()Z')
     newInstance = JavaMethod('()Ljava/lang/Object;')
     toString = JavaMethod('()Ljava/lang/String;')
 
 
-class Object(JavaClass):
-    __metaclass__ = MetaJavaClass
+class Object(with_metaclass(MetaJavaClass, JavaClass)):
     __javaclass__ = 'java/lang/Object'
 
     getClass = JavaMethod('()Ljava/lang/Class;')
     hashCode = JavaMethod('()I')
 
 
-class Modifier(JavaClass):
-    __metaclass__ = MetaJavaClass
+class Modifier(with_metaclass(MetaJavaClass, JavaClass)):
     __javaclass__ = 'java/lang/reflect/Modifier'
 
     isAbstract = JavaStaticMethod('(I)Z')
@@ -75,8 +77,7 @@ class Modifier(JavaClass):
     isVolatile = JavaStaticMethod('(I)Z')
 
 
-class Method(JavaClass):
-    __metaclass__ = MetaJavaClass
+class Method(with_metaclass(MetaJavaClass, JavaClass)):
     __javaclass__ = 'java/lang/reflect/Method'
 
     getName = JavaMethod('()Ljava/lang/String;')
@@ -87,8 +88,7 @@ class Method(JavaClass):
     isVarArgs = JavaMethod('()Z')
 
 
-class Field(JavaClass):
-    __metaclass__ = MetaJavaClass
+class Field(with_metaclass(MetaJavaClass, JavaClass)):
     __javaclass__ = 'java/lang/reflect/Field'
 
     getName = JavaMethod('()Ljava/lang/String;')
@@ -97,8 +97,7 @@ class Field(JavaClass):
     getModifiers = JavaMethod('()I')
 
 
-class Constructor(JavaClass):
-    __metaclass__ = MetaJavaClass
+class Constructor(with_metaclass(MetaJavaClass, JavaClass)):
     __javaclass__ = 'java/lang/reflect/Constructor'
 
     toString = JavaMethod('()Ljava/lang/String;')
@@ -137,6 +136,11 @@ def ensureclass(clsname):
     registers.append(clsname)
     autoclass(clsname)
 
+def lower_name(s):
+    return s[:1].lower() + s[1:] if s else ''
+
+def bean_getter(s):
+    return (s.startswith('get') and len(s) > 3 and s[3].isupper()) or (s.startswith('is') and len(s) > 2 and s[2].isupper())
 
 def autoclass(clsname):
     jniname = clsname.replace('.', '/')
@@ -176,9 +180,12 @@ def autoclass(clsname):
                 get_signature(method.getReturnType()))
             cls = JavaStaticMethod if static else JavaMethod
             classDict[name] = cls(sig, varargs=varargs)
+            if name != 'getClass' and bean_getter(name) and len(method.getParameterTypes()) == 0:
+                lowername = lower_name(name[3:])
+                classDict[lowername] = (lambda n: property(lambda self: getattr(self, n)()))(name)
             continue
 
-        # multpile signatures
+        # multiple signatures
         signatures = []
         for index, subname in enumerate(methods_name):
             if subname != name:
@@ -206,6 +213,12 @@ def autoclass(clsname):
             signatures.append((sig, Modifier.isStatic(method.getModifiers()), method.isVarArgs()))
 
         classDict[name] = JavaMultipleMethod(signatures)
+
+    for iclass in c.getInterfaces():
+        if iclass.getName() == 'java.util.List':
+            classDict['__getitem__'] = lambda self, index: self.get(index)
+            classDict['__len__'] = lambda self: self.size()
+            break
 
     for field in c.getFields():
         static = Modifier.isStatic(field.getModifiers())
