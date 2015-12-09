@@ -1,26 +1,32 @@
+all: build_ext
+
 .PHONY: build_ext tests
+
+ifdef PYTHON3
+PYTHON=python3
+NOSETESTS=nosetests-3.4
+else
+PYTHON=python
+NOSETESTS=nosetests
+endif
 
 JAVAC_OPTS=-target 1.6 -source 1.6
 JAVAC=javac $(JAVAC_OPTS)
 
+ANT=ant
+
 build_ext:
-	$(JAVAC) jnius/src/org/jnius/NativeInvocationHandler.java
-	python setup.py build_ext --inplace -f -g
+	$(ANT) all
+	$(PYTHON) setup.py build_ext --inplace -f -g
 
 clean:
-	find . -name "*.class" -exec rm {} \;
-	rm -rf build
+	$(ANT) clean
+	rm -rf build jnius/config.pxi
 
 html:
 	$(MAKE) -C docs html
 
-tests: build_ext
-	cd tests && $(JAVAC) org/jnius/HelloWorld.java
-	cd tests && $(JAVAC) org/jnius/BasicsTest.java
-	cd tests && $(JAVAC) org/jnius/MultipleMethods.java
-	cd tests && $(JAVAC) org/jnius/SimpleEnum.java
-	cd tests && $(JAVAC) org/jnius/InterfaceWithPublicEnum.java
-	cd tests && $(JAVAC) org/jnius/ClassArgument.java
-	cd tests && $(JAVAC) org/jnius/MultipleDimensions.java
-	cp jnius/src/org/jnius/NativeInvocationHandler.class tests/org/jnius
-	cd tests && env PYTHONPATH=..:$(PYTHONPATH) nosetests-2.7 -v
+# for use in travis; tests whatever you got.
+# use PYTHON3=1 to force python3 in other environments.
+tests: 
+	(cd tests; env CLASSPATH=../build/test-classes:../build/classes PYTHONPATH=..:$(PYTHONPATH) $(NOSETESTS) -v)

@@ -5,6 +5,8 @@ A Python module to access Java classes as Python classes using JNI.
 
 PyJNIus is a "Work In Progress".
 
+[![Build Status](https://travis-ci.org/kivy/pyjnius.svg?branch=master)](https://travis-ci.org/kivy/pyjnius)
+
 Quick overview
 --------------
 
@@ -112,7 +114,41 @@ for x in xrange(20):
     sleep(.1)
 ```
 
-Support/Discussion
-------------------
+Support
+-------
 
-mailto:pyjnius-dev@googlegroups.com
+If you need assistance, you can ask for help on our mailing list:
+
+* User Group : https://groups.google.com/group/kivy-users
+* Email      : kivy-users@googlegroups.com
+
+We also have an IRC channel:
+
+* Server  : irc.freenode.net
+* Port    : 6667, 6697 (SSL only)
+* Channel : #kivy
+
+Contributing
+------------
+
+We love pull requests and discussing novel ideas. Check out our
+[contribution guide](http://kivy.org/docs/contribute.html) and
+feel free to improve PyJNIus.
+
+The following mailing list and IRC channel are used exclusively for
+discussions about developing the Kivy framework and its sister projects:
+
+* Dev Group : https://groups.google.com/group/kivy-dev
+* Email     : kivy-dev@googlegroups.com
+
+IRC channel:
+
+* Server  : irc.freenode.net
+* Port    : 6667, 6697 (SSL only)
+* Channel : #kivy-dev
+
+License
+-------
+
+PyJNIus is released under the terms of the MIT License. Please refer to the
+LICENSE file.
