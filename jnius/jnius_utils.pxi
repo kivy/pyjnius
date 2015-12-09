@@ -332,7 +332,7 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
                 score += 10
                 continue
 
-            if r == '[B' and isinstance(arg, ByteArray):
+            if r == '[B' and isinstance(arg, (bytearray, ByteArray)):
                 score += 10
                 continue
 

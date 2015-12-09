@@ -19,3 +19,11 @@ class StringArgumentForByteArrayTest(unittest.TestCase):
         self.assertEquals(
             arr,
             [127, 1, -127])
+
+    def test_create_bytearray(self):
+        StringBufferInputStream = autoclass('java.io.StringBufferInputStream')
+        nis = StringBufferInputStream("Hello world")
+        barr = bytearray("\x00" * 5)
+        self.assertEquals(nis.read(barr, 0, 5), 5)
+        self.assertEquals(barr, "Hello")
+

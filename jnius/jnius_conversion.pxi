@@ -97,7 +97,7 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
             if isinstance(py_arg, ByteArray) and argtype != '[B':
                 raise JavaException(
                     'Cannot use ByteArray for signature {}'.format(argtype))
-            if not isinstance(py_arg, (list, tuple, ByteArray)):
+            if not isinstance(py_arg, (bytearray, list, tuple, ByteArray)):
                 raise JavaException('Expecting a python list/tuple, got '
                         '{0!r}'.format(py_arg))
             j_args[index].l = convert_pyarray_to_java(
