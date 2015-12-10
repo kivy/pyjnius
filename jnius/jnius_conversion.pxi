@@ -57,8 +57,12 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                 j_args[index].l = NULL
             elif (isinstance(py_arg, basestring) or (PY_MAJOR_VERSION >=3 and isinstance(py_arg, str))) \
                   and jstringy_arg(argtype):
-                py_str = <bytes>py_arg.encode('utf-8')
-                j_args[index].l = j_env[0].NewStringUTF(j_env, <char *>py_str)
+                try:
+                    py_str = <bytes>py_arg
+                    j_args[index].l = j_env[0].NewStringUTF(j_env, <char *>py_str)
+                except UnicodeEncodeError:
+                    py_str = <bytes>py_arg.encode('utf-8')
+                    j_args[index].l = j_env[0].NewStringUTF(j_env, <char *>py_str)
             elif isinstance(py_arg, JavaClass):
                 jc = py_arg
                 check_assignable_from(j_env, jc, argtype[1:-1])
@@ -492,7 +496,7 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
         if isinstance(pyarray, ByteArray):
             a_bytes = pyarray
             j_env[0].SetByteArrayRegion(j_env,
-                ret, 0, array_size, a_bytes._buf)
+                ret, 0, array_size, <const_jbyte *>a_bytes._buf)
         else:
             for i in range(array_size):
                 c_tmp = pyarray[i]

@@ -17,8 +17,8 @@ cdef python_op(int op, object a, object b):
 cdef class ByteArray:
     cdef LocalRef _jobject
     cdef long _size
-    cdef jbyte *_buf
-    cdef jbyte[:] _arr
+    cdef unsigned char *_buf
+    cdef unsigned char[:] _arr
 
     def __cinit__(self):
         self._size = 0
@@ -31,7 +31,8 @@ cdef class ByteArray:
         cdef JNIEnv *j_env
         if self._buf != NULL:
             j_env = get_jnienv()
-            j_env[0].ReleaseByteArrayElements(j_env, self._jobject.obj, self._buf, 0)
+            j_env[0].ReleaseByteArrayElements(
+                j_env, self._jobject.obj, <jbyte *>self._buf, 0)
             self._buf = NULL
         self._jobject = None
 
@@ -41,8 +42,8 @@ cdef class ByteArray:
         self._jobject = LocalRef()
         self._jobject.create(env, obj)
         self._size = size
-        self._buf = buf
-        self._arr = <jbyte[:size]>self._buf
+        self._buf = <unsigned char *><signed char *>buf
+        self._arr = <unsigned char[:size]>self._buf
 
     def __str__(self):
         return '<ByteArray size={} at 0x{}>'.format(
