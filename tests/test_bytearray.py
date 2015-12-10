@@ -19,14 +19,23 @@ class StringArgumentForByteArrayTest(unittest.TestCase):
         arr = [0, 0, 0]
         Test = autoclass('org.jnius.BasicsTest')()
         Test.fillByteArray(arr)
+        # we don't received signed byte, but unsigned in python.
         self.assertEquals(
             arr,
-            [127, 1, -127])
+            [127, 1, 129])
 
     def test_create_bytearray(self):
         StringBufferInputStream = autoclass('java.io.StringBufferInputStream')
         nis = StringBufferInputStream("Hello world")
-        barr = bytearray("\x00" * 5)
+        barr = bytearray("\x00" * 5, encoding="utf8")
         self.assertEquals(nis.read(barr, 0, 5), 5)
         self.assertEquals(barr, "Hello")
+
+    def test_bytearray_ascii(self):
+        ByteArrayInputStream = autoclass('java.io.ByteArrayInputStream')
+        s = "".join(chr(x) for x in range(256))
+        nis = ByteArrayInputStream(s)
+        barr = bytearray("\x00" * 256, encoding="ascii")
+        self.assertEquals(nis.read(barr, 0, 256), 256)
+        self.assertEquals(barr, s)
 
