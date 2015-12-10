@@ -60,7 +60,7 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                 try:
                     py_str = <bytes>py_arg
                     j_args[index].l = j_env[0].NewStringUTF(j_env, <char *>py_str)
-                except UnicodeEncodeError:
+                except (UnicodeEncodeError, TypeError):
                     py_str = <bytes>py_arg.encode('utf-8')
                     j_args[index].l = j_env[0].NewStringUTF(j_env, <char *>py_str)
             elif isinstance(py_arg, JavaClass):

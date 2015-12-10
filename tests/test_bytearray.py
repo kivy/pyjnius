@@ -29,13 +29,13 @@ class StringArgumentForByteArrayTest(unittest.TestCase):
         nis = StringBufferInputStream("Hello world")
         barr = bytearray("\x00" * 5, encoding="utf8")
         self.assertEquals(nis.read(barr, 0, 5), 5)
-        self.assertEquals(barr, "Hello")
+        self.assertEquals(barr, b"Hello")
 
     def test_bytearray_ascii(self):
         ByteArrayInputStream = autoclass('java.io.ByteArrayInputStream')
-        s = "".join(chr(x) for x in range(256))
+        s = b"".join(bytes(x) for x in range(256))
         nis = ByteArrayInputStream(s)
         barr = bytearray("\x00" * 256, encoding="ascii")
         self.assertEquals(nis.read(barr, 0, 256), 256)
-        self.assertEquals(barr, s)
+        self.assertEquals(barr[:256], s[:256])
 
