@@ -6,7 +6,7 @@ except ImportError:
 from os import environ
 from os.path import dirname, join, exists
 import sys
-from platform import architecture
+from platform import machine
 
 PY3 = sys.version_info >= (3,0,0)
 
@@ -110,8 +110,20 @@ else:
                 shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
     if not jre_home:
         raise Exception('Unable to determine JRE_HOME')
-    cpu = 'amd64' if architecture()[0] == '64bit' else 'i386'
-
+    
+    # This dictionary converts values from platform.machine() to a "cpu" string.
+    # It is needed to set the correct lib path, found in the jre_home, eg. <jre_home>/lib/<cpu>/.
+    machine2cpu = {"i686"   : "i386",
+                   "x86_64" : "amd64",
+                   "armv7l" : "arm",
+                   }
+    if machine() in machine2cpu.keys():
+        cpu = machine2cpu[machine()]
+    else:
+        print("WARNING: Not able to assign machine() = %s to a cpu value!" %(machine()))
+        print("         Using cpu = 'i386' instead!")
+        cpu = 'i386'
+    
     if platform == 'win32':
         incl_dir = join(jdk_home, 'include', 'win32')
         libraries = ['jvm']
