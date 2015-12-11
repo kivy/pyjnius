@@ -125,7 +125,7 @@ cdef convert_jobject_to_python(JNIEnv *j_env, definition, jobject j_object):
     # we got a generic object -> lookup for the real name instead.
     if r == 'java/lang/Object':
         r = definition = lookup_java_object_name(j_env, j_object)
-        print('cjtp:r {0} definition {1}'.format(r, definition))
+        # print('cjtp:r {0} definition {1}'.format(r, definition))
 
     if definition[0] == '[':
         return convert_jarray_to_python(j_env, definition[1:], j_object)
