@@ -129,7 +129,7 @@ else:
         libraries = ['jvm']
     else:
         incl_dir = join(jdk_home, 'include', 'linux')
-        lib_location = 'jre/lib/amd64/server/libjvm.so'
+        lib_location = 'jre/lib/{}/server/libjvm.so'.format(cpu)
 
     include_dirs = [
             join(jdk_home, 'include'),
