@@ -103,6 +103,7 @@ else:
     if not jdk_home or not exists(jdk_home):
         raise Exception('Unable to determine JDK_HOME')
 
+    jre_home = None
     if exists(join(jdk_home, 'jre')):
         jre_home = join(jdk_home, 'jre')
     if not jre_home:
