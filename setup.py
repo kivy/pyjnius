@@ -71,9 +71,9 @@ elif platform == 'darwin':
     framework = subprocess.Popen('/usr/libexec/java_home',
             shell=True, stdout=subprocess.PIPE).communicate()[0]
     if PY3:
-        framework = framework.decode();
+        framework = framework.decode()
     framework = framework.strip()
-    print('java_home: {0}\n'.format(framework));
+    print('java_home: {0}\n'.format(framework))
     if not framework:
         raise Exception('You must install Java on your Mac OS X distro')
     if '1.6' in framework:
