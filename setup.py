@@ -14,11 +14,11 @@ def getenv(key):
     val = environ.get(key)
     if val is not None:
         if PY3:
-            return val.decode()
-        else:
-            return val
-    else:
-        return val
+            try:
+                return val.decode()
+            except AttributeError:
+                return val
+    return val
 
 files = [
     'jni.pxi',
