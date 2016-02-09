@@ -29,6 +29,11 @@ Usage on desktop
 ----------------
 
 You need a java JDK installed (OpenJDK will do), Cython and make to build it.
+Please ensure that your `JDK_HOME` or `JAVA_HOME` environment variable points
+to the installed JDK root directory, and that the JVM library (`jvm.so` or
+`jvm.dll`) is available from your `PATH` environment variable. **Failure to do
+so may result in a failed install, or a successful install but inability to
+use the pyjnius library.**
 
     make
 
