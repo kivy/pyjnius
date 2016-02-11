@@ -38,7 +38,7 @@ library_dirs = []
 lib_location = None
 extra_link_args = []
 include_dirs = []
-install_requires = ['six']
+install_requires = ['six>=1.7.0']
 
 # detect Python for android
 platform = sys.platform
