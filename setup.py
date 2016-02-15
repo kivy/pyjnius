@@ -14,11 +14,11 @@ def getenv(key):
     val = environ.get(key)
     if val is not None:
         if PY3:
-            return val.decode()
-        else:
-            return val
-    else:
-        return val
+            try:
+                return val.decode()
+            except AttributeError:
+                return val
+    return val
 
 files = [
     'jni.pxi',
@@ -71,9 +71,9 @@ elif platform == 'darwin':
     framework = subprocess.Popen('/usr/libexec/java_home',
             shell=True, stdout=subprocess.PIPE).communicate()[0]
     if PY3:
-        framework = framework.decode();
+        framework = framework.decode()
     framework = framework.strip()
-    print('java_home: {0}\n'.format(framework));
+    print('java_home: {0}\n'.format(framework))
     if not framework:
         raise Exception('You must install Java on your Mac OS X distro')
     if '1.6' in framework:
@@ -103,6 +103,7 @@ else:
     if not jdk_home or not exists(jdk_home):
         raise Exception('Unable to determine JDK_HOME')
 
+    jre_home = None
     if exists(join(jdk_home, 'jre')):
         jre_home = join(jdk_home, 'jre')
     if not jre_home:
