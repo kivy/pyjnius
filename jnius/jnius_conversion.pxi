@@ -137,9 +137,18 @@ cdef convert_jobject_to_python(JNIEnv *j_env, definition, jobject j_object):
 
     # if we got a string, just convert back to Python str.
     if r in ('java/lang/String', 'java/lang/CharSequence'):
-        c_str = <char *>j_env[0].GetStringUTFChars(j_env, j_object, NULL)
-        py_str = <bytes>c_str
-        j_env[0].ReleaseStringUTFChars(j_env, j_object, c_str)
+        if r == 'java/lang/CharSequence':
+            retclass = j_env[0].GetObjectClass(j_env, j_object)
+            retmeth = j_env[0].GetMethodID(j_env, retclass, "toString", "()Ljava/lang/String;")
+            string = <jstring> (j_env[0].CallObjectMethod(j_env, j_object, retmeth))
+            c_str = <char *>j_env[0].GetStringUTFChars(j_env, string, NULL)
+            py_str = <bytes>c_str
+            j_env[0].ReleaseStringUTFChars(j_env, string, c_str)
+        else:
+            c_str = <char *>j_env[0].GetStringUTFChars(j_env, j_object, NULL)
+            py_str = <bytes>c_str
+            j_env[0].ReleaseStringUTFChars(j_env, j_object, c_str)
+
         if PY_MAJOR_VERSION < 3:
             return py_str
         else:
