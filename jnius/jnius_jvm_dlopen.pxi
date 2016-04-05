@@ -1,13 +1,10 @@
 include "config.pxi"
 import os
 
-cdef extern from *:
-    ctypedef char const_char "const char"
-
 cdef extern from 'dlfcn.h' nogil:
-    void* dlopen(const_char *filename, int flag)
+    void* dlopen(const char *filename, int flag)
     char *dlerror()
-    void *dlsym(void *handle, const_char *symbol)
+    void *dlsym(void *handle, const char *symbol)
     int dlclose(void *handle)
 
     unsigned int RTLD_LAZY
@@ -52,7 +49,7 @@ cdef void create_jnienv() except *:
        lib_path = str_for_c(os.path.join(JAVA_HOME, JNIUS_LIB_SUFFIX.decode("utf-8")))
     ELSE:
        lib_path = str_for_c(os.path.join(JAVA_HOME, JNIUS_LIB_SUFFIX))
-    
+
     cdef void *handle = dlopen(lib_path, RTLD_NOW | RTLD_GLOBAL)
     if handle == NULL:
         raise SystemError("Error calling dlopen({0}: {1}".format(lib_path, dlerror()))

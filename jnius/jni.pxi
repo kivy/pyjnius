@@ -26,7 +26,6 @@ cdef extern from "jni.h":
     ctypedef jobject         jweak
     ctypedef jint            jsize
 
-    ctypedef char const_char "const_char"
     ctypedef jchar const_jchar "const jchar"
     ctypedef jbyte const_jbyte "const jbyte"
     ctypedef jbyte const_jint "const jint"
@@ -37,8 +36,8 @@ cdef extern from "jni.h":
     ctypedef jdouble const_jdouble "const jdouble"
 
     ctypedef struct JNINativeMethod:
-        const_char* name
-        const_char* signature
+        const char* name
+        const char* signature
         void*       fnPtr
 
     ctypedef JNINativeMethod const_JNINativeMethod "const JNINativeMethod"
@@ -73,7 +72,7 @@ cdef extern from "jni.h":
 
     ctypedef struct JNINativeInterface:
         jint *GetVersion(JNIEnv *)
-        jclass      (*DefineClass)(JNIEnv*, const_char*, jobject, const_jbyte*,
+        jclass      (*DefineClass)(JNIEnv*, const char*, jobject, const_jbyte*,
                             jsize)
         jclass      (*FindClass)(JNIEnv*, char*)
 
@@ -89,11 +88,11 @@ cdef extern from "jni.h":
         jobject     (*ToReflectedField)(JNIEnv*, jclass, jfieldID, jboolean)
 
         jint        (*Throw)(JNIEnv*, jthrowable)
-        jint        (*ThrowNew)(JNIEnv *, jclass, const_char *)
+        jint        (*ThrowNew)(JNIEnv *, jclass, const char *)
         jthrowable  (*ExceptionOccurred)(JNIEnv*)
         void        (*ExceptionDescribe)(JNIEnv*)
         void        (*ExceptionClear)(JNIEnv*)
-        void        (*FatalError)(JNIEnv*, const_char*)
+        void        (*FatalError)(JNIEnv*, const char*)
 
         jint        (*PushLocalFrame)(JNIEnv*, jint)
         jobject     (*PopLocalFrame)(JNIEnv*, jobject)
@@ -113,7 +112,7 @@ cdef extern from "jni.h":
 
         jclass      (*GetObjectClass)(JNIEnv*, jobject)
         jboolean    (*IsInstanceOf)(JNIEnv*, jobject, jclass)
-        jmethodID   (*GetMethodID)(JNIEnv*, jclass, const_char*, const_char*)
+        jmethodID   (*GetMethodID)(JNIEnv*, jclass, const char*, const char*)
 
         jobject     (*CallObjectMethod)(JNIEnv*, jobject, jmethodID, ...) nogil
         jobject     (*CallObjectMethodV)(JNIEnv*, jobject, jmethodID, va_list) nogil
@@ -207,7 +206,7 @@ cdef extern from "jni.h":
         void        (*CallNonvirtualVoidMethodA)(JNIEnv*, jobject, jclass,
                             jmethodID, jvalue*) nogil
 
-        jfieldID    (*GetFieldID)(JNIEnv*, jclass, const_char*, const_char*)
+        jfieldID    (*GetFieldID)(JNIEnv*, jclass, const char*, const char*)
 
         jobject     (*GetObjectField)(JNIEnv*, jobject, jfieldID)
         jboolean    (*GetBooleanField)(JNIEnv*, jobject, jfieldID)
@@ -229,8 +228,8 @@ cdef extern from "jni.h":
         void        (*SetFloatField)(JNIEnv*, jobject, jfieldID, jfloat)
         void        (*SetDoubleField)(JNIEnv*, jobject, jfieldID, jdouble)
 
-        jmethodID   (*GetStaticMethodID)(JNIEnv*, jclass, const_char*,
-                const_char*) nogil
+        jmethodID   (*GetStaticMethodID)(JNIEnv*, jclass, const char*,
+                const char*) nogil
 
         jobject     (*CallStaticObjectMethod)(JNIEnv*, jclass, jmethodID, ...) nogil
         jobject     (*CallStaticObjectMethodV)(JNIEnv*, jclass, jmethodID, va_list) nogil
@@ -265,8 +264,8 @@ cdef extern from "jni.h":
         void        (*CallStaticVoidMethodV)(JNIEnv*, jclass, jmethodID, va_list) nogil
         void        (*CallStaticVoidMethodA)(JNIEnv*, jclass, jmethodID, jvalue*) nogil
 
-        jfieldID    (*GetStaticFieldID)(JNIEnv*, jclass, const_char*,
-                            const_char*)
+        jfieldID    (*GetStaticFieldID)(JNIEnv*, jclass, const char*,
+                            const char*)
 
         jobject     (*GetStaticObjectField)(JNIEnv*, jclass, jfieldID)
         jboolean    (*GetStaticBooleanField)(JNIEnv*, jclass, jfieldID)
@@ -295,8 +294,8 @@ cdef extern from "jni.h":
         jstring     (*NewStringUTF)(JNIEnv*, char*)
         jsize       (*GetStringUTFLength)(JNIEnv*, jstring)
         # JNI spec says this returns const_jbyte*, but that's inconsistent
-        const_char* (*GetStringUTFChars)(JNIEnv*, jstring, jboolean*)
-        void        (*ReleaseStringUTFChars)(JNIEnv*, jstring, const_char*)
+        const char* (*GetStringUTFChars)(JNIEnv*, jstring, jboolean*)
+        void        (*ReleaseStringUTFChars)(JNIEnv*, jstring, const char*)
         jsize       (*GetArrayLength)(JNIEnv*, jarray)
         jobjectArray (*NewObjectArray)(JNIEnv*, jsize, jclass, jobject)
         jobject     (*GetObjectArrayElement)(JNIEnv*, jobjectArray, jsize)
@@ -402,4 +401,3 @@ cdef extern from "jni.h":
     ctypedef struct JNIInvokeInterface:
         jint        (*AttachCurrentThread)(JavaVM *, JNIEnv **, void *)
         jint        (*DetachCurrentThread)(JavaVM *)
-
