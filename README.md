@@ -47,7 +47,7 @@ Usage with python-for-android
 -----------------------------
 
 * Get http://github.com/kivy/python-for-android
-* Compile a distribution with `-m "pyjnius kivy"`
+* Compile a distribution with kivy (pyjnius will be automatically added)
 * Then, you can do this kind of thing:
 
 ```python
