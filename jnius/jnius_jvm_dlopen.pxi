@@ -44,11 +44,15 @@ cdef void create_jnienv() except *:
 
     JAVA_HOME = os.environ['JAVA_HOME']
     if JAVA_HOME is None or JAVA_HOME == '':
-       raise SystemError("JAVA_HOME is not set.")
+        raise SystemError("JAVA_HOME is not set.")
     IF JNIUS_PYTHON3:
-       lib_path = str_for_c(os.path.join(JAVA_HOME, JNIUS_LIB_SUFFIX.decode("utf-8")))
+        try:
+            jnius_lib_suffix = JNIUS_LIB_SUFFIX.decode("utf-8")
+        except AttributeError:
+            jnius_lib_suffix = JNIUS_LIB_SUFFIX
+        lib_path = str_for_c(os.path.join(JAVA_HOME, jnius_lib_suffix))
     ELSE:
-       lib_path = str_for_c(os.path.join(JAVA_HOME, JNIUS_LIB_SUFFIX))
+        lib_path = str_for_c(os.path.join(JAVA_HOME, JNIUS_LIB_SUFFIX))
 
     cdef void *handle = dlopen(lib_path, RTLD_NOW | RTLD_GLOBAL)
     if handle == NULL:
