@@ -26,7 +26,7 @@ cdef extern from "jni.h":
     ctypedef jobject         jweak
     ctypedef jint            jsize
 
-    ctypedef char const_char "const_char"
+    ctypedef char const_char "const char"
     ctypedef jchar const_jchar "const jchar"
     ctypedef jbyte const_jbyte "const jbyte"
     ctypedef jbyte const_jint "const jint"
