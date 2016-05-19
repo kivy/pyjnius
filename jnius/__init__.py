@@ -17,6 +17,7 @@ from .reflect import *
 
 HASHCODE_MAX = 2 ** 31 - 1
 
+
 class PythonJavaClass_(PythonJavaClass):
 
     @java_method('()I', name='hashCode')
@@ -35,4 +36,8 @@ class PythonJavaClass_(PythonJavaClass):
     def equals(self, other):
         return self.hashCode() == other.hashCode()
 
+
 PythonJavaClass = PythonJavaClass_
+
+from java import replace_import
+replace_import()
