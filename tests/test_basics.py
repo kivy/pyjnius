@@ -13,7 +13,7 @@ class BasicsTest(unittest.TestCase):
         self.assertEquals(Test.methodStaticC(), 'k')
         self.assertEquals(Test.methodStaticS(), 32767)
         self.assertEquals(Test.methodStaticI(), 2147483467)
-        self.assertEquals(Test.methodStaticJ(), 2147483467)
+        self.assertEquals(Test.methodStaticJ(), 9223372036854775807)
         self.assertAlmostEquals(Test.methodStaticF(), 1.23456789)
         self.assertEquals(Test.methodStaticD(), 1.23456789)
         self.assertEquals(Test.methodStaticString(), 'helloworld')
@@ -25,7 +25,7 @@ class BasicsTest(unittest.TestCase):
         self.assertEquals(Test.fieldStaticC, 'k')
         self.assertEquals(Test.fieldStaticS, 32767)
         self.assertEquals(Test.fieldStaticI, 2147483467)
-        self.assertEquals(Test.fieldStaticJ, 2147483467)
+        self.assertEquals(Test.fieldStaticJ, 9223372036854775807)
         self.assertAlmostEquals(Test.fieldStaticF, 1.23456789)
         self.assertEquals(Test.fieldStaticD, 1.23456789)
         self.assertEquals(Test.fieldStaticString, 'helloworld')
@@ -37,7 +37,7 @@ class BasicsTest(unittest.TestCase):
         self.assertEquals(test.methodC(), 'k')
         self.assertEquals(test.methodS(), 32767)
         self.assertEquals(test.methodI(), 2147483467)
-        self.assertEquals(test.methodJ(), 2147483467)
+        self.assertEquals(test.methodJ(), 9223372036854775807)
         self.assertAlmostEquals(test.methodF(), 1.23456789)
         self.assertEquals(test.methodD(), 1.23456789)
         self.assertEquals(test.methodString(), 'helloworld')
@@ -49,7 +49,7 @@ class BasicsTest(unittest.TestCase):
         self.assertEquals(test.fieldC, 'k')
         self.assertEquals(test.fieldS, 32767)
         self.assertEquals(test.fieldI, 2147483467)
-        self.assertEquals(test.fieldJ, 2147483467)
+        self.assertEquals(test.fieldJ, 9223372036854775807)
         self.assertAlmostEquals(test.fieldF, 1.23456789)
         self.assertEquals(test.fieldD, 1.23456789)
         self.assertEquals(test.fieldString, 'helloworld')
@@ -65,7 +65,7 @@ class BasicsTest(unittest.TestCase):
         test.fieldSetC = ord('k')
         test.fieldSetS = 32767
         test.fieldSetI = 2147483467
-        test.fieldSetJ = 2147483467
+        test.fieldSetJ = 9223372036854775807
         test.fieldSetF = 1.23456789
         test.fieldSetD = 1.23456789
 
@@ -86,7 +86,7 @@ class BasicsTest(unittest.TestCase):
         self.assertEquals(test.methodArrayC(), ['k'] * 3)
         self.assertEquals(test.methodArrayS(), [32767] * 3)
         self.assertEquals(test.methodArrayI(), [2147483467] * 3)
-        self.assertEquals(test.methodArrayJ(), [2147483467] * 3)
+        self.assertEquals(test.methodArrayJ(), [9223372036854775807] * 3)
 
         ret = test.methodArrayF()
         ref = [1.23456789] * 3
@@ -100,7 +100,7 @@ class BasicsTest(unittest.TestCase):
     def test_instances_methods_params(self):
         test = autoclass('org.jnius.BasicsTest')()
         self.assertEquals(test.methodParamsZBCSIJFD(
-            True, 127, 'k', 32767, 2147483467, 2147483467, 1.23456789, 1.23456789), True)
+            True, 127, 'k', 32767, 2147483467, 9223372036854775807, 1.23456789, 1.23456789), True)
         self.assertEquals(test.methodParamsString('helloworld'), True)
         self.assertEquals(test.methodParamsArrayI([1, 2, 3]), True)
         self.assertEquals(test.methodParamsArrayString([

@@ -270,7 +270,7 @@ cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
     elif r == 'J':
         j_longs = j_env[0].GetLongArrayElements(
                 j_env, j_object, &iscopy)
-        ret = [(<long>j_longs[i]) for i in range(array_size)]
+        ret = [(<long long>j_longs[i]) for i in range(array_size)]
         j_env[0].ReleaseLongArrayElements(
                 j_env, j_object, j_longs, 0)
 
