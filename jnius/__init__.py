@@ -39,11 +39,16 @@ PythonJavaClass = PythonJavaClass_
 
 
 # from https://gist.github.com/tito/09c42fb4767721dc323d
-import threading
-orig_thread_run = threading.Thread.run
-def thread_check_run(*args, **kwargs):
-    try:
-       return orig_thread_run(*args, **kwargs)
-    finally:
-        jnius.detach()
-threading.Thread.run = thread_check_run
+if "ANDROID_ARGUMENT" in os.environ:
+    # on android, catch all exception to ensure about a jnius.detach
+    import threading
+    import jnius
+    orig_thread_run = threading.Thread.run
+
+    def jnius_thread_hook(*args, **kwargs):
+        try:
+            return orig_thread_run(*args, **kwargs)
+        finally:
+            jnius.detach()
+
+    threading.Thread.run = jnius_thread_hook
