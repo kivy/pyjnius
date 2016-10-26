@@ -36,3 +36,14 @@ class PythonJavaClass_(PythonJavaClass):
         return self.hashCode() == other.hashCode()
 
 PythonJavaClass = PythonJavaClass_
+
+
+# from https://gist.github.com/tito/09c42fb4767721dc323d
+import threading
+orig_thread_run = threading.Thread.run
+def thread_check_run(*args, **kwargs):
+    try:
+       return orig_thread_run(*args, **kwargs)
+    finally:
+        jnius.detach()
+threading.Thread.run = thread_check_run
