@@ -39,6 +39,7 @@ PythonJavaClass = PythonJavaClass_
 
 
 # from https://gist.github.com/tito/09c42fb4767721dc323d
+import os
 if "ANDROID_ARGUMENT" in os.environ:
     # on android, catch all exception to ensure about a jnius.detach
     import threading
