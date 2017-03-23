@@ -10,3 +10,5 @@ build
 *~
 *.so
 *.iml
+dist
+jnius.egg-info
