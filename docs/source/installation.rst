@@ -44,7 +44,6 @@ Python and pip must be installed and present in PATH.
     http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
 2. Edit your system and environment variables (use the appropriate Java version):
-
     Add to Environment Variables:
         * ``JDK_HOME``: C:\\Program Files\\Java\\jdk1.7.0_79\\
         * ``PATH``: C:\\Program Files\\Java\\jdk1.7.0_79\\jre\\bin\\server\\
