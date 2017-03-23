@@ -111,7 +111,7 @@ else:
                 shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
     if not jre_home:
         raise Exception('Unable to determine JRE_HOME')
-    
+
     # This dictionary converts values from platform.machine() to a "cpu" string.
     # It is needed to set the correct lib path, found in the jre_home, eg. <jre_home>/lib/<cpu>/.
     machine2cpu = {"i686"   : "i386",
@@ -124,7 +124,7 @@ else:
         print("WARNING: Not able to assign machine() = %s to a cpu value!" %(machine()))
         print("         Using cpu = 'i386' instead!")
         cpu = 'i386'
-    
+
     if platform == 'win32':
         incl_dir = join(jdk_home, 'include', 'win32')
         libraries = ['jvm']
@@ -161,9 +161,9 @@ setup(name='jnius',
       cmdclass={'build_ext': build_ext},
       packages=['jnius'],
       py_modules=['jnius_config'],
-      url='http://pyjnius.readthedocs.org/',
-      author='Mathieu Virbel and Gabriel Pettier',
-      author_email='mat@kivy.org,gabriel@kivy.org',
+      url='https://pyjnius.readthedocs.io',
+      author='Kivy Team and other contributors',
+      author_email='kivy-dev@googlegroups.com',
       license='MIT',
       description='Python library to access Java classes',
       install_requires=install_requires,
@@ -184,9 +184,9 @@ setup(name='jnius',
         'Operating System :: MacOS :: OS X',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Software Development :: Libraries :: Application Frameworks'])
