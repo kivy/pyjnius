@@ -1,2 +1,2 @@
-include *COPYING
+include *LICENSE
 recursive-include jnius *.pyx *.pxi
