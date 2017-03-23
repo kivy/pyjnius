@@ -178,7 +178,7 @@ setup(
     author='Kivy Team and other contributors',
     author_email='kivy-dev@googlegroups.com',
     license='MIT',
-    description='Python library to access Java classes',
+    description='Dynamic access to Java classes from Python',
     install_requires=install_requires,
     ext_package='jnius',
     ext_modules=[

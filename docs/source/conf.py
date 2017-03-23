@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Pyjnius'
-copyright = u'2012, Mathieu Virbel, Gabriel Pettier'
+copyright = u'2017, Kivy Team and other contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -184,7 +184,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'Pyjnius.tex', u'Pyjnius Documentation',
-   u'Mathieu Virbel, Gabriel Pettier', 'manual'),
+   u'Kivy Team and other contributors', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -214,7 +214,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'pyjnius', u'Pyjnius Documentation',
-     [u'Mathieu Virbel, Gabriel Pettier'], 1)
+     [u'Kivy Team and other contributors'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -228,7 +228,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'Pyjnius', u'Pyjnius Documentation',
-   u'Mathieu Virbel, Gabriel Pettier', 'Pyjnius', 'One line description of project.',
+   u'Kivy Team and other contributors', 'Pyjnius', 'Dynamic access to Java classes from Python',
    'Miscellaneous'),
 ]
 
