@@ -41,24 +41,27 @@ Python and pip must be installed and present in PATH.
 
 
 1. Download and install JDK and JRE:
-    * http://www.oracle.com/technetwork/java/javase/downloads/index.html
+    http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
 2. Edit your system and environment variables (use the appropriate Java version):
 
-    1. Add to Environment Variables:
+    Add to Environment Variables:
         * ``JDK_HOME``: C:\\Program Files\\Java\\jdk1.7.0_79\\
         * ``PATH``: C:\\Program Files\\Java\\jdk1.7.0_79\\jre\\bin\\server\\
-    2. Add to System Variables:
+    Add to System Variables:
         * ``PATH``: C:\\Program Files\\Java\\jdk1.7.0_79\\bin\\`
 
 3. Download and install Microsoft Visual C++ Compiler for Python 2.7:
-    - http://aka.ms/vcpython27
+    http://aka.ms/vcpython27
 
-4. Update pip and setuptools:
-    - ``python -m pip install --upgrade pip setuptools``
+4. Update pip and setuptools::
 
-5. Install Cython:
-    - ``python -m pip install --upgrade Cython``
+    python -m pip install --upgrade pip setuptools
 
-6. Install Pyjnius:
-    - ``pip install pyjnius``
+5. Install Cython::
+
+    python -m pip install --upgrade Cython
+
+6. Install Pyjnius::
+
+    pip install pyjnius
