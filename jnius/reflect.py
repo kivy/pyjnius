@@ -118,9 +118,10 @@ def get_signature(cls_tp):
     if ret:
         return ret
     # don't do it in recursive way for the moment,
-    # error on the JNI/android: JNI ERROR (app bug): local reference table overflow (max=512)
-    #
-    #ensureclass(tp)
+    # error on the JNI/android: JNI ERROR (app bug): local reference table
+    # overflow (max=512)
+
+    # ensureclass(tp)
     return 'L{0};'.format(tp.replace('.', '/'))
 
 
@@ -136,11 +137,14 @@ def ensureclass(clsname):
     registers.append(clsname)
     autoclass(clsname)
 
+
 def lower_name(s):
     return s[:1].lower() + s[1:] if s else ''
 
+
 def bean_getter(s):
     return (s.startswith('get') and len(s) > 3 and s[3].isupper()) or (s.startswith('is') and len(s) > 2 and s[2].isupper())
+
 
 def autoclass(clsname):
     jniname = clsname.replace('.', '/')
@@ -150,7 +154,7 @@ def autoclass(clsname):
 
     classDict = {}
 
-    #c = Class.forName(clsname)
+    # c = Class.forName(clsname)
     c = find_javaclass(clsname)
     if c is None:
         raise Exception('Java class {0} not found'.format(c))

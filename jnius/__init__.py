@@ -9,13 +9,14 @@ All the documentation is available at: http://pyjnius.readthedocs.org
 
 __version__ = '1.1-dev'
 
-from .jnius import *
-from .reflect import *
+from .jnius import *  # noqa
+from .reflect import *  # noqa
 
 # XXX monkey patch methods that cannot be in cython.
 # Cython doesn't allow to set new attribute on methods it compiled
 
 HASHCODE_MAX = 2 ** 31 - 1
+
 
 class PythonJavaClass_(PythonJavaClass):
 
@@ -34,6 +35,7 @@ class PythonJavaClass_(PythonJavaClass):
     @java_method('(Ljava/lang/Object;)Z', name='equals')
     def equals(self, other):
         return self.hashCode() == other.hashCode()
+
 
 PythonJavaClass = PythonJavaClass_
 

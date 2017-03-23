@@ -8,7 +8,8 @@ from os.path import dirname, join, exists
 import sys
 from platform import machine
 
-PY3 = sys.version_info >= (3,0,0)
+PY3 = sys.version_info >= (3, 0, 0)
+
 
 def getenv(key):
     val = environ.get(key)
@@ -19,6 +20,7 @@ def getenv(key):
             except AttributeError:
                 return val
     return val
+
 
 files = [
     'jni.pxi',
@@ -68,8 +70,9 @@ if platform == 'android':
     library_dirs = ['libs/' + getenv('ARCH')]
 elif platform == 'darwin':
     import subprocess
-    framework = subprocess.Popen('/usr/libexec/java_home',
-            shell=True, stdout=subprocess.PIPE).communicate()[0]
+    framework = subprocess.Popen(
+        '/usr/libexec/java_home',
+        stdout=subprocess.PIPE, shell=True).communicate()[0]
     if PY3:
         framework = framework.decode()
     framework = framework.strip()
@@ -81,7 +84,10 @@ elif platform == 'darwin':
         include_dirs = [join(framework, 'System/Library/Frameworks/JavaVM.framework/Versions/Current/Headers')]
     else:
         lib_location = 'jre/lib/server/libjvm.dylib'
-        include_dirs = ['{0}/include'.format(framework), '{0}/include/darwin'.format(framework)]
+        include_dirs = [
+            '{0}/include'.format(framework),
+            '{0}/include/darwin'.format(framework)
+        ]
 else:
     import subprocess
     # otherwise, we need to search the JDK_HOME
@@ -96,8 +102,9 @@ else:
                 if jdk_home[-3:] == 'bin':
                     jdk_home = jdk_home[:-4]
         else:
-            jdk_home = subprocess.Popen('readlink -f `which javac` | sed "s:bin/javac::"',
-                    shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+            jdk_home = subprocess.Popen(
+                'readlink -f `which javac` | sed "s:bin/javac::"',
+                shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
             if jdk_home is not None and PY3:
                 jdk_home = jdk_home.decode()
     if not jdk_home or not exists(jdk_home):
@@ -107,17 +114,20 @@ else:
     if exists(join(jdk_home, 'jre')):
         jre_home = join(jdk_home, 'jre')
     if not jre_home:
-        jre_home = subprocess.Popen('readlink -f `which java` | sed "s:bin/java::"',
-                shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+        jre_home = subprocess.Popen(
+            'readlink -f `which java` | sed "s:bin/java::"',
+            shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
     if not jre_home:
         raise Exception('Unable to determine JRE_HOME')
 
     # This dictionary converts values from platform.machine() to a "cpu" string.
-    # It is needed to set the correct lib path, found in the jre_home, eg. <jre_home>/lib/<cpu>/.
-    machine2cpu = {"i686"   : "i386",
-                   "x86_64" : "amd64",
-                   "armv7l" : "arm",
-                   }
+    # It is needed to set the correct lib path, found in the jre_home, eg.
+    # <jre_home>/lib/<cpu>/.
+    machine2cpu = {
+        "i686" : "i386",
+        "x86_64" : "amd64",
+        "armv7l" : "arm"
+    }
     if machine() in machine2cpu.keys():
         cpu = machine2cpu[machine()]
     else:
@@ -133,13 +143,15 @@ else:
         lib_location = 'jre/lib/{}/server/libjvm.so'.format(cpu)
 
     include_dirs = [
-            join(jdk_home, 'include'),
-            incl_dir]
+        join(jdk_home, 'include'),
+        incl_dir
+    ]
 
     if platform == 'win32':
         library_dirs = [
-                join(jdk_home, 'lib'),
-                join(jre_home, 'bin', 'server')]
+            join(jdk_home, 'lib'),
+            join(jre_home, 'bin', 'server')
+        ]
 
 # generate the config.pxi
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
@@ -156,27 +168,29 @@ with open(join('jnius', '__init__.py')) as fd:
     version = versionline[0].split("'")[-2]
 
 # create the extension
-setup(name='jnius',
-      version=version,
-      cmdclass={'build_ext': build_ext},
-      packages=['jnius'],
-      py_modules=['jnius_config'],
-      url='https://pyjnius.readthedocs.io',
-      author='Kivy Team and other contributors',
-      author_email='kivy-dev@googlegroups.com',
-      license='MIT',
-      description='Python library to access Java classes',
-      install_requires=install_requires,
-      ext_package='jnius',
-      ext_modules=[
-          Extension(
-              'jnius', [join('jnius', x) for x in files],
-              libraries=libraries,
-              library_dirs=library_dirs,
-              include_dirs=include_dirs,
-              extra_link_args=extra_link_args)
-          ],
-      classifiers=[
+setup(
+    name='jnius',
+    version=version,
+    cmdclass={'build_ext': build_ext},
+    packages=['jnius'],
+    py_modules=['jnius_config'],
+    url='https://pyjnius.readthedocs.io',
+    author='Kivy Team and other contributors',
+    author_email='kivy-dev@googlegroups.com',
+    license='MIT',
+    description='Python library to access Java classes',
+    install_requires=install_requires,
+    ext_package='jnius',
+    ext_modules=[
+        Extension(
+            'jnius', [join('jnius', x) for x in files],
+            libraries=libraries,
+            library_dirs=library_dirs,
+            include_dirs=include_dirs,
+            extra_link_args=extra_link_args
+        )
+    ],
+    classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
@@ -189,4 +203,6 @@ setup(name='jnius',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Topic :: Software Development :: Libraries :: Application Frameworks'])
+        'Topic :: Software Development :: Libraries :: Application Frameworks'
+    ]
+)
