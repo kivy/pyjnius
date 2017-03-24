@@ -1,5 +1,6 @@
 PyJNIus
 =======
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/kivy/pyjnius?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 A Python module to access Java classes as Python classes using JNI.
 Warning: the pypi name is now `pyjnius` instead of `jnius`.
