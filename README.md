@@ -10,7 +10,10 @@ Warning: the pypi name is now `pyjnius` instead of `jnius`.
 Installation
 ------------
 
+Requirements: Cython
+
 ```
+pip install Cython
 pip install pyjnius
 ```
 
