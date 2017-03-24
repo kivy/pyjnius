@@ -11,4 +11,5 @@ build
 *.so
 *.iml
 dist
+pyjnius.egg-info
 jnius.egg-info
