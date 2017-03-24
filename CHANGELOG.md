@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.1.1](https://github.com/kivy/pyjnius/tree/1.1.1) (2017-03-24)
+[Full Changelog](https://github.com/kivy/pyjnius/compare/1.1.0...1.1.1)
+
+**Implemented enhancements:**
+
+- Rename jnius to pyjnius for pypi [\#266](https://github.com/kivy/pyjnius/issues/266)
+
 ## [1.1.0](https://github.com/kivy/pyjnius/tree/1.1.0) (2017-03-23)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.0.3...1.1.0)
 
