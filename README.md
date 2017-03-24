@@ -2,10 +2,17 @@ PyJNIus
 =======
 
 A Python module to access Java classes as Python classes using JNI.
-
-PyJNIus is a "Work In Progress".
+Warning: the pypi name is now `pyjnius` instead of `jnius`.
 
 [![Build Status](https://travis-ci.org/kivy/pyjnius.svg?branch=master)](https://travis-ci.org/kivy/pyjnius)
+[![PyPI](https://img.shields.io/pypi/v/pyjnius.svg)]()
+
+Installation
+------------
+
+```
+pip install pyjnius
+```
 
 Quick overview
 --------------
