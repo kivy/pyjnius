@@ -169,7 +169,7 @@ with open(join('jnius', '__init__.py')) as fd:
 
 # create the extension
 setup(
-    name='jnius',
+    name='pyjnius',
     version=version,
     cmdclass={'build_ext': build_ext},
     packages=['jnius'],
