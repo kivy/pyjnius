@@ -39,6 +39,8 @@ libraries = []
 library_dirs = []
 lib_location = None
 extra_link_args = []
+if PY3:
+    extra_link_args = ['-lpython3.5m']
 include_dirs = []
 install_requires = ['six>=1.7.0']
 
