@@ -39,3 +39,12 @@ class StringArgumentForByteArrayTest(unittest.TestCase):
         self.assertEquals(nis.read(barr, 0, 256), 256)
         self.assertEquals(barr[:256], s[:256])
 
+    def test_empty_bytearray(self):
+        Test = autoclass('org.jnius.BasicsTest')()
+        arr = Test.methodReturnEmptyByteArray()
+        self.assertEquals(len(arr), 0)
+        with self.assertRaises(IndexError):
+            arr[0]
+        self.assertEquals(arr, [])
+        self.assertEquals(arr[:1], [])
+        self.assertEquals(arr.tostring(), b'')
