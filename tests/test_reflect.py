@@ -14,3 +14,10 @@ class ReflectTest(unittest.TestCase):
         stack.push('world')
         self.assertEqual(stack.pop(), 'world')
         self.assertEqual(stack.pop(), 'hello')
+
+    def test_list_iteration(self):
+        ArrayList = autoclass('java.util.ArrayList')
+        words = ArrayList()
+        words.add('hello')
+        words.add('world')
+        self.assertEqual(['hello', 'world'], [word for word in words])
