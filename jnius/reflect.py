@@ -7,7 +7,8 @@ from six import with_metaclass
 
 from .jnius import (
     JavaClass, MetaJavaClass, JavaMethod, JavaStaticMethod,
-    JavaField, JavaStaticField, JavaMultipleMethod, find_javaclass
+    JavaField, JavaStaticField, JavaMultipleMethod, find_javaclass,
+    JavaException
 )
 
 
@@ -218,9 +219,19 @@ def autoclass(clsname):
 
         classDict[name] = JavaMultipleMethod(signatures)
 
+    def _getitem(self, index):
+        try:
+            return self.get(index)
+        except JavaException as e:
+            if e.classname == "java.lang.IndexOutOfBoundsException":
+                # python for...in iteration checks for end of list by waiting for IndexError
+                raise IndexError()
+            else:
+                raise
+
     for iclass in c.getInterfaces():
         if iclass.getName() == 'java.util.List':
-            classDict['__getitem__'] = lambda self, index: self.get(index)
+            classDict['__getitem__'] = _getitem
             classDict['__len__'] = lambda self: self.size()
             break
 
