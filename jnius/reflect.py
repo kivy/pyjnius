@@ -223,7 +223,10 @@ def autoclass(clsname):
         try:
             return self.get(index)
         except JavaException as e:
-            if e.classname == "java.lang.IndexOutOfBoundsException":
+            # initialize the subclass before getting the Class.forName
+            # otherwise isInstance does not know of the subclass
+            mock_exception_object = autoclass(e.classname)()
+            if Class.forName("java.lang.IndexOutOfBoundsException").isInstance(mock_exception_object):
                 # python for...in iteration checks for end of list by waiting for IndexError
                 raise IndexError()
             else:
