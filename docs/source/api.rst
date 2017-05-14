@@ -327,6 +327,13 @@ example::
       Signature: ()V
     }
 
+The signature for methods of any android class can be easily seen by following these
+steps::
+
+    1. $ cd path/to/android/sdk/
+    2. $ cd platforms/android-xx/  # Replace xx with your android version
+    3. $ javap -s -classpath android.jar android.app.Activity  # Replace android.app.Activity with any android class whose methods' signature you want to see
+
 
 JVM options and the class path
 ------------------------------
