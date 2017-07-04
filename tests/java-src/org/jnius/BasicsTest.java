@@ -11,7 +11,7 @@ public class BasicsTest {
 	static public long methodStaticJ() { return 9223372036854775807L; };
 	static public float methodStaticF() { return 1.23456789f; };
 	static public double methodStaticD() { return 1.23456789; };
-	static public String methodStaticString() { return new String("helloworld"); }
+	static public String methodStaticString() { return new String("hello \uD83C\uDF0E!"); }
 
 	public boolean methodZ() { return true; };
 	public byte methodB() { return 127; };
@@ -21,9 +21,9 @@ public class BasicsTest {
 	public long methodJ() { return 9223372036854775807L; };
 	public float methodF() { return 1.23456789f; };
 	public double methodD() { return 1.23456789; };
-	public String methodString() { return new String("helloworld"); }
+	public String methodString() { return new String("hello \uD83C\uDF0E!"); }
 	public void methodException(int depth) throws IllegalArgumentException {
-		if (depth == 0) throw new IllegalArgumentException("helloworld");
+		if (depth == 0) throw new IllegalArgumentException("hello \uD83C\uDF0E!");
 		else methodException(depth -1);
 	}
 	public void methodExceptionChained() throws IllegalArgumentException {
@@ -42,7 +42,7 @@ public class BasicsTest {
 	static public long fieldStaticJ = 9223372036854775807L;
 	static public float fieldStaticF = 1.23456789f;
 	static public double fieldStaticD = 1.23456789;
-	static public String fieldStaticString = new String("helloworld");
+	static public String fieldStaticString = new String("hello \uD83C\uDF0E!");
 
 	public boolean fieldZ = true;
 	public byte fieldB = 127;
@@ -52,7 +52,7 @@ public class BasicsTest {
 	public long fieldJ = 9223372036854775807L;
 	public float fieldF = 1.23456789f;
 	public double fieldD = 1.23456789;
-	public String fieldString = new String("helloworld");
+	public String fieldString = new String("hello \uD83C\uDF0E!");
 
 	public boolean fieldSetZ;
 	public byte fieldSetB;
@@ -114,7 +114,7 @@ public class BasicsTest {
 	};
 	public String[] methodArrayString() {
 		String[] x = new String[3];
-		x[0] = x[1] = x[2] = new String("helloworld");
+		x[0] = x[1] = x[2] = new String("hello \uD83C\uDF0E!");
 		return x;
 	};
 
@@ -128,7 +128,7 @@ public class BasicsTest {
 	}
 
 	public boolean methodParamsString(String s) {
-		return (s.equals("helloworld"));
+		return (s.equals("hello \uD83C\uDF0E!"));
 	}
 
 	public boolean methodParamsArrayI(int[] x) {
@@ -140,7 +140,7 @@ public class BasicsTest {
 	public boolean methodParamsArrayString(String[] x) {
 		if (x.length != 2)
 			return false;
-		return (x[0].equals("hello") && x[1].equals("world"));
+		return (x[0].equals("hello") && x[1].equals("\uD83C\uDF0E"));
 	}
 
 	public boolean methodParamsObject(Object x) {
@@ -150,7 +150,7 @@ public class BasicsTest {
 	public Object methodReturnStrings() {
 		String[] hello_world = new String[2];
 		hello_world[0] = "Hello";
-		hello_world[1] = "world";
+		hello_world[1] = "\uD83C\uDF0E";
 		return hello_world;
 	}
 
