@@ -4,6 +4,13 @@ from __future__ import absolute_import
 import unittest
 from jnius.reflect import autoclass
 
+try:
+    long
+except NameError:
+    # Python 3
+    long = int
+
+
 class MultipleSignature(unittest.TestCase):
 
     def test_multiple_constructors(self):
@@ -46,7 +53,7 @@ class MultipleSignature(unittest.TestCase):
 
     def test_multiple_methods_varargs_long(self):
         MultipleMethods = autoclass('org.jnius.MultipleMethods')
-        self.assertEqual(MultipleMethods.resolve(1L, 2L, 3L), 'resolved varargs')
+        self.assertEqual(MultipleMethods.resolve(long(1), long(2), long(3)), 'resolved varargs')
 
     def test_multiple_methods_two_args_and_varargs(self):
         MultipleMethods = autoclass('org.jnius.MultipleMethods')
@@ -55,7 +62,7 @@ class MultipleSignature(unittest.TestCase):
     def test_multiple_methods_one_int_one_small_long_and_a_string(self):
         MultipleMethods = autoclass('org.jnius.MultipleMethods')
         self.assertEqual(MultipleMethods.resolve(
-            1, 1L, "one"), "resolved one int, one long and a string")
+            1, long(1), "one"), "resolved one int, one long and a string")
 
     def test_multiple_methods_one_int_one_actual_long_and_a_string(self):
         MultipleMethods = autoclass('org.jnius.MultipleMethods')
