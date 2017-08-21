@@ -101,6 +101,8 @@ class BasicsTest(unittest.TestCase):
         test = autoclass('org.jnius.BasicsTest')()
         self.assertEquals(test.methodParamsZBCSIJFD(
             True, 127, 'k', 32767, 2147483467, 9223372036854775807, 1.23456789, 1.23456789), True)
+        self.assertEquals(test.methodParamsZBCSIJFD(
+            True, 127L, 'k', 32767L, 2147483467L, 9223372036854775807, 1.23456789, 1.23456789), True)
         self.assertEquals(test.methodParamsString('helloworld'), True)
         self.assertEquals(test.methodParamsArrayI([1, 2, 3]), True)
         self.assertEquals(test.methodParamsArrayString([
