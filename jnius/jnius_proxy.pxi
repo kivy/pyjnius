@@ -162,7 +162,7 @@ cdef create_proxy_instance(JNIEnv *j_env, py_obj, j_interfaces, javacontext):
     # convert strings to Class
     j_interfaces = [find_javaclass(x) for x in j_interfaces]
 
-    cdef JavaClass nih = NativeInvocationHandler(<long><void *>py_obj)
+    cdef JavaClass nih = NativeInvocationHandler(<long long><void *>py_obj)
     cdef JNINativeMethod invoke_methods[1]
     invoke_methods[0].name = 'invoke0'
     invoke_methods[0].signature = '(Ljava/lang/Object;Ljava/lang/reflect/Method;[Ljava/lang/Object;)Ljava/lang/Object;'
