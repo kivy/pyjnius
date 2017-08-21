@@ -265,7 +265,8 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
             continue
 
         if r == 'S' or r == 'I' or r == 'J':
-            if isinstance(arg, int):
+            if isinstance(arg, int) or (
+                    (isinstance(arg, long) and arg < 2 ** 31)):
                 score += 10
                 continue
             elif isinstance(arg, float):
