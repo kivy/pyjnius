@@ -4,6 +4,13 @@ from __future__ import absolute_import
 import unittest
 from jnius.reflect import autoclass
 
+try:
+    long
+except NameError:
+    # Python 3
+    long = int
+
+
 class BasicsTest(unittest.TestCase):
 
     def test_static_methods(self):
@@ -101,6 +108,8 @@ class BasicsTest(unittest.TestCase):
         test = autoclass('org.jnius.BasicsTest')()
         self.assertEquals(test.methodParamsZBCSIJFD(
             True, 127, 'k', 32767, 2147483467, 9223372036854775807, 1.23456789, 1.23456789), True)
+        self.assertEquals(test.methodParamsZBCSIJFD(
+            True, long(127), 'k', long(32767), long(2147483467), 9223372036854775807, 1.23456789, 1.23456789), True)
         self.assertEquals(test.methodParamsString('helloworld'), True)
         self.assertEquals(test.methodParamsArrayI([1, 2, 3]), True)
         self.assertEquals(test.methodParamsArrayString([

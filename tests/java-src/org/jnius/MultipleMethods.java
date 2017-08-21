@@ -29,4 +29,8 @@ public class MultipleMethods {
     public static String resolve(int... integers) {
 	return "resolved varargs";
     }
+
+    public static String resolve(int i, long j, String k) {
+    return "resolved one int, one long and a string";
+    }
 }
