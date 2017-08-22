@@ -22,7 +22,10 @@ def find_javaclass(namestr):
 
     jc = j_env[0].FindClass(j_env, name)
     if jc == NULL:
+        j_env[0].ExceptionClear(j_env)
         raise JavaException('Class not found {0!r}'.format(name))
+
+    check_exception(j_env)
 
     cls = Class(noinstance=True)
     cls.instanciate_from(create_local_ref(j_env, jc))
