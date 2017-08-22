@@ -65,7 +65,7 @@ cdef class ByteArray:
             xx = index
             return self._arr[xx]
 
-    def __getslice__(self, long i, long j):
+    def __getitem__(self, long i, long j):
         return self._arr[i:j]
 
     def __richcmp__(self, other, op):
