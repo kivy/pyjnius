@@ -40,7 +40,8 @@ cdef class ByteArray:
         self._jobject.create(env, obj)
         self._size = size
         self._buf = <unsigned char *><signed char *>buf
-        self._arr = <unsigned char[:size]>self._buf
+        if size:
+            self._arr = <unsigned char[:size]>self._buf
 
     def __str__(self):
         return '<ByteArray size={} at 0x{}>'.format(
@@ -53,10 +54,11 @@ cdef class ByteArray:
         cdef long xx
         if isinstance(index, slice):
             val = []
-            (start, stop, step) = index.indices(len(self._arr))
-            for x in range(start, stop, step):
-                xx = x
-                val.append(self._arr[xx])
+            if self._size:
+                (start, stop, step) = index.indices(len(self._arr))
+                for x in range(start, stop, step):
+                    xx = x
+                    val.append(self._arr[xx])
             return val
         else:
             xx = index
