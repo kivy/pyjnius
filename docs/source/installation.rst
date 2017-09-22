@@ -28,10 +28,22 @@ You can run the tests suite to make sure everything is running right::
 Installation for Android
 ------------------------
 
-If you use `Python for android <http://github.com/kivy/python-for-android>`,
-you just need to compile a distribution with the pyjnius module::
+To use pyjnius in an Android app, you must include it in your compiled
+Python distribution. This is done automatically if you build a `Kivy
+<https://kivy.org/#home>`__ app, but you can also add it to your
+requirements explicitly as follows.
 
-    ./distribute.sh -m 'pyjnius kivy'
+If you use `buildozer
+<https://buildozer.readthedocs.io/en/latest/>`__, add pyjnius to your
+requirements in buildozer.spec::
+
+  requirements = pyjnius
+
+If you use `python-for-android
+<http://python-for-android.readthedocs.io/en/latest/>`__ directly, add
+pyjnius to the requirements argument when creating a dist or apk::
+
+  p4a apk --requirements=pyjnius
 
 
 Installation for Windows
