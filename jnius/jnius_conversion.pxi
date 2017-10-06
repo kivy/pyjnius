@@ -73,6 +73,9 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                 pc = py_arg
                 # get the java class
                 jc = pc.j_self
+                if jc is None:
+                    pc._init_j_self_ptr()
+                    jc = pc.j_self
                 # get the localref
                 j_args[index].l = jc.j_self.obj
             elif isinstance(py_arg, type):
@@ -376,6 +379,9 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
             pc = obj
             # get the java class
             jc = pc.j_self
+            if jc is None:
+                pc._init_j_self_ptr()
+                jc = pc.j_self
             # get the localref
             return jc.j_self.obj
         elif isinstance(obj, (tuple, list)):

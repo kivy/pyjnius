@@ -15,7 +15,6 @@ class TestImplemIterator(PythonJavaClass):
         'java/util/ListIterator', ]
 
     def __init__(self, collection, index=0):
-        super(TestImplemIterator, self).__init__()
         self.collection = collection
         self.index = index
 
