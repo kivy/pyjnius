@@ -45,6 +45,35 @@ class MetaJavaClass(type):
         jclass_register[classDict['__javaclass__']] = tp
         return tp
 
+    def __instancecheck__(cls, value):
+        cdef JavaClassStorage me = getattr(cls, '__cls_storage')
+        cdef JavaObject jo
+        cdef JavaClass jc
+        cdef PythonJavaClass pc
+        cdef jobject obj = NULL
+        cdef JNIEnv *j_env = get_jnienv()
+        if isinstance(value, basestring):
+            obj = j_env[0].NewStringUTF(j_env, <char *>"")
+        elif isinstance(value, JavaClass):
+            jc = value
+            obj = jc.j_self.obj
+        elif isinstance(value, JavaObject):
+            jo = value
+            obj = jo.obj
+        elif isinstance(value, PythonJavaClass):
+            pc = value
+            jc = pc.j_self
+            if jc is None:
+                pc._init_j_self_ptr()
+                jc = pc.j_self
+            obj = jc.j_self.obj
+
+        if obj != NULL:
+            if 0 != j_env[0].IsInstanceOf(j_env, obj, me.j_cls):
+                return True
+
+        return super(MetaJavaClass, cls).__instancecheck__(value)
+
     @staticmethod
     def get_javaclass(name):
         return jclass_register.get(name)
