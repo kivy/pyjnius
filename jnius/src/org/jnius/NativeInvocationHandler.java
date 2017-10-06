@@ -33,5 +33,9 @@ public class NativeInvocationHandler implements InvocationHandler {
         return ret;
     }
 
+    public long getPythonObjectPointer() {
+        return ptr;
+    }
+
     native Object invoke0(Object proxy, Method method, Object[] args);
 }

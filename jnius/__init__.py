@@ -11,6 +11,7 @@ __version__ = '1.1.2-dev'
 
 from .jnius import *  # noqa
 from .reflect import *  # noqa
+from six import with_metaclass
 
 # XXX monkey patch methods that cannot be in cython.
 # Cython doesn't allow to set new attribute on methods it compiled
@@ -18,7 +19,7 @@ from .reflect import *  # noqa
 HASHCODE_MAX = 2 ** 31 - 1
 
 
-class PythonJavaClass_(PythonJavaClass):
+class PythonJavaClass_(with_metaclass(MetaJavaBase, PythonJavaClass)):
 
     @java_method('()I', name='hashCode')
     def hashCode(self):
