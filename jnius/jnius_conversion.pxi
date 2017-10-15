@@ -110,6 +110,16 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                     j_env, argtype[1:], py_arg)
 
 
+cdef convert_jstring_to_python(JNIEnv *j_env, jstring string):
+    c_str = <char *>j_env[0].GetStringUTFChars(j_env, string, NULL)
+    py_str = <bytes>c_str
+    j_env[0].ReleaseStringUTFChars(j_env, string, c_str)
+    if PY_MAJOR_VERSION < 3:
+        return py_str
+    else:
+        return py_str.decode('utf-8')
+
+
 cdef convert_jobject_to_python(JNIEnv *j_env, definition, jobject j_object):
     # Convert a Java Object to a Python object, according to the definition.
     # If the definition is a java/lang/Object, then try to determine what is it
@@ -144,15 +154,7 @@ cdef convert_jobject_to_python(JNIEnv *j_env, definition, jobject j_object):
             string = <jstring> (j_env[0].CallObjectMethod(j_env, j_object, retmeth))
         else:
             string = <jstring>j_object
-        c_str = <char *>j_env[0].GetStringUTFChars(j_env, string, NULL)
-        py_str = <bytes>c_str
-        j_env[0].ReleaseStringUTFChars(j_env, string, c_str)
-
-
-        if PY_MAJOR_VERSION < 3:
-            return py_str
-        else:
-            return py_str.decode('utf-8')
+        return convert_jstring_to_python(j_env, string)
 
     # XXX should be deactivable from configuration
     # ie, user might not want autoconvertion of lang classes.
