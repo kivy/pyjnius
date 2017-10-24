@@ -171,7 +171,7 @@ with open(join('jnius', '__init__.py')) as fd:
 
 # Compile NativeInvocationHandler.java
 subprocess.check_call([
-    'javac',
+    'javac', '-target', '1.6', '-source', '1.6',
     join('jnius', 'src', 'org', 'jnius', 'NativeInvocationHandler.java')
 ])
 
