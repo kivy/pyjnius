@@ -29,7 +29,7 @@ cdef void create_jnienv() except *:
 
     optarr = jnius_config.options
     cp = jnius_config.expand_classpath()
-    optarr.append("-Djava.class.path={0}".format(cp).encode())
+    optarr.append("-Djava.class.path={0}".format(cp))
 
     options = <JavaVMOption*>malloc(sizeof(JavaVMOption) * len(optarr))
     for i, opt in enumerate(optarr):
