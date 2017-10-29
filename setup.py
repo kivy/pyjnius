@@ -68,6 +68,23 @@ except ImportError:
     # and we go ahead with the 'desktop' file? Odd.
     files = [fn[:-3] + 'c' for fn in files if fn.endswith('pyx')]
 
+def find_javac(possible_homes):
+    name = "javac.exe" if sys.platform == "win32" else "javac"
+    for home in possible_homes:
+        for javac in [join(home, name), join(home, 'bin', name)]:
+            if exists(javac):
+                return javac
+    return name  # Fall back to "hope it's on the path"
+
+
+def compile_native_invocation_handler(*possible_homes):
+    javac = find_javac(possible_homes)
+    subprocess.check_call([
+        javac, '-target', '1.6', '-source', '1.6',
+        join('jnius', 'src', 'org', 'jnius', 'NativeInvocationHandler.java')
+    ])
+
+
 if platform == 'android':
     # for android, we use SDL...
     libraries = ['sdl', 'log']
@@ -91,6 +108,7 @@ elif platform == 'darwin':
             '{0}/include'.format(framework),
             '{0}/include/darwin'.format(framework)
         ]
+    compile_native_invocation_handler(framework)
 else:
     # otherwise, we need to search the JDK_HOME
     jdk_home = getenv('JDK_HOME')
@@ -155,6 +173,8 @@ else:
             join(jre_home, 'bin', 'server')
         ]
 
+    compile_native_invocation_handler(jdk_home, jre_home)
+
 # generate the config.pxi
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
     fd.write('DEF JNIUS_PLATFORM = {0!r}\n\n'.format(platform))
@@ -168,12 +188,6 @@ with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
 with open(join('jnius', '__init__.py')) as fd:
     versionline = [x for x in fd.readlines() if x.startswith('__version__')]
     version = versionline[0].split("'")[-2]
-
-# Compile NativeInvocationHandler.java
-subprocess.check_call([
-    'javac', '-target', '1.6', '-source', '1.6',
-    join('jnius', 'src', 'org', 'jnius', 'NativeInvocationHandler.java')
-])
 
 # create the extension
 setup(
