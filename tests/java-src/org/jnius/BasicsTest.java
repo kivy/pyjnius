@@ -175,6 +175,10 @@ public class BasicsTest {
 		x[2] = -127;
 	}
 
+	public byte[] methodReturnEmptyByteArray() {
+		return new byte[0];
+	}
+
 	public boolean testFieldSetZ() {
 		return (fieldSetZ == true);
 	}

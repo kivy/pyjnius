@@ -46,8 +46,8 @@ cdef class PythonJavaClass(object):
         try:
             ret = self._invoke(method, *args)
             return ret
-        except Exception as e:
-            traceback.print_exc(e)
+        except Exception:
+            traceback.print_exc()
             return None
 
     def _invoke(self, method, *args):
@@ -141,16 +141,16 @@ cdef jobject py_invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
 
     try:
         return convert_python_to_jobject(j_env, jtype or ret_signature, ret)
-    except Exception as e:
-        traceback.print_exc(e)
+    except Exception:
+        traceback.print_exc()
 
 
 cdef jobject invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
         j_method, jobjectArray args) with gil:
     try:
         return py_invoke0(j_env, j_this, j_proxy, j_method, args)
-    except Exception as e:
-        traceback.print_exc(e)
+    except Exception:
+        traceback.print_exc()
         return NULL
 
 # now we need to create a proxy and pass it an invocation handler
@@ -162,7 +162,7 @@ cdef create_proxy_instance(JNIEnv *j_env, py_obj, j_interfaces, javacontext):
     # convert strings to Class
     j_interfaces = [find_javaclass(x) for x in j_interfaces]
 
-    cdef JavaClass nih = NativeInvocationHandler(<long><void *>py_obj)
+    cdef JavaClass nih = NativeInvocationHandler(<long long><void *>py_obj)
     cdef JNINativeMethod invoke_methods[1]
     invoke_methods[0].name = 'invoke0'
     invoke_methods[0].signature = '(Ljava/lang/Object;Ljava/lang/reflect/Method;[Ljava/lang/Object;)Ljava/lang/Object;'

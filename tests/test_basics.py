@@ -5,10 +5,17 @@ import sys
 import unittest
 from jnius.reflect import autoclass
 
+try:
+    long
+except NameError:
+    # Python 3
+    long = int
+
 def py2_encode(uni):
     if sys.version_info < (3, 0):
         uni = uni.encode('utf-8')
     return uni
+
 
 class BasicsTest(unittest.TestCase):
 
@@ -107,6 +114,8 @@ class BasicsTest(unittest.TestCase):
         test = autoclass('org.jnius.BasicsTest')()
         self.assertEquals(test.methodParamsZBCSIJFD(
             True, 127, 'k', 32767, 2147483467, 9223372036854775807, 1.23456789, 1.23456789), True)
+        self.assertEquals(test.methodParamsZBCSIJFD(
+            True, long(127), 'k', long(32767), long(2147483467), 9223372036854775807, 1.23456789, 1.23456789), True)
         self.assertEquals(test.methodParamsString(py2_encode(u'hello \U0001F30E!')), True)
         self.assertEquals(test.methodParamsArrayI([1, 2, 3]), True)
         self.assertEquals(test.methodParamsArrayString([
