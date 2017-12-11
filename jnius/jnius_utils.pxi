@@ -77,7 +77,7 @@ cdef void check_exception(JNIEnv *j_env) except *:
         getStackTrace = j_env[0].GetMethodID(j_env, cls_throwable, "getStackTrace", "()[Ljava/lang/StackTraceElement;");
 
         e_msg = j_env[0].CallObjectMethod(j_env, exc, getMessage);
-        pymsg = None if e_msg == NULL else convert_jobject_to_python(j_env, <bytes> 'Ljava/lang/String;', e_msg)
+        pymsg = None if e_msg == NULL else convert_jstring_to_python(j_env, e_msg)
 
         pystack = []
         _append_exception_trace_messages(j_env, pystack, exc, getCause, getStackTrace, toString)

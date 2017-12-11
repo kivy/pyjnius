@@ -226,7 +226,7 @@ def autoclass(clsname):
             # initialize the subclass before getting the Class.forName
             # otherwise isInstance does not know of the subclass
             mock_exception_object = autoclass(e.classname)()
-            if Class.forName("java.lang.IndexOutOfBoundsException").isInstance(mock_exception_object):
+            if find_javaclass("java.lang.IndexOutOfBoundsException").isInstance(mock_exception_object):
                 # python for...in iteration checks for end of list by waiting for IndexError
                 raise IndexError()
             else:
