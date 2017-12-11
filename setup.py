@@ -3,6 +3,10 @@ try:
     from setuptools import setup, Extension
 except ImportError:
     from distutils.core import setup, Extension
+try:
+    import subprocess32 as subprocess
+except ImportError:
+    import subprocess
 from os import environ
 from os.path import dirname, join, exists
 import sys
@@ -64,12 +68,28 @@ except ImportError:
     # and we go ahead with the 'desktop' file? Odd.
     files = [fn[:-3] + 'c' for fn in files if fn.endswith('pyx')]
 
+def find_javac(possible_homes):
+    name = "javac.exe" if sys.platform == "win32" else "javac"
+    for home in possible_homes:
+        for javac in [join(home, name), join(home, 'bin', name)]:
+            if exists(javac):
+                return javac
+    return name  # Fall back to "hope it's on the path"
+
+
+def compile_native_invocation_handler(*possible_homes):
+    javac = find_javac(possible_homes)
+    subprocess.check_call([
+        javac, '-target', '1.6', '-source', '1.6',
+        join('jnius', 'src', 'org', 'jnius', 'NativeInvocationHandler.java')
+    ])
+
+
 if platform == 'android':
     # for android, we use SDL...
     libraries = ['sdl', 'log']
     library_dirs = ['libs/' + getenv('ARCH')]
 elif platform == 'darwin':
-    import subprocess
     framework = subprocess.Popen(
         '/usr/libexec/java_home',
         stdout=subprocess.PIPE, shell=True).communicate()[0]
@@ -88,8 +108,8 @@ elif platform == 'darwin':
             '{0}/include'.format(framework),
             '{0}/include/darwin'.format(framework)
         ]
+    compile_native_invocation_handler(framework)
 else:
-    import subprocess
     # otherwise, we need to search the JDK_HOME
     jdk_home = getenv('JDK_HOME')
     if not jdk_home:
@@ -153,6 +173,8 @@ else:
             join(jre_home, 'bin', 'server')
         ]
 
+    compile_native_invocation_handler(jdk_home, jre_home)
+
 # generate the config.pxi
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
     fd.write('DEF JNIUS_PLATFORM = {0!r}\n\n'.format(platform))
@@ -190,6 +212,9 @@ setup(
             extra_link_args=extra_link_args
         )
     ],
+    package_data={
+        'jnius': [ 'src/org/jnius/*' ]
+    },
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
