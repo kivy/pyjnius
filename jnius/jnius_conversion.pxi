@@ -1,4 +1,5 @@
 from cpython.version cimport PY_MAJOR_VERSION
+from cpython cimport PyUnicode_DecodeUTF16
 
 cdef jstringy_arg(argtype):
     return argtype in ('Ljava/lang/String;',
@@ -33,7 +34,7 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
     cdef JavaClass jc
     cdef PythonJavaClass pc
     cdef int index
-    cdef bytes py_str
+
     for index, argtype in enumerate(definition_args):
         py_arg = args[index]
         if argtype == 'Z':
@@ -55,14 +56,8 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
         elif argtype[0] == 'L':
             if py_arg is None:
                 j_args[index].l = NULL
-            elif (isinstance(py_arg, basestring) or (PY_MAJOR_VERSION >=3 and isinstance(py_arg, str))) \
-                  and jstringy_arg(argtype):
-                try:
-                    py_str = <bytes>py_arg
-                    j_args[index].l = j_env[0].NewStringUTF(j_env, <char *>py_str)
-                except (UnicodeEncodeError, TypeError):
-                    py_str = <bytes>py_arg.encode('utf-8')
-                    j_args[index].l = j_env[0].NewStringUTF(j_env, <char *>py_str)
+            elif isinstance(py_arg, basestring) and jstringy_arg(argtype):
+                j_args[index].l = convert_pystr_to_java(j_env, py_arg)
             elif isinstance(py_arg, JavaClass):
                 jc = py_arg
                 check_assignable_from(j_env, jc, argtype[1:-1])
@@ -114,8 +109,6 @@ cdef convert_jobject_to_python(JNIEnv *j_env, definition, jobject j_object):
     # Convert a Java Object to a Python object, according to the definition.
     # If the definition is a java/lang/Object, then try to determine what is it
     # exactly.
-    cdef char *c_str
-    cdef bytes py_str
     r = definition[1:-1]
     cdef JavaObject ret_jobject
     cdef JavaClass ret_jc
@@ -144,15 +137,7 @@ cdef convert_jobject_to_python(JNIEnv *j_env, definition, jobject j_object):
             string = <jstring> (j_env[0].CallObjectMethod(j_env, j_object, retmeth))
         else:
             string = <jstring>j_object
-        c_str = <char *>j_env[0].GetStringUTFChars(j_env, string, NULL)
-        py_str = <bytes>c_str
-        j_env[0].ReleaseStringUTFChars(j_env, string, c_str)
-
-
-        if PY_MAJOR_VERSION < 3:
-            return py_str
-        else:
-            return py_str.decode('utf-8')
+        return convert_jstring_to_python(j_env, string)
 
     # XXX should be deactivable from configuration
     # ie, user might not want autoconvertion of lang classes.
@@ -203,6 +188,31 @@ cdef convert_jobject_to_python(JNIEnv *j_env, definition, jobject j_object):
         ret_jc = jclass_register[r](noinstance=True)
     ret_jc.instanciate_from(create_local_ref(j_env, j_object))
     return ret_jc
+
+cdef convert_jstring_to_python(JNIEnv *j_env, jstring j_string):
+    cdef jchar *j_chars
+    cdef jsize j_strlen
+    cdef Py_ssize_t buffsize
+    cdef unicode py_uni
+
+    j_chars = j_env[0].GetStringChars(j_env, j_string, NULL)
+    if j_chars == NULL:
+        check_exception(j_env) # raise error as JavaException
+    try:
+        j_strlen = j_env[0].GetStringLength(j_env, j_string);
+
+        buffsize = j_strlen * sizeof(jchar)
+        # py_uni = (<char *>j_chars)[:buffsize].decode('utf-16')
+        # Calling directly into c-api for utf-16 decoding due to Cython code gen
+        # bug for utf-16: https://github.com/cython/cython/issues/1696
+        py_uni = PyUnicode_DecodeUTF16(<char *>j_chars, buffsize, NULL, NULL)
+    finally:
+        j_env[0].ReleaseStringChars(j_env, j_string, j_chars)
+
+    if PY_MAJOR_VERSION < 3:
+        return py_uni.encode('utf-8')
+    else:
+        return py_uni
 
 cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
     cdef jboolean iscopy
@@ -336,10 +346,7 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
         if obj is None:
             return NULL
         elif isinstance(obj, basestring) and jstringy_arg(definition):
-            return j_env[0].NewStringUTF(j_env, <char *><bytes>obj)
-        elif isinstance(obj, str) and PY_MAJOR_VERSION >= 3 and jstringy_arg(definition):
-            utf8 = obj.encode('utf-8')
-            return j_env[0].NewStringUTF(j_env, <char *><bytes>utf8)
+            return convert_pystr_to_java(j_env, obj)
         elif isinstance(obj, (int, long)) and \
                 definition in (
                     'Ljava/lang/Integer;',
@@ -385,7 +392,8 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
                 bool: 'Z',
                 long: 'J',
                 float: 'F',
-                basestring: 'Ljava/lang/String;',
+                unicode: 'Ljava/lang/String;',
+                bytes: 'Ljava/lang/String;'
             }
         else:
             conversions = {
@@ -393,7 +401,7 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
                 bool: 'Z',
                 long: 'J',
                 float: 'F',
-                str: 'Ljava/lang/String;',
+                unicode: 'Ljava/lang/String;',
                 bytes: 'B'
             }
         retclass = j_env[0].FindClass(j_env, 'java/lang/Object')
@@ -446,6 +454,27 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
     retobject = j_env[0].NewObjectA(j_env, retclass, retmidinit, j_ret)
     return retobject
 
+cdef jstring convert_pystr_to_java(JNIEnv *j_env, basestring py_str) except NULL:
+    cdef bytes py_bytes
+    cdef unicode py_uni
+    cdef jstring j_str
+    cdef jsize j_strlen
+    cdef char *buff
+
+    if isinstance(py_str, bytes):
+        py_uni = (<bytes>py_str).decode('utf-8')
+    else:
+        py_uni = py_str
+
+    py_bytes = py_uni.encode('utf-16')
+    # skip byte-order mark
+    buff = (<char *>py_bytes) + sizeof(jchar)
+    j_strlen = len(py_bytes) / sizeof(jchar) - 1
+    j_str = j_env[0].NewString(j_env, <jchar *>buff, j_strlen)
+
+    if j_str == NULL:
+        check_exception(j_env) # raise error as JavaException
+    return j_str
 
 cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except *:
     cdef jobject ret = NULL
@@ -569,17 +598,8 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
             if arg is None:
                 j_env[0].SetObjectArrayElement(
                         j_env, <jobjectArray>ret, i, NULL)
-            elif isinstance(arg, basestring) and PY_MAJOR_VERSION < 3 and \
-                    jstringy_arg(definition):
-                j_string = j_env[0].NewStringUTF(
-                        j_env, <bytes>arg)
-                j_env[0].SetObjectArrayElement(
-                        j_env, <jobjectArray>ret, i, j_string)
-            elif isinstance(arg, str) and PY_MAJOR_VERSION >= 3 and \
-                    jstringy_arg(definition):
-                utf8 = arg.encode('utf-8')
-                j_string = j_env[0].NewStringUTF(
-                        j_env, <bytes>utf8)
+            elif isinstance(arg, basestring):
+                j_string = convert_pystr_to_java(j_env, arg)
                 j_env[0].SetObjectArrayElement(
                         j_env, <jobjectArray>ret, i, j_string)
             elif isinstance(arg, JavaClass):

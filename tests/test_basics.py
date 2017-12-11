@@ -1,6 +1,7 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+import sys
 import unittest
 from jnius.reflect import autoclass
 
@@ -9,6 +10,11 @@ try:
 except NameError:
     # Python 3
     long = int
+
+def py2_encode(uni):
+    if sys.version_info < (3, 0):
+        uni = uni.encode('utf-8')
+    return uni
 
 
 class BasicsTest(unittest.TestCase):
@@ -23,7 +29,7 @@ class BasicsTest(unittest.TestCase):
         self.assertEquals(Test.methodStaticJ(), 9223372036854775807)
         self.assertAlmostEquals(Test.methodStaticF(), 1.23456789)
         self.assertEquals(Test.methodStaticD(), 1.23456789)
-        self.assertEquals(Test.methodStaticString(), 'helloworld')
+        self.assertEquals(Test.methodStaticString(), py2_encode(u'hello \U0001F30E!'))
 
     def test_static_fields(self):
         Test = autoclass('org.jnius.BasicsTest')
@@ -35,7 +41,7 @@ class BasicsTest(unittest.TestCase):
         self.assertEquals(Test.fieldStaticJ, 9223372036854775807)
         self.assertAlmostEquals(Test.fieldStaticF, 1.23456789)
         self.assertEquals(Test.fieldStaticD, 1.23456789)
-        self.assertEquals(Test.fieldStaticString, 'helloworld')
+        self.assertEquals(Test.fieldStaticString, py2_encode(u'hello \U0001F30E!'))
 
     def test_instance_methods(self):
         test = autoclass('org.jnius.BasicsTest')()
@@ -47,7 +53,7 @@ class BasicsTest(unittest.TestCase):
         self.assertEquals(test.methodJ(), 9223372036854775807)
         self.assertAlmostEquals(test.methodF(), 1.23456789)
         self.assertEquals(test.methodD(), 1.23456789)
-        self.assertEquals(test.methodString(), 'helloworld')
+        self.assertEquals(test.methodString(), py2_encode(u'hello \U0001F30E!'))
 
     def test_instance_fields(self):
         test = autoclass('org.jnius.BasicsTest')()
@@ -59,7 +65,7 @@ class BasicsTest(unittest.TestCase):
         self.assertEquals(test.fieldJ, 9223372036854775807)
         self.assertAlmostEquals(test.fieldF, 1.23456789)
         self.assertEquals(test.fieldD, 1.23456789)
-        self.assertEquals(test.fieldString, 'helloworld')
+        self.assertEquals(test.fieldString, py2_encode(u'hello \U0001F30E!'))
         test2 = autoclass('org.jnius.BasicsTest')(10)
         self.assertEquals(test2.fieldB, 10)
         self.assertEquals(test.fieldB, 127)
@@ -102,7 +108,7 @@ class BasicsTest(unittest.TestCase):
         self.assertAlmostEquals(ret[2], ref[2])
 
         self.assertEquals(test.methodArrayD(), [1.23456789] * 3)
-        self.assertEquals(test.methodArrayString(), ['helloworld'] * 3)
+        self.assertEquals(test.methodArrayString(), [py2_encode(u'hello \U0001F30E!')] * 3)
 
     def test_instances_methods_params(self):
         test = autoclass('org.jnius.BasicsTest')()
@@ -110,10 +116,10 @@ class BasicsTest(unittest.TestCase):
             True, 127, 'k', 32767, 2147483467, 9223372036854775807, 1.23456789, 1.23456789), True)
         self.assertEquals(test.methodParamsZBCSIJFD(
             True, long(127), 'k', long(32767), long(2147483467), 9223372036854775807, 1.23456789, 1.23456789), True)
-        self.assertEquals(test.methodParamsString('helloworld'), True)
+        self.assertEquals(test.methodParamsString(py2_encode(u'hello \U0001F30E!')), True)
         self.assertEquals(test.methodParamsArrayI([1, 2, 3]), True)
         self.assertEquals(test.methodParamsArrayString([
-            'hello', 'world']), True)
+            py2_encode(u'hello'), py2_encode(u'\U0001F30E')]), True)
 
     def test_instances_methods_params_object_list_str(self):
         test = autoclass('org.jnius.BasicsTest')()
@@ -140,7 +146,8 @@ class BasicsTest(unittest.TestCase):
 
     def test_return_array_as_object_array_of_strings(self):
         test = autoclass('org.jnius.BasicsTest')()
-        self.assertEquals(test.methodReturnStrings(), ['Hello', 'world'])
+        self.assertEquals(test.methodReturnStrings(), [py2_encode(u'Hello'),
+                py2_encode(u'\U0001F30E')])
 
     def test_return_array_as_object_of_integers(self):
         test = autoclass('org.jnius.BasicsTest')()
