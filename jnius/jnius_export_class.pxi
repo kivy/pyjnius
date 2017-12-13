@@ -129,13 +129,12 @@ class MetaJavaClass(MetaJavaBase):
                 obj = jcs.j_cls
 
         if NULL == obj:
-            if isinstance(value, PythonJavaClass):
-                for interface in getattr(value, '__javainterfaces__', []):
-                    obj = j_env[0].FindClass(j_env, interface)
-                    if obj == NULL:
-                        j_env[0].ExceptionClear(j_env)
-                    elif 0 != j_env[0].IsAssignableFrom(j_env, obj, me.j_cls):
-                        return True
+            for interface in getattr(value, '__javainterfaces__', []):
+                obj = j_env[0].FindClass(j_env, interface)
+                if obj == NULL:
+                    j_env[0].ExceptionClear(j_env)
+                elif 0 != j_env[0].IsAssignableFrom(j_env, obj, me.j_cls):
+                    return True
         else:
             if 0 != j_env[0].IsAssignableFrom(j_env, obj, me.j_cls):
                 return True
