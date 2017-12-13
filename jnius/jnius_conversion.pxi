@@ -335,7 +335,7 @@ cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
 cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
     cdef jobject retobject, retsubobject
     cdef jclass retclass
-    cdef jmethodID redmidinit
+    cdef jmethodID redmidinit = NULL
     cdef jvalue j_ret[1]
     cdef JavaClass jc
     cdef JavaObject jo

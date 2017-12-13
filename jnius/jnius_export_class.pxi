@@ -118,7 +118,7 @@ class MetaJavaClass(MetaJavaBase):
         cdef JavaClassStorage me = getattr(cls, '__cls_storage')
         cdef JavaClassStorage jcs
         cdef JavaClass jc
-        cdef jclass obj
+        cdef jclass obj = NULL
 
         if isinstance(value, JavaClass):
             jc = value
