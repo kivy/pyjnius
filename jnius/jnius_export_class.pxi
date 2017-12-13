@@ -130,7 +130,7 @@ class MetaJavaClass(MetaJavaBase):
 
         if NULL == obj:
             for interface in getattr(value, '__javainterfaces__', []):
-                obj = j_env[0].FindClass(j_env, interface)
+                obj = j_env[0].FindClass(j_env, str_for_c(interface))
                 if obj == NULL:
                     j_env[0].ExceptionClear(j_env)
                 elif 0 != j_env[0].IsAssignableFrom(j_env, obj, me.j_cls):
