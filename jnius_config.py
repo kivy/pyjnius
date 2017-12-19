@@ -17,7 +17,8 @@ def set_options(*opts):
     "Sets the list of options to the JVM. Removes any previously set options."
     if vm_running:
         raise ValueError("VM is already running, can't set options")
-    globals()['options'] = opts
+    global options
+    options = list(opts)
 
 
 def add_options(*opts):
@@ -41,7 +42,7 @@ def set_classpath(*path):
     if vm_running:
         raise ValueError("VM is already running, can't set classpath")
     global classpath
-    classpath = path
+    classpath = list(path)
 
 
 def add_classpath(*path):
