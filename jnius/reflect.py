@@ -186,7 +186,7 @@ def autoclass(clsname):
             cls = JavaStaticMethod if static else JavaMethod
             classDict[name] = cls(sig, varargs=varargs)
             if name != 'getClass' and bean_getter(name) and len(method.getParameterTypes()) == 0:
-                lowername = lower_name(name[3:])
+                lowername = lower_name(name[2 if name.startswith('is') else 3:])
                 classDict[lowername] = (lambda n: property(lambda self: getattr(self, n)()))(name)
             continue
 
