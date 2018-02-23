@@ -41,7 +41,7 @@ def set_classpath(*path):
     if vm_running:
         raise ValueError("VM is already running, can't set classpath")
     global classpath
-    classpath = path
+    classpath = list(path)
 
 
 def add_classpath(*path):
