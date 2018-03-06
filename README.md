@@ -27,8 +27,9 @@ Hello world
 
 >>> Stack = autoclass('java.util.Stack')
 >>> stack = Stack()
->>> stack.push('hello')
->>> stack.push('world')
+>>> String = autoclass('java.lang.String')
+>>> stack.push(String('hello'))
+>>> stack.push(String('world'))
 >>> print stack.pop()
 world
 >>> print stack.pop()
@@ -119,7 +120,7 @@ class Hardware(JavaClass):
     accelerometerEnable = JavaStaticMethod('(Z)V')
     accelerometerReading = JavaStaticMethod('()[F')
     getDPI = JavaStaticMethod('()I')
-    
+
 # use that new class!
 print 'DPI is', Hardware.getDPI()
 
