@@ -57,8 +57,8 @@ class MetaJavaClass(type):
 
         cdef JavaClassStorage jcs = JavaClassStorage()
         cdef bytes __javaclass__ = <bytes>classDict['__javaclass__']
-        cdef bytes __javainterfaces__ = <bytes>classDict.get('__javainterfaces__', '')
-        cdef bytes __javabaseclass__ = <bytes>classDict.get('__javabaseclass__', '')
+        cdef bytes __javainterfaces__ = <bytes>classDict.get('__javainterfaces__', b'')
+        cdef bytes __javabaseclass__ = <bytes>classDict.get('__javabaseclass__', b'')
         cdef jmethodID getProxyClass, getClassLoader
         cdef jclass *interfaces
         cdef jobject *jargs
