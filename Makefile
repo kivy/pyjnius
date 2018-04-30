@@ -28,5 +28,5 @@ html:
 
 # for use in travis; tests whatever you got.
 # use PYTHON3=1 to force python3 in other environments.
-tests: 
+tests:
 	(cd tests; env CLASSPATH=../build/test-classes:../build/classes PYTHONPATH=..:$(PYTHONPATH) $(NOSETESTS) -v)

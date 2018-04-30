@@ -86,6 +86,7 @@ Python::
 '''
 
 __all__ = ('JavaObject', 'JavaClass', 'JavaMethod', 'JavaField',
+           'JavaStaticMethod', 'JavaStaticField', 'JavaMultipleMethod',
            'MetaJavaBase', 'MetaJavaClass', 'JavaException', 'cast',
            'find_javaclass', 'PythonJavaClass', 'java_method', 'detach')
 
@@ -99,7 +100,7 @@ include "config.pxi"
 
 IF JNIUS_PLATFORM == "android":
     include "jnius_jvm_android.pxi"
-ELIF JNIUS_PLATFORM == "win32":    
+ELIF JNIUS_PLATFORM == "win32":
     include "jnius_jvm_desktop.pxi"
 ELSE:
     include "jnius_jvm_dlopen.pxi"
@@ -110,7 +111,7 @@ include "jnius_conversion.pxi"
 include "jnius_localref.pxi"
 IF JNIUS_PYTHON3:
     include "jnius_nativetypes3.pxi"
-ELSE:    
+ELSE:
     include "jnius_nativetypes.pxi"
 
 include "jnius_export_func.pxi"
