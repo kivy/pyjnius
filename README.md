@@ -110,7 +110,7 @@ need. The previous example can be done manually as follows:
 
 ```python
 from time import sleep
-from java import MetaJavaClass, JavaClass, JavaMethod, JavaStaticMethod
+from jnius import MetaJavaClass, JavaClass, JavaMethod, JavaStaticMethod
 
 class Hardware(JavaClass):
     __metaclass__ = MetaJavaClass
