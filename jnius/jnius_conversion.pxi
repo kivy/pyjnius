@@ -73,6 +73,9 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                 pc = py_arg
                 # get the java class
                 jc = pc.j_self
+                if jc is None:
+                    pc._init_j_self_ptr()
+                    jc = pc.j_self
                 # get the localref
                 j_args[index].l = jc.j_self.obj
             elif isinstance(py_arg, type):
@@ -332,7 +335,7 @@ cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
 cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
     cdef jobject retobject, retsubobject
     cdef jclass retclass
-    cdef jmethodID redmidinit
+    cdef jmethodID redmidinit = NULL
     cdef jvalue j_ret[1]
     cdef JavaClass jc
     cdef JavaObject jo
@@ -376,6 +379,9 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
             pc = obj
             # get the java class
             jc = pc.j_self
+            if jc is None:
+                pc._init_j_self_ptr()
+                jc = pc.j_self
             # get the localref
             return jc.j_self.obj
         elif isinstance(obj, (tuple, list)):

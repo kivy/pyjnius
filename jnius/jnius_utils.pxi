@@ -315,7 +315,7 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
             # if it's a generic object, accept python string, or any java
             # class/object
             if r == 'java/lang/Object':
-                if isinstance(arg, JavaClass) or isinstance(arg, JavaObject):
+                if isinstance(arg, (PythonJavaClass, JavaClass, JavaObject)):
                     score += 10
                     continue
                 elif isinstance(arg, basestring):

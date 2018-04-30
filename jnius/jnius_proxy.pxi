@@ -25,6 +25,9 @@ cdef class PythonJavaClass(object):
         self.j_self = None
 
     def __init__(self, *args, **kwargs):
+        self._init_j_self_ptr()
+
+    def _init_j_self_ptr(self):
         javacontext = 'system'
         if hasattr(self, '__javacontext__'):
             javacontext = self.__javacontext__

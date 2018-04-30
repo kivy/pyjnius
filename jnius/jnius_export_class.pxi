@@ -1,3 +1,6 @@
+from cpython cimport PyObject
+from warnings import warn
+
 class JavaException(Exception):
     '''Can be a real java exception, or just an exception from the wrapper.
     '''
@@ -36,14 +39,107 @@ cdef class JavaClassStorage:
             self.j_cls = NULL
 
 
+class MetaJavaBase(type):
+    def __instancecheck__(cls, value):
+        cdef JNIEnv *j_env = get_jnienv()
+        cdef JavaClassStorage meta = getattr(cls, '__cls_storage', None)
+        cdef JavaObject jo
+        cdef JavaClass jc
+        cdef PythonJavaClass pc
+        cdef jobject obj = NULL
+        cdef jclass proxy = j_env[0].FindClass(j_env, <char *>'java/lang/reflect/Proxy')
+        cdef jclass nih
+        cdef jmethodID meth
+        cdef object wrapped_python
+
+        if isinstance(value, basestring):
+            obj = j_env[0].NewStringUTF(j_env, <char *>"")
+        elif isinstance(value, JavaClass):
+            jc = value
+            obj = jc.j_self.obj
+        elif isinstance(value, JavaObject):
+            jo = value
+            obj = jo.obj
+        elif isinstance(value, PythonJavaClass):
+            pc = value
+            jc = pc.j_self
+            if jc is None:
+                pc._init_j_self_ptr()
+                jc = pc.j_self
+            obj = jc.j_self.obj
+
+        if NULL != obj:
+            if meta is not None and 0 != j_env[0].IsInstanceOf(j_env, obj, meta.j_cls):
+                return True
+
+            if NULL != proxy and 0 != j_env[0].IsInstanceOf(j_env, obj, proxy):
+                # value is a proxy object. check whether it's one of ours
+                meth = j_env[0].GetStaticMethodID(j_env, proxy, <char *>'getInvocationHandler',
+                    <char *>'(Ljava/lang/Object;)Ljava/lang/reflect/InvocationHandler;'
+                )
+                obj = j_env[0].CallStaticObjectMethod(j_env, proxy, meth, obj)
+                nih = j_env[0].FindClass(j_env, <char *>'org/jnius/NativeInvocationHandler')
+                if NULL == nih:
+                    # nih is not reliably in the classpath. don't crash if it's
+                    # not there, because it's impossible to get this far with
+                    # a PythonJavaClass without it, so we can safely assume this
+                    # is just a POJO from elsewhere.
+                    j_env[0].ExceptionClear(j_env)
+                else:
+                    meth = j_env[0].GetMethodID(j_env, nih, <char *>'getPythonObjectPointer',
+                                                <char *>'()J')
+                    if NULL == meth:
+                        # Perhaps we have an old nih
+                        j_env[0].ExceptionClear(j_env)
+                        warn("The org.jnius.NativeInvocationHandler on your classpath"
+                             " is out of date. isinstance will be unreliable.")
+                    else:
+                        wrapped_python = <object><PyObject *>j_env[0].CallLongMethod(j_env, obj, meth)
+                        if wrapped_python is not value and wrapped_python is not None:
+                            if isinstance(wrapped_python, cls):
+                                return True
+
+        # All else fails, defer to python.
+        return super(MetaJavaBase, cls).__instancecheck__(value)
+
+
 cdef dict jclass_register = {}
 
-class MetaJavaClass(type):
+
+class MetaJavaClass(MetaJavaBase):
     def __new__(meta, classname, bases, classDict):
         meta.resolve_class(classDict)
         tp = type.__new__(meta, str(classname), bases, classDict)
         jclass_register[classDict['__javaclass__']] = tp
         return tp
+
+    def __subclasscheck__(cls, value):
+        cdef JNIEnv *j_env = get_jnienv()
+        cdef JavaClassStorage me = getattr(cls, '__cls_storage')
+        cdef JavaClassStorage jcs
+        cdef JavaClass jc
+        cdef jclass obj = NULL
+
+        if isinstance(value, JavaClass):
+            jc = value
+            obj = jc.j_self.obj
+        else:
+            jcs = getattr(value, '__cls_storage', None)
+            if jcs is not None:
+                obj = jcs.j_cls
+
+        if NULL == obj:
+            for interface in getattr(value, '__javainterfaces__', []):
+                obj = j_env[0].FindClass(j_env, str_for_c(interface))
+                if obj == NULL:
+                    j_env[0].ExceptionClear(j_env)
+                elif 0 != j_env[0].IsAssignableFrom(j_env, obj, me.j_cls):
+                    return True
+        else:
+            if 0 != j_env[0].IsAssignableFrom(j_env, obj, me.j_cls):
+                return True
+
+        return super(MetaJavaClass, cls).__subclasscheck__(value)
 
     @staticmethod
     def get_javaclass(name):
