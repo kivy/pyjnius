@@ -167,7 +167,7 @@ Reflection functions
 
     >>> from jnius import autoclass
     >>> autoclass('java.lang.System')
-    <class 'jnius.java.lang.System'>
+    <class 'jnius.reflect.java.lang.System'>
 
     autoclass can also represent a nested Java class:
 
