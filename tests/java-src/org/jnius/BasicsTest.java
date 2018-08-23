@@ -33,6 +33,8 @@ public class BasicsTest {
 			throw new IllegalArgumentException("helloworld2", e);
 		}
 	}
+    public boolean getDisabled() { return true; };
+    public boolean isEnabled() { return !this.getDisabled(); };
 
 	static public boolean fieldStaticZ = true;
 	static public byte fieldStaticB = 127;

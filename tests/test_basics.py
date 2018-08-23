@@ -71,6 +71,11 @@ class BasicsTest(unittest.TestCase):
         self.assertEquals(test.fieldB, 127)
         self.assertEquals(test2.fieldB, 10)
 
+    def test_instance_getter_naming(self):
+        test = autoclass('org.jnius.BasicsTest')()
+        self.assertEquals(test.disabled, True)
+        self.assertEquals(test.enabled, False)
+
     def test_instance_set_fields(self):
         test = autoclass('org.jnius.BasicsTest')()
         test.fieldSetZ = True
