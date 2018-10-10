@@ -14,11 +14,3 @@ install:
 script:
   - make
   - make tests
-
-notifications:
-  webhooks:
-    urls:
-      - https://kivy.org:5000/travisevent
-    on_success: always
-    on_failure: always
-    on_start: always
