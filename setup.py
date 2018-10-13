@@ -3,6 +3,7 @@ try:
     from setuptools import setup, Extension
 except ImportError:
     from distutils.core import setup, Extension
+from setup_sdist import SETUP_KWARGS
 try:
     import subprocess32 as subprocess
 except ImportError:
@@ -185,24 +186,10 @@ with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
     if lib_location is not None:
         fd.write('DEF JNIUS_LIB_SUFFIX = {0!r}\n\n'.format(lib_location))
 
-with open(join('jnius', '__init__.py')) as fd:
-    versionline = [x for x in fd.readlines() if x.startswith('__version__')]
-    version = versionline[0].split("'")[-2]
-
 # create the extension
 setup(
-    name='pyjnius',
-    version=version,
     cmdclass={'build_ext': build_ext},
-    packages=['jnius'],
-    py_modules=['jnius_config'],
-    url='https://pyjnius.readthedocs.io',
-    author='Kivy Team and other contributors',
-    author_email='kivy-dev@googlegroups.com',
-    license='MIT',
-    description='Dynamic access to Java classes from Python',
     install_requires=install_requires,
-    ext_package='jnius',
     ext_modules=[
         Extension(
             'jnius', [join('jnius', x) for x in files],
@@ -212,22 +199,5 @@ setup(
             extra_link_args=extra_link_args
         )
     ],
-    package_data={
-        'jnius': [ 'src/org/jnius/*' ]
-    },
-    classifiers=[
-        'Development Status :: 4 - Beta',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Natural Language :: English',
-        'Operating System :: MacOS',
-        'Operating System :: Microsoft :: Windows',
-        'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Topic :: Software Development :: Libraries :: Application Frameworks'
-    ]
+    **SETUP_KWARGS
 )
