@@ -1,3 +1,7 @@
+'''
+Setup.py for creating a binary distribution.
+'''
+
 from __future__ import print_function
 try:
     from setuptools import setup, Extension
@@ -11,11 +15,13 @@ from os import environ
 from os.path import dirname, join, exists
 import sys
 from platform import machine
+from setup_sdist import SETUP_KWARGS
 
 PY3 = sys.version_info >= (3, 0, 0)
 
 
 def getenv(key):
+    '''Get value from environment and decode it.'''
     val = environ.get(key)
     if val is not None:
         if PY3:
@@ -26,7 +32,7 @@ def getenv(key):
     return val
 
 
-files = [
+FILES = [
     'jni.pxi',
     'jnius_conversion.pxi',
     'jnius_export_class.pxi',
@@ -39,36 +45,39 @@ files = [
     'jnius_utils.pxi',
 ]
 
-libraries = []
-library_dirs = []
-lib_location = None
-extra_link_args = []
-include_dirs = []
-install_requires = ['six>=1.7.0']
+LIBRARIES = []
+LIBRARY_DIRS = []
+LIB_LOCATION = None
+EXTRA_LINK_ARGS = []
+INCLUDE_DIRS = []
+INSTALL_REQUIRES = ['six>=1.7.0']
 
 # detect Python for android
-platform = sys.platform
-ndkplatform = getenv('NDKPLATFORM')
-if ndkplatform is not None and getenv('LIBLINK'):
-    platform = 'android'
+PLATFORM = sys.platform
+NDKPLATFORM = getenv('NDKPLATFORM')
+if NDKPLATFORM is not None and getenv('LIBLINK'):
+    PLATFORM = 'android'
 
 # detect cython
 try:
     from Cython.Distutils import build_ext
-    install_requires.append('cython')
+    INSTALL_REQUIRES.append('cython')
 except ImportError:
+    # pylint: disable=ungrouped-imports
     try:
         from setuptools.command.build_ext import build_ext
     except ImportError:
         from distutils.command.build_ext import build_ext
-    if platform != 'android':
+    if PLATFORM != 'android':
         print('\n\nYou need Cython to compile Pyjnius.\n\n')
         raise
     # On Android we expect to see 'c' files lying about.
     # and we go ahead with the 'desktop' file? Odd.
-    files = [fn[:-3] + 'c' for fn in files if fn.endswith('pyx')]
+    FILES = [fn[:-3] + 'c' for fn in FILES if fn.endswith('pyx')]
+
 
 def find_javac(possible_homes):
+    '''Find javac in all possible locations.'''
     name = "javac.exe" if sys.platform == "win32" else "javac"
     for home in possible_homes:
         for javac in [join(home, name), join(home, 'bin', name)]:
@@ -78,6 +87,7 @@ def find_javac(possible_homes):
 
 
 def compile_native_invocation_handler(*possible_homes):
+    '''Find javac and compile NativeInvocationHandler.java.'''
     javac = find_javac(possible_homes)
     subprocess.check_call([
         javac, '-target', '1.6', '-source', '1.6',
@@ -85,149 +95,127 @@ def compile_native_invocation_handler(*possible_homes):
     ])
 
 
-if platform == 'android':
+if PLATFORM == 'android':
     # for android, we use SDL...
-    libraries = ['sdl', 'log']
-    library_dirs = ['libs/' + getenv('ARCH')]
-elif platform == 'darwin':
-    framework = subprocess.Popen(
+    LIBRARIES = ['sdl', 'log']
+    LIBRARY_DIRS = ['libs/' + getenv('ARCH')]
+elif PLATFORM == 'darwin':
+    FRAMEWORK = subprocess.Popen(
         '/usr/libexec/java_home',
         stdout=subprocess.PIPE, shell=True).communicate()[0]
     if PY3:
-        framework = framework.decode()
-    framework = framework.strip()
-    print('java_home: {0}\n'.format(framework))
-    if not framework:
+        FRAMEWORK = FRAMEWORK.decode()
+    FRAMEWORK = FRAMEWORK.strip()
+    print('java_home: {0}\n'.format(FRAMEWORK))
+    if not FRAMEWORK:
         raise Exception('You must install Java on your Mac OS X distro')
-    if '1.6' in framework:
-        lib_location = '../Libraries/libjvm.dylib'
-        include_dirs = [join(framework, 'System/Library/Frameworks/JavaVM.framework/Versions/Current/Headers')]
+    if '1.6' in FRAMEWORK:
+        LIB_LOCATION = '../Libraries/libjvm.dylib'
+        INCLUDE_DIRS = [join(
+            FRAMEWORK, (
+                'System/Library/Frameworks/'
+                'JavaVM.framework/Versions/Current/Headers'
+            )
+        )]
     else:
-        lib_location = 'jre/lib/server/libjvm.dylib'
-        include_dirs = [
-            '{0}/include'.format(framework),
-            '{0}/include/darwin'.format(framework)
+        LIB_LOCATION = 'jre/lib/server/libjvm.dylib'
+        INCLUDE_DIRS = [
+            '{0}/include'.format(FRAMEWORK),
+            '{0}/include/darwin'.format(FRAMEWORK)
         ]
-    compile_native_invocation_handler(framework)
+    compile_native_invocation_handler(FRAMEWORK)
 else:
-    # otherwise, we need to search the JDK_HOME
-    jdk_home = getenv('JDK_HOME')
-    if not jdk_home:
-        if platform == 'win32':
-            env_var = getenv('JAVA_HOME')
-            if env_var and 'jdk' in env_var:
-                jdk_home = env_var
+    # note: if on Windows, set ONLY JAVA_HOME
+    # not on android or osx, we need to search the JDK_HOME
+    JDK_HOME = getenv('JDK_HOME')
+    if not JDK_HOME:
+        if PLATFORM == 'win32':
+            ENV_VAR = getenv('JAVA_HOME')
+            if ENV_VAR and 'jdk' in ENV_VAR:
+                JDK_HOME = ENV_VAR
 
                 # Remove /bin if it's appended to JAVA_HOME
-                if jdk_home[-3:] == 'bin':
-                    jdk_home = jdk_home[:-4]
+                if JDK_HOME[-3:] == 'bin':
+                    JDK_HOME = JDK_HOME[:-4]
         else:
-            jdk_home = subprocess.Popen(
+            JDK_HOME = subprocess.Popen(
                 'readlink -f `which javac` | sed "s:bin/javac::"',
                 shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
-            if jdk_home is not None and PY3:
-                jdk_home = jdk_home.decode()
-    if not jdk_home or not exists(jdk_home):
+            if JDK_HOME is not None and PY3:
+                JDK_HOME = JDK_HOME.decode()
+    if not JDK_HOME or not exists(JDK_HOME):
         raise Exception('Unable to determine JDK_HOME')
 
-    jre_home = None
-    if exists(join(jdk_home, 'jre')):
-        jre_home = join(jdk_home, 'jre')
-    if not jre_home:
-        jre_home = subprocess.Popen(
+    JRE_HOME = None
+    if exists(join(JDK_HOME, 'jre')):
+        JRE_HOME = join(JDK_HOME, 'jre')
+    if not JRE_HOME:
+        JRE_HOME = subprocess.Popen(
             'readlink -f `which java` | sed "s:bin/java::"',
             shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
-    if not jre_home:
+    if not JRE_HOME:
         raise Exception('Unable to determine JRE_HOME')
 
-    # This dictionary converts values from platform.machine() to a "cpu" string.
-    # It is needed to set the correct lib path, found in the jre_home, eg.
-    # <jre_home>/lib/<cpu>/.
-    machine2cpu = {
-        "i686" : "i386",
-        "x86_64" : "amd64",
-        "armv7l" : "arm"
+    # This dictionary converts values from platform.machine()
+    # to a "cpu" string. It is needed to set the correct lib path,
+    # found in the JRE_HOME, e.g.: <JRE_HOME>/lib/<cpu>/.
+    MACHINE2CPU = {
+        "i686": "i386",
+        "x86_64": "amd64",
+        "armv7l": "arm"
     }
-    if machine() in machine2cpu.keys():
-        cpu = machine2cpu[machine()]
+    if machine() in MACHINE2CPU.keys():
+        CPU = MACHINE2CPU[machine()]
     else:
-        print("WARNING: Not able to assign machine() = %s to a cpu value!" %(machine()))
+        print(
+            "WARNING: Not able to assign machine()"
+            " = %s to a cpu value!" % machine()
+        )
         print("         Using cpu = 'i386' instead!")
-        cpu = 'i386'
+        CPU = 'i386'
 
-    if platform == 'win32':
-        incl_dir = join(jdk_home, 'include', 'win32')
-        libraries = ['jvm']
+    if PLATFORM == 'win32':
+        INCL_DIR = join(JDK_HOME, 'include', 'win32')
+        LIBRARIES = ['jvm']
     else:
-        incl_dir = join(jdk_home, 'include', 'linux')
-        lib_location = 'jre/lib/{}/server/libjvm.so'.format(cpu)
+        INCL_DIR = join(JDK_HOME, 'include', 'linux')
+        LIB_LOCATION = 'jre/lib/{}/server/libjvm.so'.format(CPU)
 
-    include_dirs = [
-        join(jdk_home, 'include'),
-        incl_dir
+    INCLUDE_DIRS = [
+        join(JDK_HOME, 'include'),
+        INCL_DIR
     ]
 
-    if platform == 'win32':
-        library_dirs = [
-            join(jdk_home, 'lib'),
-            join(jre_home, 'bin', 'server')
+    if PLATFORM == 'win32':
+        LIBRARY_DIRS = [
+            join(JDK_HOME, 'lib'),
+            join(JRE_HOME, 'bin', 'server')
         ]
 
-    compile_native_invocation_handler(jdk_home, jre_home)
+    compile_native_invocation_handler(JDK_HOME, JRE_HOME)
 
 # generate the config.pxi
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
-    fd.write('DEF JNIUS_PLATFORM = {0!r}\n\n'.format(platform))
+    fd.write('DEF JNIUS_PLATFORM = {0!r}\n\n'.format(PLATFORM))
     if PY3:
         fd.write('DEF JNIUS_PYTHON3 = True\n\n')
     else:
         fd.write('DEF JNIUS_PYTHON3 = False\n\n')
-    if lib_location is not None:
-        fd.write('DEF JNIUS_LIB_SUFFIX = {0!r}\n\n'.format(lib_location))
-
-with open(join('jnius', '__init__.py')) as fd:
-    versionline = [x for x in fd.readlines() if x.startswith('__version__')]
-    version = versionline[0].split("'")[-2]
+    if LIB_LOCATION is not None:
+        fd.write('DEF JNIUS_LIB_SUFFIX = {0!r}\n\n'.format(LIB_LOCATION))
 
 # create the extension
 setup(
-    name='pyjnius',
-    version=version,
     cmdclass={'build_ext': build_ext},
-    packages=['jnius'],
-    py_modules=['jnius_config'],
-    url='https://pyjnius.readthedocs.io',
-    author='Kivy Team and other contributors',
-    author_email='kivy-dev@googlegroups.com',
-    license='MIT',
-    description='Dynamic access to Java classes from Python',
-    install_requires=install_requires,
-    ext_package='jnius',
+    install_requires=INSTALL_REQUIRES,
     ext_modules=[
         Extension(
-            'jnius', [join('jnius', x) for x in files],
-            libraries=libraries,
-            library_dirs=library_dirs,
-            include_dirs=include_dirs,
-            extra_link_args=extra_link_args
+            'jnius', [join('jnius', x) for x in FILES],
+            libraries=LIBRARIES,
+            library_dirs=LIBRARY_DIRS,
+            include_dirs=INCLUDE_DIRS,
+            extra_link_args=EXTRA_LINK_ARGS
         )
     ],
-    package_data={
-        'jnius': [ 'src/org/jnius/*' ]
-    },
-    classifiers=[
-        'Development Status :: 4 - Beta',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Natural Language :: English',
-        'Operating System :: MacOS',
-        'Operating System :: Microsoft :: Windows',
-        'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Topic :: Software Development :: Libraries :: Application Frameworks'
-    ]
+    **SETUP_KWARGS
 )
