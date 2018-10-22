@@ -7,7 +7,7 @@ Accessing Java classes from Python.
 All the documentation is available at: http://pyjnius.readthedocs.org
 '''
 
-__version__ = '1.1.2-dev'
+__version__ = '1.1.3'
 
 from .jnius import *  # noqa
 from .reflect import *  # noqa
