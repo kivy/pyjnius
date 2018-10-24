@@ -74,6 +74,7 @@ except ImportError:
     # On Android we expect to see 'c' files lying about.
     # and we go ahead with the 'desktop' file? Odd.
     FILES = [fn[:-3] + 'c' for fn in FILES if fn.endswith('pyx')]
+
     
     
 possible_homes = [getenv('JDK_HOME'), getenv('JAVA_HOME'), getenv('JRE_HOME'),
@@ -104,7 +105,6 @@ def compile_native_invocation_handler(*args):
             javac, '-target', '1.6', '-source', '1.6',
             join('jnius', 'src', 'org', 'jnius', 'NativeInvocationHandler.java')
         ])
-
 
 if PLATFORM == 'android':
     # for android, we use SDL...
@@ -138,7 +138,7 @@ elif PLATFORM == 'darwin':
 else:
     # note: if on Windows, set ONLY JAVA_HOME
     # not on android or osx, we need to search the JDK_HOME
-    
+
     # note about the note above: Java 10 and Java 11 install system path as JDK_HOME on Windows also.
     # Windows 10 confirmed.
     
@@ -153,10 +153,11 @@ else:
                 JDK_HOME = java_h
 
                 # Remove /bin if it's appended to JAVA_HOME
-                # if JDK_HOME[-3:] == 'bin':
-                #     JDK_HOME = JDK_HOME[:-4]
                 if 'bin' in JDK_HOME:
                     JDK_HOME = JDK_HOME[:-3]
+                if JDK_HOME[-3:] == 'bin':
+                    JDK_HOME = JDK_HOME[:-4]
+
         else:
             JDK_HOME = subprocess.Popen(
                 'readlink -f `which javac` | sed "s:bin/javac::"',
@@ -191,13 +192,12 @@ else:
             CPU_ver = 'x86_64'
             if CPU_ver in MACHINE2CPU.keys():
                 CPU = MACHINE2CPU[CPU_ver]
-            if machine() in MACHINE2CPU.keys():
-                CPU = MACHINE2CPU[machine()]
+    if machine() in MACHINE2CPU.keys():
+        CPU = MACHINE2CPU[machine()]
     else:
         print(
             "WARNING: Not able to assign machine()"
             " = %s to a cpu value!" % machine()
-                )
         print("         Using cpu = 'i386' instead!")
         CPU = 'i386'
 
@@ -206,7 +206,7 @@ else:
         LIBRARIES = ['jvm']
     else:
         INCL_DIR = join(JDK_HOME, 'include', 'linux')
-        LIB_LOCATION = f'jre/lib/{CPU}/server/libjvm.so'
+        LIB_LOCATION = 'jre/lib/{}/server/libjvm.so'.format(CPU)
 
     INCLUDE_DIRS = [
         join(JDK_HOME, 'include'),

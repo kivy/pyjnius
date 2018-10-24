@@ -1,24 +1,39 @@
 language: python
 
-python:
-  - 2.7
-  - 3.6
+
+matrix:
+    fast_finish: true
+    include:
+        - language: python
+          python: 2.7
+          os: linux
+          dist: trusty
+
+        - language: python
+          python: 3.6
+          os: linux
+          dist: trusty
+
+        - language: python
+          python: 3.6
+          os: linux
+          os: trusty
+          env: RUN=sdist
 
 before_install:
-  - sudo apt-get update
-  - sudo apt-get install python-pip openjdk-7-jdk
+    - sudo apt-get update
+    - sudo apt-get install python-pip openjdk-7-jdk
 
 install:
-  - pip install --upgrade cython six
+    - if [ "$RUN" != "sdist" ]; then pip install --upgrade cython six; fi;
 
 script:
-  - make
-  - make tests
-
-notifications:
-  webhooks:
-    urls:
-      - https://kivy.org:5000/travisevent
-    on_success: always
-    on_failure: always
-    on_start: always
+    - if [ "$RUN" == "sdist" ]; then
+          if [ "$PYJNIUS_DEPLOY" == "1" ]; then
+              pip install twine;
+              python setup_sdist.py sdist;
+              python -m twine upload dist/*;
+          fi;
+      else
+          make && make tests;
+      fi;
