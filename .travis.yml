@@ -1,39 +1,69 @@
 language: python
 
-
 matrix:
-    fast_finish: true
-    include:
-        - language: python
-          python: 2.7
-          os: linux
-          dist: trusty
+  fast_finish: true
+  include:
+    - language: python
+      os: linux
+      env:
+        - PYTHON_VERSION="2.7"
+        - JAVA_VERSION="8"
+    - language: python
+      os: linux
+      env:
+        - PYTHON_VERSION="3.6"
+        - JAVA_VERSION="8"
+    - language: python
+      os: linux
+      env:
+        - PYTHON_VERSION="3.7"
+        - JAVA_VERSION="8"
+    - language: python
+      os: linux
+      env:
+        - PYTHON_VERSION="3.7"
+        - JAVA_VERSION="8"
+        - RUN=sdist
+    - language: python
+      os: linux
+      env:
+        - PYTHON_VERSION="2.7"
+        - JAVA_VERSION="9"
+    - language: python
+      os: linux
+      env:
+        - PYTHON_VERSION="3.6"
+        - JAVA_VERSION="9"
+    - language: python
+      os: linux
+      env:
+        - PYTHON_VERSION="3.7"
+        - JAVA_VERSION="9"
 
-        - language: python
-          python: 3.6
-          os: linux
-          dist: trusty
-
-        - language: python
-          python: 3.6
-          os: linux
-          os: trusty
-          env: RUN=sdist
-
-before_install:
-    - sudo apt-get update
-    - sudo apt-get install python-pip openjdk-7-jdk
 
 install:
-    - if [ "$RUN" != "sdist" ]; then pip install --upgrade cython six; fi;
+  - sudo apt-get update
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - echo ". $HOME/miniconda/etc/profile.d/conda.sh" >> $HOME/.bashrc
+  - source $HOME/.bashrc
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda config --add channels conda-forge
+  - conda update -q conda
+  - conda info -a
+  - conda create -n jnius_env python=$PYTHON_VERSION
+  - conda activate jnius_env
+  - conda install openjdk=$JAVA_VERSION cython nose ant pip setuptools six
 
 script:
-    - if [ "$RUN" == "sdist" ]; then
-          if [ "$PYJNIUS_DEPLOY" == "1" ]; then
-              pip install twine;
-              python setup_sdist.py sdist;
-              python -m twine upload dist/*;
-          fi;
-      else
-          make && make tests;
+  - conda activate jnius_env
+  - if [ "$RUN" == "sdist" ]; then
+      if [ "$PYJNIUS_DEPLOY" == "1" ]; then
+        conda install twine;
+        python setup_sdist.py sdist;
+        python -m twine upload dist/*;
       fi;
+    else
+      make && make tests;
+    fi;
