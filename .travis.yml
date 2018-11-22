@@ -54,6 +54,21 @@ matrix:
       env:
         - PYTHON_VERSION="3.7"
         - JAVA_VERSION="10"
+    - language: python
+      os: linux
+      env:
+        - PYTHON_VERSION="2.7"
+        - JAVA_VERSION="11"
+    - language: python
+      os: linux
+      env:
+        - PYTHON_VERSION="3.6"
+        - JAVA_VERSION="11"
+    - language: python
+      os: linux
+      env:
+        - PYTHON_VERSION="3.7"
+        - JAVA_VERSION="11"
 
 
 install:
