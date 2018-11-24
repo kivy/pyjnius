@@ -1,131 +1,131 @@
-language: python
+language: generic
 
 matrix:
   fast_finish: true
   include:
-    - language: python
+    - language: generic
       os: linux
       env:
         - PYTHON_VERSION="2.7"
         - JAVA_VERSION="8"
-    - language: python
+    - language: generic
       os: linux
       env:
         - PYTHON_VERSION="3.6"
         - JAVA_VERSION="8"
-    - language: python
+    - language: generic
       os: linux
       env:
         - PYTHON_VERSION="3.7"
         - JAVA_VERSION="8"
-    - language: python
+    - language: generic
       os: linux
       env:
         - PYTHON_VERSION="3.7"
         - JAVA_VERSION="8"
         - RUN=sdist
-    - language: python
+    - language: generic
       os: linux
       env:
         - PYTHON_VERSION="2.7"
         - JAVA_VERSION="9"
-    - language: python
+    - language: generic
       os: linux
       env:
         - PYTHON_VERSION="3.6"
         - JAVA_VERSION="9"
-    - language: python
+    - language: generic
       os: linux
       env:
         - PYTHON_VERSION="3.7"
         - JAVA_VERSION="9"
-    - language: python
+    - language: generic
       os: linux
       env:
         - PYTHON_VERSION="2.7"
         - JAVA_VERSION="10"
-    - language: python
+    - language: generic
       os: linux
       env:
         - PYTHON_VERSION="3.6"
         - JAVA_VERSION="10"
-    - language: python
+    - language: generic
       os: linux
       env:
         - PYTHON_VERSION="3.7"
         - JAVA_VERSION="10"
-    - language: python
+    - language: generic
       os: linux
       env:
         - PYTHON_VERSION="2.7"
         - JAVA_VERSION="11"
-    - language: python
+    - language: generic
       os: linux
       env:
         - PYTHON_VERSION="3.6"
         - JAVA_VERSION="11"
-    - language: python
+    - language: generic
       os: linux
       env:
         - PYTHON_VERSION="3.7"
         - JAVA_VERSION="11"
 
-    - language: python
+    - language: generic
       os: osx
       env:
         - PYTHON_VERSION="2.7"
         - JAVA_VERSION="8"
-    - language: python
+    - language: generic
       os: osx
       env:
         - PYTHON_VERSION="3.6"
         - JAVA_VERSION="8"
-    - language: python
+    - language: generic
       os: osx
       env:
         - PYTHON_VERSION="3.7"
         - JAVA_VERSION="8"
-    - language: python
+    - language: generic
       os: osx
       env:
         - PYTHON_VERSION="2.7"
         - JAVA_VERSION="9"
-    - language: python
+    - language: generic
       os: osx
       env:
         - PYTHON_VERSION="3.6"
         - JAVA_VERSION="9"
-    - language: python
+    - language: generic
       os: osx
       env:
         - PYTHON_VERSION="3.7"
         - JAVA_VERSION="9"
-    - language: python
+    - language: generic
       os: osx
       env:
         - PYTHON_VERSION="2.7"
         - JAVA_VERSION="10"
-    - language: python
+    - language: generic
       os: osx
       env:
         - PYTHON_VERSION="3.6"
         - JAVA_VERSION="10"
-    - language: python
+    - language: generic
       os: osx
       env:
         - PYTHON_VERSION="3.7"
         - JAVA_VERSION="10"
-    - language: python
+    - language: generic
       os: osx
       env:
         - PYTHON_VERSION="2.7"
         - JAVA_VERSION="11"
-    - language: python
+    - language: generic
       os: osx
       env:
         - PYTHON_VERSION="3.6"
         - JAVA_VERSION="11"
-    - language: python
+    - language: generic
       os: osx
       env:
         - PYTHON_VERSION="3.7"
