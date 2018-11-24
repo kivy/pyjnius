@@ -1,79 +1,35 @@
-language: python
+language: generic
+
+os:
+  - osx
+  - linux
+
+env:
+  - PYTHON_VERSION="2.7" JAVA_VERSION="8"
+  - PYTHON_VERSION="3.6" JAVA_VERSION="8"
+  - PYTHON_VERSION="3.7" JAVA_VERSION="8"
+  - PYTHON_VERSION="2.7" JAVA_VERSION="9"
+  - PYTHON_VERSION="3.6" JAVA_VERSION="9"
+  - PYTHON_VERSION="3.7" JAVA_VERSION="9"
+  - PYTHON_VERSION="2.7" JAVA_VERSION="10"
+  - PYTHON_VERSION="3.6" JAVA_VERSION="10"
+  - PYTHON_VERSION="3.7" JAVA_VERSION="10"
+  - PYTHON_VERSION="2.7" JAVA_VERSION="11"
+  - PYTHON_VERSION="3.6" JAVA_VERSION="11"
+  - PYTHON_VERSION="3.7" JAVA_VERSION="11"
 
 matrix:
   fast_finish: true
-  include:
-    - language: python
-      os: linux
-      env:
-        - PYTHON_VERSION="2.7"
-        - JAVA_VERSION="8"
-    - language: python
-      os: linux
-      env:
-        - PYTHON_VERSION="3.6"
-        - JAVA_VERSION="8"
-    - language: python
-      os: linux
-      env:
-        - PYTHON_VERSION="3.7"
-        - JAVA_VERSION="8"
-    - language: python
-      os: linux
-      env:
-        - PYTHON_VERSION="3.7"
-        - JAVA_VERSION="8"
-        - RUN=sdist
-    - language: python
-      os: linux
-      env:
-        - PYTHON_VERSION="2.7"
-        - JAVA_VERSION="9"
-    - language: python
-      os: linux
-      env:
-        - PYTHON_VERSION="3.6"
-        - JAVA_VERSION="9"
-    - language: python
-      os: linux
-      env:
-        - PYTHON_VERSION="3.7"
-        - JAVA_VERSION="9"
-    - language: python
-      os: linux
-      env:
-        - PYTHON_VERSION="2.7"
-        - JAVA_VERSION="10"
-    - language: python
-      os: linux
-      env:
-        - PYTHON_VERSION="3.6"
-        - JAVA_VERSION="10"
-    - language: python
-      os: linux
-      env:
-        - PYTHON_VERSION="3.7"
-        - JAVA_VERSION="10"
-    - language: python
-      os: linux
-      env:
-        - PYTHON_VERSION="2.7"
-        - JAVA_VERSION="11"
-    - language: python
-      os: linux
-      env:
-        - PYTHON_VERSION="3.6"
-        - JAVA_VERSION="11"
-    - language: python
-      os: linux
-      env:
-        - PYTHON_VERSION="3.7"
-        - JAVA_VERSION="11"
-
 
 install:
-  - sudo apt-get update
-  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+
+  - if [ "$TRAVIS_OS_NAME" = linux ]; then
+        sudo apt-get update;
+        MINICONDAVERSION="Linux";
+    else
+        MINICONDAVERSION="MacOSX";
+    fi;
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-$MINICONDAVERSION-x86_64.sh -O miniconda.sh
   - bash miniconda.sh -b -p $HOME/miniconda
   - echo ". $HOME/miniconda/etc/profile.d/conda.sh" >> $HOME/.bashrc
   - source $HOME/.bashrc
