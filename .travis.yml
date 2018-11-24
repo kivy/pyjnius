@@ -3,135 +3,108 @@ language: generic
 matrix:
   fast_finish: true
   include:
-    - language: generic
-      os: linux
+    - os: osx
       env:
         - PYTHON_VERSION="2.7"
         - JAVA_VERSION="8"
-    - language: generic
-      os: linux
+    - os: osx
       env:
         - PYTHON_VERSION="3.6"
         - JAVA_VERSION="8"
-    - language: generic
-      os: linux
+    - os: osx
       env:
         - PYTHON_VERSION="3.7"
         - JAVA_VERSION="8"
-    - language: generic
-      os: linux
+    - os: osx
+      env:
+        - PYTHON_VERSION="2.7"
+        - JAVA_VERSION="9"
+    - os: osx
+      env:
+        - PYTHON_VERSION="3.6"
+        - JAVA_VERSION="9"
+    - os: osx
+      env:
+        - PYTHON_VERSION="3.7"
+        - JAVA_VERSION="9"
+    - os: osx
+      env:
+        - PYTHON_VERSION="2.7"
+        - JAVA_VERSION="10"
+    - os: osx
+      env:
+        - PYTHON_VERSION="3.6"
+        - JAVA_VERSION="10"
+    - os: osx
+      env:
+        - PYTHON_VERSION="3.7"
+        - JAVA_VERSION="10"
+    - os: osx
+      env:
+        - PYTHON_VERSION="2.7"
+        - JAVA_VERSION="11"
+    - os: osx
+      env:
+        - PYTHON_VERSION="3.6"
+        - JAVA_VERSION="11"
+    - os: osx
+      env:
+        - PYTHON_VERSION="3.7"
+        - JAVA_VERSION="11"
+
+    - os: linux
+      env:
+        - PYTHON_VERSION="2.7"
+        - JAVA_VERSION="8"
+    - os: linux
+      env:
+        - PYTHON_VERSION="3.6"
+        - JAVA_VERSION="8"
+    - os: linux
+      env:
+        - PYTHON_VERSION="3.7"
+        - JAVA_VERSION="8"
+    - os: linux
       env:
         - PYTHON_VERSION="3.7"
         - JAVA_VERSION="8"
         - RUN=sdist
-    - language: generic
-      os: linux
+    - os: linux
       env:
         - PYTHON_VERSION="2.7"
         - JAVA_VERSION="9"
-    - language: generic
-      os: linux
+    - os: linux
       env:
         - PYTHON_VERSION="3.6"
         - JAVA_VERSION="9"
-    - language: generic
-      os: linux
+    - os: linux
       env:
         - PYTHON_VERSION="3.7"
         - JAVA_VERSION="9"
-    - language: generic
-      os: linux
+    - os: linux
       env:
         - PYTHON_VERSION="2.7"
         - JAVA_VERSION="10"
-    - language: generic
-      os: linux
+    - os: linux
       env:
         - PYTHON_VERSION="3.6"
         - JAVA_VERSION="10"
-    - language: generic
-      os: linux
+    - os: linux
       env:
         - PYTHON_VERSION="3.7"
         - JAVA_VERSION="10"
-    - language: generic
-      os: linux
+    - os: linux
       env:
         - PYTHON_VERSION="2.7"
         - JAVA_VERSION="11"
-    - language: generic
-      os: linux
+    - os: linux
       env:
         - PYTHON_VERSION="3.6"
         - JAVA_VERSION="11"
-    - language: generic
-      os: linux
+    - os: linux
       env:
         - PYTHON_VERSION="3.7"
         - JAVA_VERSION="11"
-
-    - language: generic
-      os: osx
-      env:
-        - PYTHON_VERSION="2.7"
-        - JAVA_VERSION="8"
-    - language: generic
-      os: osx
-      env:
-        - PYTHON_VERSION="3.6"
-        - JAVA_VERSION="8"
-    - language: generic
-      os: osx
-      env:
-        - PYTHON_VERSION="3.7"
-        - JAVA_VERSION="8"
-    - language: generic
-      os: osx
-      env:
-        - PYTHON_VERSION="2.7"
-        - JAVA_VERSION="9"
-    - language: generic
-      os: osx
-      env:
-        - PYTHON_VERSION="3.6"
-        - JAVA_VERSION="9"
-    - language: generic
-      os: osx
-      env:
-        - PYTHON_VERSION="3.7"
-        - JAVA_VERSION="9"
-    - language: generic
-      os: osx
-      env:
-        - PYTHON_VERSION="2.7"
-        - JAVA_VERSION="10"
-    - language: generic
-      os: osx
-      env:
-        - PYTHON_VERSION="3.6"
-        - JAVA_VERSION="10"
-    - language: generic
-      os: osx
-      env:
-        - PYTHON_VERSION="3.7"
-        - JAVA_VERSION="10"
-    - language: generic
-      os: osx
-      env:
-        - PYTHON_VERSION="2.7"
-        - JAVA_VERSION="11"
-    - language: generic
-      os: osx
-      env:
-        - PYTHON_VERSION="3.6"
-        - JAVA_VERSION="11"
-    - language: generic
-      os: osx
-      env:
-        - PYTHON_VERSION="3.7"
-        - JAVA_VERSION="11"
-
-
 
 install:
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
