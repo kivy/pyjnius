@@ -1,8 +1,8 @@
 language: generic
 
 os:
-  - linux
   - osx
+  - linux
 
 env:
   - PYTHON_VERSION="2.7" JAVA_VERSION="8"
