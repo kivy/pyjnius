@@ -99,41 +99,51 @@ if PLATFORM == 'android':
     # for android, we use SDL...
     LIBRARIES = ['sdl', 'log']
     LIBRARY_DIRS = ['libs/' + getenv('ARCH')]
+
 elif PLATFORM == 'darwin':
-    FRAMEWORK = subprocess.Popen(
+
+    JAVA_HOME = subprocess.Popen(
         '/usr/libexec/java_home',
         stdout=subprocess.PIPE, shell=True).communicate()[0]
+
     if PY3:
-        FRAMEWORK = FRAMEWORK.decode()
-    FRAMEWORK = FRAMEWORK.strip()
-    print('java_home: {0}\n'.format(FRAMEWORK))
-    if not FRAMEWORK:
+        JAVA_HOME = JAVA_HOME.decode()
+
+    JAVA_HOME = JAVA_HOME.strip()
+
+    if not JAVA_HOME:
         raise Exception('You must install Java on your Mac OS X distro')
-    if '1.6' in FRAMEWORK:
+
+    if '1.6' in JAVA_HOME:
         LIB_LOCATION = '../Libraries/libjvm.dylib'
         INCLUDE_DIRS = [join(
-            FRAMEWORK, (
+            JAVA_HOME, (
                 'System/Library/Frameworks/'
                 'JavaVM.framework/Versions/Current/Headers'
             )
         )]
     else:
         LIB_LOCATION = 'jre/lib/server/libjvm.dylib'
-        FULL_LIB_LOCATION = join(FRAMEWORK, LIB_LOCATION)
+
+        # We want to favor Java installation declaring JAVA_HOME
+        if getenv('JAVA_HOME'):
+            JAVA_HOME = getenv('JAVA_HOME')
+
+        FULL_LIB_LOCATION = join(JAVA_HOME, LIB_LOCATION)
 
         if not exists(FULL_LIB_LOCATION):
-            JAVA_HOME = getenv('JAVA_HOME')
-            FULL_LIB_LOCATION = join(JAVA_HOME, LIB_LOCATION)
-            if not exists(FULL_LIB_LOCATION):
-                # In that case, the Java version is very likely >=9.
-                # So we need to modify the `libjvm.so` path.
-                LIB_LOCATION = 'lib/server/libjvm.dylib'
+            # In that case, the Java version is very likely >=9.
+            # So we need to modify the `libjvm.so` path.
+            LIB_LOCATION = 'lib/server/libjvm.dylib'
 
         INCLUDE_DIRS = [
-            '{0}/include'.format(FRAMEWORK),
-            '{0}/include/darwin'.format(FRAMEWORK)
+            '{0}/include'.format(JAVA_HOME),
+            '{0}/include/darwin'.format(JAVA_HOME)
         ]
-    compile_native_invocation_handler(FRAMEWORK)
+
+    print('JAVA_HOME: {0}\n'.format(JAVA_HOME))
+
+    compile_native_invocation_handler(JAVA_HOME)
 else:
     # note: if on Windows, set ONLY JAVA_HOME
     # not on android or osx, we need to search the JDK_HOME
