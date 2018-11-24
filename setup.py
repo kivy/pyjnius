@@ -119,12 +119,7 @@ elif PLATFORM == 'darwin':
         )]
     else:
         LIB_LOCATION = 'jre/lib/server/libjvm.dylib'
-
-        if isinstance(JRE_HOME, bytes):
-            JAVA_HOME = dirname(JRE_HOME.decode())
-        else:
-            JAVA_HOME = dirname(JRE_HOME)
-        FULL_LIB_LOCATION = join(JAVA_HOME, LIB_LOCATION)
+        FULL_LIB_LOCATION = join(FRAMEWORK, LIB_LOCATION)
 
         if not exists(FULL_LIB_LOCATION):
             # In that case, the Java version is very likely >=9.
