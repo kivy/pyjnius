@@ -1,110 +1,25 @@
 language: generic
 
+os:
+  - linux
+  - osx
+
+env:
+  - PYTHON_VERSION="2.7" JAVA_VERSION="8"
+  - PYTHON_VERSION="3.6" JAVA_VERSION="8"
+  - PYTHON_VERSION="3.7" JAVA_VERSION="8"
+  - PYTHON_VERSION="2.7" JAVA_VERSION="9"
+  - PYTHON_VERSION="3.6" JAVA_VERSION="9"
+  - PYTHON_VERSION="3.7" JAVA_VERSION="9"
+  - PYTHON_VERSION="2.7" JAVA_VERSION="10"
+  - PYTHON_VERSION="3.6" JAVA_VERSION="10"
+  - PYTHON_VERSION="3.7" JAVA_VERSION="10"
+  - PYTHON_VERSION="2.7" JAVA_VERSION="11"
+  - PYTHON_VERSION="3.6" JAVA_VERSION="11"
+  - PYTHON_VERSION="3.7" JAVA_VERSION="11"
+
 matrix:
   fast_finish: true
-  include:
-    - os: osx
-      env:
-        - PYTHON_VERSION="2.7"
-        - JAVA_VERSION="8"
-    - os: osx
-      env:
-        - PYTHON_VERSION="3.6"
-        - JAVA_VERSION="8"
-    - os: osx
-      env:
-        - PYTHON_VERSION="3.7"
-        - JAVA_VERSION="8"
-    - os: osx
-      env:
-        - PYTHON_VERSION="2.7"
-        - JAVA_VERSION="9"
-    - os: osx
-      env:
-        - PYTHON_VERSION="3.6"
-        - JAVA_VERSION="9"
-    - os: osx
-      env:
-        - PYTHON_VERSION="3.7"
-        - JAVA_VERSION="9"
-    - os: osx
-      env:
-        - PYTHON_VERSION="2.7"
-        - JAVA_VERSION="10"
-    - os: osx
-      env:
-        - PYTHON_VERSION="3.6"
-        - JAVA_VERSION="10"
-    - os: osx
-      env:
-        - PYTHON_VERSION="3.7"
-        - JAVA_VERSION="10"
-    - os: osx
-      env:
-        - PYTHON_VERSION="2.7"
-        - JAVA_VERSION="11"
-    - os: osx
-      env:
-        - PYTHON_VERSION="3.6"
-        - JAVA_VERSION="11"
-    - os: osx
-      env:
-        - PYTHON_VERSION="3.7"
-        - JAVA_VERSION="11"
-
-    - os: linux
-      env:
-        - PYTHON_VERSION="2.7"
-        - JAVA_VERSION="8"
-    - os: linux
-      env:
-        - PYTHON_VERSION="3.6"
-        - JAVA_VERSION="8"
-    - os: linux
-      env:
-        - PYTHON_VERSION="3.7"
-        - JAVA_VERSION="8"
-    - os: linux
-      env:
-        - PYTHON_VERSION="3.7"
-        - JAVA_VERSION="8"
-        - RUN=sdist
-    - os: linux
-      env:
-        - PYTHON_VERSION="2.7"
-        - JAVA_VERSION="9"
-    - os: linux
-      env:
-        - PYTHON_VERSION="3.6"
-        - JAVA_VERSION="9"
-    - os: linux
-      env:
-        - PYTHON_VERSION="3.7"
-        - JAVA_VERSION="9"
-    - os: linux
-      env:
-        - PYTHON_VERSION="2.7"
-        - JAVA_VERSION="10"
-    - os: linux
-      env:
-        - PYTHON_VERSION="3.6"
-        - JAVA_VERSION="10"
-    - os: linux
-      env:
-        - PYTHON_VERSION="3.7"
-        - JAVA_VERSION="10"
-    - os: linux
-      env:
-        - PYTHON_VERSION="2.7"
-        - JAVA_VERSION="11"
-    - os: linux
-      env:
-        - PYTHON_VERSION="3.6"
-        - JAVA_VERSION="11"
-    - os: linux
-      env:
-        - PYTHON_VERSION="3.7"
-        - JAVA_VERSION="11"
 
 install:
 
