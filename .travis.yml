@@ -70,9 +70,70 @@ matrix:
         - PYTHON_VERSION="3.7"
         - JAVA_VERSION="11"
 
+    - language: python
+      os: osx
+      env:
+        - PYTHON_VERSION="2.7"
+        - JAVA_VERSION="8"
+    - language: python
+      os: osx
+      env:
+        - PYTHON_VERSION="3.6"
+        - JAVA_VERSION="8"
+    - language: python
+      os: osx
+      env:
+        - PYTHON_VERSION="3.7"
+        - JAVA_VERSION="8"
+    - language: python
+      os: osx
+      env:
+        - PYTHON_VERSION="2.7"
+        - JAVA_VERSION="9"
+    - language: python
+      os: osx
+      env:
+        - PYTHON_VERSION="3.6"
+        - JAVA_VERSION="9"
+    - language: python
+      os: osx
+      env:
+        - PYTHON_VERSION="3.7"
+        - JAVA_VERSION="9"
+    - language: python
+      os: osx
+      env:
+        - PYTHON_VERSION="2.7"
+        - JAVA_VERSION="10"
+    - language: python
+      os: osx
+      env:
+        - PYTHON_VERSION="3.6"
+        - JAVA_VERSION="10"
+    - language: python
+      os: osx
+      env:
+        - PYTHON_VERSION="3.7"
+        - JAVA_VERSION="10"
+    - language: python
+      os: osx
+      env:
+        - PYTHON_VERSION="2.7"
+        - JAVA_VERSION="11"
+    - language: python
+      os: osx
+      env:
+        - PYTHON_VERSION="3.6"
+        - JAVA_VERSION="11"
+    - language: python
+      os: osx
+      env:
+        - PYTHON_VERSION="3.7"
+        - JAVA_VERSION="11"
+
+
 
 install:
-  - sudo apt-get update
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
   - bash miniconda.sh -b -p $HOME/miniconda
   - echo ". $HOME/miniconda/etc/profile.d/conda.sh" >> $HOME/.bashrc
