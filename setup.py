@@ -122,9 +122,12 @@ elif PLATFORM == 'darwin':
         FULL_LIB_LOCATION = join(FRAMEWORK, LIB_LOCATION)
 
         if not exists(FULL_LIB_LOCATION):
-            # In that case, the Java version is very likely >=9.
-            # So we need to modify the `libjvm.so` path.
-            LIB_LOCATION = 'lib/server/libjvm.dylib'
+            JAVA_HOME = getenv('JAVA_HOME')
+            FULL_LIB_LOCATION = join(FRAMEWORK, LIB_LOCATION)
+            if not exists(FULL_LIB_LOCATION):
+                # In that case, the Java version is very likely >=9.
+                # So we need to modify the `libjvm.so` path.
+                LIB_LOCATION = 'lib/server/libjvm.dylib'
 
         INCLUDE_DIRS = [
             '{0}/include'.format(FRAMEWORK),

@@ -20,13 +20,6 @@ env:
 
 matrix:
   fast_finish: true
-  exclude:
-    - os: osx
-      env: PYTHON_VERSION="2.7" JAVA_VERSION="8"
-    - os: osx
-      env: PYTHON_VERSION="3.6" JAVA_VERSION="8"
-    - os: osx
-      env: PYTHON_VERSION="3.7" JAVA_VERSION="8"
 
 install:
 
