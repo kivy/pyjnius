@@ -229,6 +229,9 @@ with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
     if LIB_LOCATION is not None:
         fd.write('DEF JNIUS_LIB_SUFFIX = {0!r}\n\n'.format(LIB_LOCATION))
 
+# pop setup.py from included files in the installed package
+SETUP_KWARGS['py_modules'].remove('setup')
+
 # create the extension
 setup(
     cmdclass={'build_ext': build_ext},
