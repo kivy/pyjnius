@@ -23,7 +23,7 @@ SETUP_KWARGS = {
     'name': 'pyjnius',
     'version': VERSION,
     'packages': ['jnius'],
-    'py_modules': ['jnius_config', 'setup'],
+    'py_modules': ['jnius_config'],
     'ext_package': 'jnius',
     'package_data': {
         'jnius': ['src/org/jnius/*'],
