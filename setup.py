@@ -102,22 +102,22 @@ if PLATFORM == 'android':
 
 elif PLATFORM == 'darwin':
 
-    JAVA_HOME = subprocess.Popen(
+    FRAMEWORK = subprocess.Popen(
         '/usr/libexec/java_home',
         stdout=subprocess.PIPE, shell=True).communicate()[0]
 
     if PY3:
-        JAVA_HOME = JAVA_HOME.decode()
+        FRAMEWORK = FRAMEWORK.decode('utf-8')
 
-    JAVA_HOME = JAVA_HOME.strip()
+    FRAMEWORK = FRAMEWORK.strip()
 
-    if not JAVA_HOME:
+    if not FRAMEWORK:
         raise Exception('You must install Java on your Mac OS X distro')
 
-    if '1.6' in JAVA_HOME:
+    if '1.6' in FRAMEWORK:
         LIB_LOCATION = '../Libraries/libjvm.dylib'
         INCLUDE_DIRS = [join(
-            JAVA_HOME, (
+            FRAMEWORK, (
                 'System/Library/Frameworks/'
                 'JavaVM.framework/Versions/Current/Headers'
             )
@@ -127,9 +127,9 @@ elif PLATFORM == 'darwin':
 
         # We want to favor Java installation declaring JAVA_HOME
         if getenv('JAVA_HOME'):
-            JAVA_HOME = getenv('JAVA_HOME')
+            FRAMEWORK = getenv('JAVA_HOME')
 
-        FULL_LIB_LOCATION = join(JAVA_HOME, LIB_LOCATION)
+        FULL_LIB_LOCATION = join(FRAMEWORK, LIB_LOCATION)
 
         if not exists(FULL_LIB_LOCATION):
             # In that case, the Java version is very likely >=9.
@@ -137,13 +137,13 @@ elif PLATFORM == 'darwin':
             LIB_LOCATION = 'lib/server/libjvm.dylib'
 
         INCLUDE_DIRS = [
-            '{0}/include'.format(JAVA_HOME),
-            '{0}/include/darwin'.format(JAVA_HOME)
+            '{0}/include'.format(FRAMEWORK),
+            '{0}/include/darwin'.format(FRAMEWORK)
         ]
 
-    print('JAVA_HOME: {0}\n'.format(JAVA_HOME))
+    print('JAVA_HOME: {0}\n'.format(FRAMEWORK))
 
-    compile_native_invocation_handler(JAVA_HOME)
+    compile_native_invocation_handler(FRAMEWORK)
 else:
     # note: if on Windows, set ONLY JAVA_HOME
     # not on android or osx, we need to search the JDK_HOME
