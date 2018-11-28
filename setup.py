@@ -99,16 +99,21 @@ if PLATFORM == 'android':
     # for android, we use SDL...
     LIBRARIES = ['sdl', 'log']
     LIBRARY_DIRS = ['libs/' + getenv('ARCH')]
+
 elif PLATFORM == 'darwin':
+
     FRAMEWORK = subprocess.Popen(
         '/usr/libexec/java_home',
         stdout=subprocess.PIPE, shell=True).communicate()[0]
+
     if PY3:
-        FRAMEWORK = FRAMEWORK.decode()
+        FRAMEWORK = FRAMEWORK.decode('utf-8')
+
     FRAMEWORK = FRAMEWORK.strip()
-    print('java_home: {0}\n'.format(FRAMEWORK))
+
     if not FRAMEWORK:
         raise Exception('You must install Java on your Mac OS X distro')
+
     if '1.6' in FRAMEWORK:
         LIB_LOCATION = '../Libraries/libjvm.dylib'
         INCLUDE_DIRS = [join(
@@ -119,20 +124,25 @@ elif PLATFORM == 'darwin':
         )]
     else:
         LIB_LOCATION = 'jre/lib/server/libjvm.dylib'
+
+        # We want to favor Java installation declaring JAVA_HOME
+        if getenv('JAVA_HOME'):
+            FRAMEWORK = getenv('JAVA_HOME')
+
         FULL_LIB_LOCATION = join(FRAMEWORK, LIB_LOCATION)
 
         if not exists(FULL_LIB_LOCATION):
-            JAVA_HOME = getenv('JAVA_HOME')
-            FULL_LIB_LOCATION = join(JAVA_HOME, LIB_LOCATION)
-            if not exists(FULL_LIB_LOCATION):
-                # In that case, the Java version is very likely >=9.
-                # So we need to modify the `libjvm.so` path.
-                LIB_LOCATION = 'lib/server/libjvm.dylib'
+            # In that case, the Java version is very likely >=9.
+            # So we need to modify the `libjvm.so` path.
+            LIB_LOCATION = 'lib/server/libjvm.dylib'
 
         INCLUDE_DIRS = [
             '{0}/include'.format(FRAMEWORK),
             '{0}/include/darwin'.format(FRAMEWORK)
         ]
+
+    print('JAVA_HOME: {0}\n'.format(FRAMEWORK))
+
     compile_native_invocation_handler(FRAMEWORK)
 else:
     # note: if on Windows, set ONLY JAVA_HOME
