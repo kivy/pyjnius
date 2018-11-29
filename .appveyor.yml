@@ -1,0 +1,114 @@
+platform:
+  -x64
+
+matrix:
+  fast_finish: true
+
+environment:
+  CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
+  PYTHON_ARCH: "64"
+
+  matrix:
+    - PYTHON_VERSION: "2.7"
+      JAVA_VERSION: "8"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    - PYTHON_VERSION: "3.6"
+      JAVA_VERSION: "8"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    - PYTHON_VERSION: "3.7"
+      JAVA_VERSION: "8"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    - PYTHON_VERSION: "2.7"
+      JAVA_VERSION: "9"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    - PYTHON_VERSION: "3.6"
+      JAVA_VERSION: "9"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    - PYTHON_VERSION: "3.7"
+      JAVA_VERSION: "9"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    - PYTHON_VERSION: "2.7"
+      JAVA_VERSION: "10"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    - PYTHON_VERSION: "3.6"
+      JAVA_VERSION: "10"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    - PYTHON_VERSION: "3.7"
+      JAVA_VERSION: "10"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    - PYTHON_VERSION: "2.7"
+      JAVA_VERSION: "11"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    - PYTHON_VERSION: "3.6"
+      JAVA_VERSION: "11"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    - PYTHON_VERSION: "3.7"
+      JAVA_VERSION: "11"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+
+install:
+  # Set platform variables
+  - if "%PYTHON_ARCH%" == "64" set "ARCH_LABEL=-x64"
+  - if "%PYTHON_ARCH%" == "32" set "PROGRAM_ARCH_LABEL= (x86)"
+  - echo ARCH_LABEL %ARCH_LABEL%
+  - echo PROGRAM_ARCH_LABEL %PROGRAM_ARCH_LABEL%
+
+  # Use Miniconda already installed on Appveyor
+  - set "BASE_PYTHON_VERSION=37"
+  - set "CONDA_ROOT=C:\Miniconda%BASE_PYTHON_VERSION%%ARCH_LABEL%"
+  - set "PATH=%CONDA_ROOT%;%CONDA_ROOT%\Scripts;%CONDA_ROOT%\Library\bin;%PATH%"
+  - set PATH
+  - echo CONDA_PREFIX %CONDA_PREFIX%
+  - conda config --set always_yes yes
+
+  # Update conda
+  - conda config --add channels conda-forge
+  - conda install -y conda --no-pin
+  - "%CONDA_ROOT%\\Scripts\\activate"
+  - echo CONDA_PREFIX %CONDA_PREFIX%
+  - conda info -a
+
+  # Set the correct compiler version (only for runtime)
+  # Not sure this is needed.
+  - set "COMPILER_VERSION=14"
+  - if "%PYTHON_VERSION%" == "2.7" set "COMPILER_VERSION=9"
+
+  # Create project specific environment with specified Python version
+  - conda create -y -n pyjnius_env python=%PYTHON_VERSION% openjdk=%JAVA_VERSION% vc=%COMPILER_VERSION% ant cython pip six>=1.7.0 setuptools nose
+  - if errorlevel 1 exit 1
+
+# Skip .NET project specific build phase.
+build: false
+
+test_script:
+  # Activate Conda environment
+  - "%CONDA_ROOT%\\Scripts\\activate pyjnius_env"
+  - echo CONDA_PREFIX %CONDA_PREFIX%
+  - echo PATH %PATH%
+
+  # Print some info
+  - echo PYTHON_VERSION %PYTHON_VERSION%
+  - echo JAVA_VERSION %JAVA_VERSION%
+  - echo JAVA_HOME %JAVA_HOME%
+  - echo JDK_HOME %JDK_HOME%
+  - python -c "import sys; print(sys.version)"
+  - python -c "import sys; print(sys.executable)"
+  - python -c "import sys; print(sys.prefix)"
+  - python --version
+
+  # Build pyjnius
+  - ant all
+  - if errorlevel 1 exit 1
+  - pip install --no-deps -v -e .
+  - if errorlevel 1 exit 1
+
+  # Java needs to be added to PATH
+  - set "PATH=%JAVA_HOME%\jre\bin\server;%JAVA_HOME%\bin\server;%JAVA_HOME%\bin;%PATH%"
+
+  # Run tests
+  - python -c "import jnius"
+  - python -c "from jnius import autoclass;print(autoclass('java.lang.System').getProperty('java.version'))"
+  - if errorlevel 1 exit 1
+  - set "CLASSPATH=%cd%\build\test-classes;..\build\classes;%CLASSPATH%"
+  - cd tests/ && nosetests -v
+  - if errorlevel 1 exit 1

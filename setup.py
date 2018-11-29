@@ -89,6 +89,8 @@ def find_javac(possible_homes):
 def compile_native_invocation_handler(*possible_homes):
     '''Find javac and compile NativeInvocationHandler.java.'''
     javac = find_javac(possible_homes)
+    print("*********")
+    print(javac)
     subprocess.check_call([
         javac, '-target', '1.6', '-source', '1.6',
         join('jnius', 'src', 'org', 'jnius', 'NativeInvocationHandler.java')
@@ -144,37 +146,44 @@ elif PLATFORM == 'darwin':
     print('JAVA_HOME: {0}\n'.format(FRAMEWORK))
 
     compile_native_invocation_handler(FRAMEWORK)
+
 else:
-    # note: if on Windows, set ONLY JAVA_HOME
+    # Note: if on Windows, set ONLY JAVA_HOME
     # not on android or osx, we need to search the JDK_HOME
+
     JDK_HOME = getenv('JDK_HOME')
     if not JDK_HOME:
-        if PLATFORM == 'win32':
-            ENV_VAR = getenv('JAVA_HOME')
-            if ENV_VAR and 'jdk' in ENV_VAR:
-                JDK_HOME = ENV_VAR
 
-                # Remove /bin if it's appended to JAVA_HOME
-                if JDK_HOME[-3:] == 'bin':
-                    JDK_HOME = JDK_HOME[:-4]
+        if PLATFORM == 'win32':
+            TMP_JDK_HOME = getenv('JAVA_HOME')
+            print(TMP_JDK_HOME)
+            # Remove /bin if it's appended to JAVA_HOME
+            if TMP_JDK_HOME[-3:] == 'bin':
+                TMP_JDK_HOME = TMP_JDK_HOME[:-4]
+
+            # Check whether it's JDK
+            if exists(join(TMP_JDK_HOME, 'bin', 'javac.exe')):
+                JDK_HOME = TMP_JDK_HOME
+
         else:
             JDK_HOME = subprocess.Popen(
                 'readlink -f `which javac` | sed "s:bin/javac::"',
                 shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+
             if JDK_HOME is not None and PY3:
-                JDK_HOME = JDK_HOME.decode()
+                JDK_HOME = JDK_HOME.decode('utf-8')
+
     if not JDK_HOME or not exists(JDK_HOME):
         raise Exception('Unable to determine JDK_HOME')
 
     JRE_HOME = None
     if exists(join(JDK_HOME, 'jre')):
         JRE_HOME = join(JDK_HOME, 'jre')
-    if not JRE_HOME:
+
+    if PLATFORM != 'win32' and not JRE_HOME:
         JRE_HOME = subprocess.Popen(
             'readlink -f `which java` | sed "s:bin/java::"',
             shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
-    if not JRE_HOME:
-        raise Exception('Unable to determine JRE_HOME')
 
     # This dictionary converts values from platform.machine()
     # to a "cpu" string. It is needed to set the correct lib path,
@@ -220,12 +229,15 @@ else:
     if PLATFORM == 'win32':
 
         if isinstance(JRE_HOME, bytes):
-            JRE_HOME = JRE_HOME.decode()
+            JRE_HOME = JRE_HOME.decode('utf-8')
 
         LIBRARY_DIRS = [
             join(JDK_HOME, 'lib'),
-            join(JRE_HOME, 'bin', 'server')
+            join(JDK_HOME, 'bin', 'server')
         ]
+
+    print('JDK_HOME: {0}\n'.format(JDK_HOME))
+    print('JRE_HOME: {0}\n'.format(JRE_HOME))
 
     compile_native_invocation_handler(JDK_HOME, JRE_HOME)
 
