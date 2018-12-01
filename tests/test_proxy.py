@@ -2,6 +2,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 from six.moves import range
+import sys
 
 from jnius import autoclass, java_method, PythonJavaClass, cast
 from nose.tools import *
