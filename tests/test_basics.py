@@ -100,7 +100,8 @@ class BasicsTest(unittest.TestCase):
         test = autoclass('org.jnius.BasicsTest')()
         self.assertEquals(test.methodArrayZ(), [True] * 3)
         self.assertEquals(test.methodArrayB()[0], 127)
-        #self.assertEquals(test.methodArrayB(), [127] * 3)
+        if sys.version_info >= (3, 0):
+            self.assertEquals(test.methodArrayB(), [127] * 3)
         self.assertEquals(test.methodArrayC(), ['k'] * 3)
         self.assertEquals(test.methodArrayS(), [32767] * 3)
         self.assertEquals(test.methodArrayI(), [2147483467] * 3)

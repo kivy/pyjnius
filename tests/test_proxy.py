@@ -149,8 +149,9 @@ print('Order of data after shuffle()', a.data)
 
 
 # XXX We have issues for methosd with multiple signature
-print('-> Collections.max(a)')
-#print(Collections.max(a2))
+if sys.version_info >= (3, 0):
+    print('-> Collections.max(a)')
+    print(Collections.max(a2))
 #print '-> Collections.shuffle(a)'
 #print Collections.shuffle(a2)
 
