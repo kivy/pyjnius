@@ -89,8 +89,6 @@ def find_javac(possible_homes):
 def compile_native_invocation_handler(*possible_homes):
     '''Find javac and compile NativeInvocationHandler.java.'''
     javac = find_javac(possible_homes)
-    print("*********")
-    print(javac)
     subprocess.check_call([
         javac, '-target', '1.6', '-source', '1.6',
         join('jnius', 'src', 'org', 'jnius', 'NativeInvocationHandler.java')
