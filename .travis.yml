@@ -6,7 +6,7 @@ os:
 
 env:
   - PYTHON_VERSION="2.7" JAVA_VERSION="8"
-  - PYTHON_VERSION="3.6" JAVA_VERSION="8"
+  - PYTHON_VERSION="3.6" JAVA_VERSION="8" RUN="sdist"
   - PYTHON_VERSION="3.7" JAVA_VERSION="8"
   - PYTHON_VERSION="2.7" JAVA_VERSION="9"
   - PYTHON_VERSION="3.6" JAVA_VERSION="9"
@@ -44,7 +44,7 @@ install:
 
 script:
   - conda activate jnius_env
-  - if [ "$RUN" == "sdist" ]; then
+  - if [ "$RUN" = "sdist" ] && [ "$TRAVIS_OS_NAME" = "linux" ]; then
       if [ "$PYJNIUS_DEPLOY" == "1" ]; then
         conda install twine;
         python setup_sdist.py sdist;
