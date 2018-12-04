@@ -108,3 +108,20 @@ Python and pip must be installed and present in ``PATH`` environment variable.
        you need to run the command prompt with elevated permissions, so that
        the compiler can access JDK in ``C:\Program Files\Java\jdkx.y.z_b`` or
        ``C:\Program Files (x86)\Java\jdkx.y.z_b``.
+
+
+Installation for Conda
+----------------------
+
+Similar to PIP there is a package manager for
+`Anaconda <https://www.anaconda.com/what-is-anaconda/>` called Conda.
+An unofficial compiled distributions of PyJNIus for Conda supported
+platforms you can find at https://anaconda.org/conda-forge/pyjnius.
+
+You can install ``pyjnius`` with this command::
+
+    conda install -c conda-forge pyjnius
+
+Or if you want a specific package label e.g. ``gcc7``::
+
+    conda install -c conda-forge/label/gcc7 pyjnius
