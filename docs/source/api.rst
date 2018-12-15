@@ -33,6 +33,15 @@ Reflection classes
         Must be set to :class:`MetaJavaClass`, otherwise, all the
         methods/fields declared will be not linked to the JavaClass.
 
+        .. note::
+
+            Make sure to choose the right metaclass specifier. In Python 2
+            there is ``__metaclass__`` class attribute, in Python 3 there is
+            a new syntax ``class Stack(JavaClass, metaclass=MetaJavaClass)``.
+
+            For more info see `PEP 3115
+            <https://www.python.org/dev/peps/pep-3115/>`_.
+
     .. attribute:: __javaclass__
 
         Represents the Java class name, in the format 'org/lang/Class' (e.g.
