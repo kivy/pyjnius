@@ -3,16 +3,16 @@
 Installation
 ============
 
-PyJNIus depends on `Cython <http://cython.org/>`_ and `Java
-<http://www.oracle.com/javase>`_ Development Kit (includes Java Runtime
+PyJNIus depends on `Cython <http://cython.org/>`_ and the `Java
+<http://www.oracle.com/javase>`_ Development Kit (includes the Java Runtime
 Environment).
 
 
 Installation on GNU/Linux distributions
 ---------------------------------------
 
-You need GNU Compiler Collection (GCC), the JDK and JRE installed (openjdk will
-do), and Cython. Then, just type::
+You need the GNU Compiler Collection (GCC), the JDK and JRE installed (openjdk
+will do), and Cython. Then, just type::
 
     sudo python setup.py install
 
@@ -50,22 +50,22 @@ pyjnius to the requirements argument when creating a dist or apk::
 Installation for Windows
 ------------------------
 
-Python and pip must be installed and present in ``PATH`` environment variable.
+Python and pip must be installed and present in the ``PATH`` environment variable.
 
 
-1. Download and install JDK containing JRE:
+1. Download and install the JDK containing the JRE:
 
    http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
 2. Edit your system and environment variables (use the appropriate Java bitness
-   and version in paths):
+   and version in the paths):
 
-    Add to `Environment Variables
+    Add to your `Environment Variables
     <https://en.wikipedia.org/wiki/Environment_variable>`_:
 
     * ``JAVA_HOME``: C:\\Program Files\\Java\\jdk1.7.0_79\\bin
     * ``PATH``: C:\\Program Files\\Java\\jdk1.7.0_79\\jre\\bin\\server
-      contains ``jvm.dll`` necessary for importing and using PyJNIus.
+      contains the ``jvm.dll`` necessary for importing and using PyJNIus.
 
       .. note::
          set PATH=%PATH%;C:\\Program Files\\Java\\jdk1.7.0_79\\jre\\bin\\server
@@ -73,7 +73,7 @@ Python and pip must be installed and present in ``PATH`` environment variable.
     Add to System Variables or have it present in your ``PATH``:
         * ``PATH``: C:\\Program Files\\Java\\jdk1.7.0_79\\bin`
 
-3. Download and install C compiler:
+3. Download and install the C compiler:
 
    a) Microsoft Visual C++ Compiler for Python 2.7:
 
@@ -106,8 +106,8 @@ Python and pip must be installed and present in ``PATH`` environment variable.
    .. note::
        In case of MinGWPy's GCC returning a ``CreateProcess failed: 5`` error
        you need to run the command prompt with elevated permissions, so that
-       the compiler can access JDK in ``C:\Program Files\Java\jdkx.y.z_b`` or
-       ``C:\Program Files (x86)\Java\jdkx.y.z_b``.
+       the compiler can access the JDK in ``C:\Program Files\Java\jdkx.y.z_b``
+       or ``C:\Program Files (x86)\Java\jdkx.y.z_b``.
 
 
 Installation for Conda
