@@ -1,5 +1,6 @@
 
 .. _api:
+
 API
 ===
 
@@ -34,12 +35,12 @@ Reflection classes
 
     .. attribute:: __javaclass__
 
-        Represent the Java class name, in the format 'org/lang/Class'. (eg:
+        Represents the Java class name, in the format 'org/lang/Class' (e.g.
         'java/util/Stack'), not 'org.lang.Class'.
 
     .. attribute:: __javaconstructor__
 
-        If not set, we assume the default constructor to take no parameters.
+        If not set, we assume the default constructor takes no parameters.
         Otherwise, it can be a list of all possible signatures of the
         constructor. For example, a reflection of the String java class would
         look like::
@@ -71,10 +72,10 @@ Reflection classes
                 peek = JavaMethod('()Ljava/lang/Object;')
                 empty = JavaMethod('()Z')
 
-        The name associated to the method is automatically set from the
+        The name associated with the method is automatically set from the
         declaration within the JavaClass itself.
 
-        The signature can be found with the `javap -s`. For example, if you
+        The signature can be found with `javap -s`. For example, if you
         want to fetch the signatures available for `java.util.Stack`::
 
             $ javap -s java.util.Stack
@@ -121,7 +122,7 @@ Reflection classes
 
 .. class:: JavaStaticField
 
-    Reflection of a static Java field
+    Reflection of a static Java field.
 
 
 .. class:: JavaMultipleMethod
@@ -145,16 +146,16 @@ Reflection classes
                 '(Ljava/nio/charset/Charset;)[B',
                 '()[B'])
 
-    Then, when you will try to access to this method, we'll take the best
+    Then, when you try to access this method, it will choose the best
     method available according to the type of the arguments you're using.
-    Internally, we are calculating a "match" score for each available
+    Internally, we calculate a "match" score for each available
     signature, and take the best one. Without going into the details, the score
-    calculation look like:
+    calculation looks something like:
 
     * a direct type match is +10
     * a indirect type match (like using a `float` for an `int` argument) is +5
     * object with unknown type (:class:`JavaObject`) is +1
-    * otherwise, it's considered as an error case, and return -1
+    * otherwise, it's considered as an error case, and returns -1
 
 
 Reflection functions
@@ -162,8 +163,8 @@ Reflection functions
 
 .. function:: autoclass(name)
 
-    Return a :class:`JavaClass` that represent the class passed from `name`.
-    The name must be written in the format: `a.b.c`, not `a/b/c`.
+    Return a :class:`JavaClass` that represents the class passed from `name`.
+    The name must be written in the format `a.b.c`, not `a/b/c`.
 
     >>> from jnius import autoclass
     >>> autoclass('java.lang.System')
@@ -179,13 +180,13 @@ Java class implementation in Python
 
 .. class:: PythonJavaClass
 
-    Base for creating a Java class from a Python class. This allow to implement
-    java interface completely in Python.
+    Base for creating a Java class from a Python class. This allows us to
+    implement java interfaces completely in Python.
     
-    In reality, you'll create a Python class that mimic the list of declared
-    :data:`__javainterfaces__`. When you'll give an instance of this class to
-    Java, Java will just accept it and call the interfaces methods as declared.
-    Under the hood, we are catching the call, and redirecting to use your
+    In reality, you'll create a Python class that mimics the list of declared
+    :data:`__javainterfaces__`. When you give an instance of this class to
+    Java, Java will just accept it and call the interface methods as declared.
+    Under the hood, we are catching the call, and redirecting it to use your
     declared Python method.
 
     Your class will act as a Proxy to the Java interfaces.
@@ -195,10 +196,10 @@ Java class implementation in Python
 
     .. note::
 
-        Static methods and static fields are not supported
+        Static methods and static fields are not supported.
 
     For example, you could implement the `java/util/ListIterator` interface in
-    Python like that::
+    Python like this::
 
         from jnius import PythonJavaClass, java_method
 
@@ -225,11 +226,12 @@ Java class implementation in Python
     .. attribute:: __javainterfaces__
 
         List of the Java interfaces you want to proxify, in the format
-        'org/lang/Class'. (eg: 'java/util/Iterator'), not 'org.lang.Class'.
+        'org/lang/Class' (e.g. 'java/util/Iterator'), not 'org.lang.Class'.
 
     .. attribute:: __javacontext__
 
-        Indicate which class loader to use: 'system' or 'app', default to 'system':
+        Indicate which class loader to use, 'system' or 'app'. The default is
+        'system'.
 
         - By default, we assume that you are going to implement a Java
           interface declared in the Java API. It will use the 'system' class
@@ -276,7 +278,7 @@ Java signature format
 ---------------------
 
 Java signatures have a special format that could be difficult to understand at
-first. Let's see in details. A signature is in the format::
+first. Let's look at the details. A signature is in the format::
 
     (<argument1><argument2><...>)<return type>
 
@@ -293,7 +295,7 @@ All the types for any part of the signature can be one of:
 * D = represent a java/lang/Double;
 * V = represent void, available only for the return type
 
-All the types can have the `[` prefix to design an array. The return type can be `V` or empty.
+All the types can have the `[` prefix to indicate an array. The return type can be `V` or empty.
 
 A signature like::
 
@@ -357,7 +359,7 @@ Pyjnius and threads
 
 .. function:: detach()
 
-    Each time you create a native thread in Python and uses Pyjnius, any call to
+    Each time you create a native thread in Python and use Pyjnius, any call to
     Pyjnius methods will force attachment of the native thread to the current JVM.
     But you must detach it before leaving the thread, and Pyjnius cannot do it for
     you.
