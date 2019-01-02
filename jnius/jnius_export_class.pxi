@@ -993,6 +993,10 @@ cdef class JavaMultipleMethod(object):
             scores.append((score, signature))
 
         if not scores:
+            # @tito:
+            # if the java was waiting for an Object, and you didn't
+            # pass any of the PythonJavaClass, JavaClass, JavaObject,
+            # basestring, then it doesn't score it, and it won't work
             raise JavaException('No methods matching your arguments')
         scores.sort()
         score, signature = scores[-1]
