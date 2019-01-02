@@ -485,6 +485,7 @@ cdef jstring convert_pystr_to_java(JNIEnv *j_env, basestring py_str) except NULL
 
 cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except *:
     cdef jobject ret = NULL
+    cdef jobject nested = NULL
     cdef int array_size = len(pyarray)
     cdef int i
     cdef unsigned char c_tmp
@@ -621,6 +622,17 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
                     j_env, <jobjectArray>ret, i, j_string
                 )
                 j_env[0].DeleteLocalRef(j_env, j_string)
+
+            # isinstance(arg, type) will return False
+            # ...and it's really weird
+            elif isinstance(arg, (tuple, list)):
+                nested = convert_pyarray_to_java(
+                    j_env, definition, arg
+                )
+                j_env[0].SetObjectArrayElement(
+                    j_env, <jobjectArray>ret, i, nested
+                )
+                j_env[0].DeleteLocalRef(j_env, nested)
 
             # no local refs to delete for class, type and object
             elif isinstance(arg, JavaClass):
