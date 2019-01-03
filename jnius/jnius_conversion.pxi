@@ -485,6 +485,7 @@ cdef jstring convert_pystr_to_java(JNIEnv *j_env, basestring py_str) except NULL
 
 cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except *:
     cdef jobject ret = NULL
+    cdef jobject nested = NULL
     cdef int array_size = len(pyarray)
     cdef int i
     cdef unsigned char c_tmp
@@ -593,38 +594,72 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
 
     elif definition[0] == 'L':
         defstr = str_for_c(definition[1:-1])
-        j_class = j_env[0].FindClass(
-                j_env, <bytes>defstr)
+        j_class = j_env[0].FindClass(j_env, <bytes>defstr)
+
         if j_class == NULL:
-            raise JavaException('Cannot create array with a class not '
-                    'found {0!r}'.format(definition[1:-1]))
+            raise JavaException(
+                'Cannot create array with a class not '
+                'found {0!r}'.format(definition[1:-1])
+            )
+
         ret = j_env[0].NewObjectArray(
-                j_env, array_size, j_class, NULL)
+            j_env, array_size, j_class, NULL
+        )
+
+        # iterate over each Python array element
+        # and add it to Object[].
         for i in range(array_size):
             arg = pyarray[i]
+
             if arg is None:
                 j_env[0].SetObjectArrayElement(
-                        j_env, <jobjectArray>ret, i, NULL)
+                    j_env, <jobjectArray>ret, i, NULL
+                )
+
             elif isinstance(arg, basestring):
                 j_string = convert_pystr_to_java(j_env, arg)
                 j_env[0].SetObjectArrayElement(
-                        j_env, <jobjectArray>ret, i, j_string)
+                    j_env, <jobjectArray>ret, i, j_string
+                )
                 j_env[0].DeleteLocalRef(j_env, j_string)
+
+            # isinstance(arg, type) will return False
+            # ...and it's really weird
+            elif isinstance(arg, (tuple, list)):
+                nested = convert_pyarray_to_java(
+                    j_env, definition, arg
+                )
+                j_env[0].SetObjectArrayElement(
+                    j_env, <jobjectArray>ret, i, nested
+                )
+                j_env[0].DeleteLocalRef(j_env, nested)
+
+            # no local refs to delete for class, type and object
             elif isinstance(arg, JavaClass):
                 jc = arg
                 check_assignable_from(j_env, jc, definition[1:-1])
                 j_env[0].SetObjectArrayElement(
-                        j_env, <jobjectArray>ret, i, jc.j_self.obj)
+                    j_env, <jobjectArray>ret, i, jc.j_self.obj
+                )
+
             elif isinstance(arg, type):
                 jc = arg
                 j_env[0].SetObjectArrayElement(
-                        j_env, <jobjectArray>ret, i, jc.j_cls)
+                    j_env, <jobjectArray>ret, i, jc.j_cls
+                )
+
             elif isinstance(arg, JavaObject):
                 jo = arg
                 j_env[0].SetObjectArrayElement(
-                        j_env, <jobjectArray>ret, i, jo.obj)
+                    j_env, <jobjectArray>ret, i, jo.obj
+                )
+
             else:
-                raise JavaException('Invalid variable used for L array', definition, pyarray)
+                raise JavaException(
+                    'Invalid variable {!r} used for L array {!r}'.format(
+                        pyarray, definition
+                    )
+                )
 
     elif definition[0] == '[':
         subdef = definition[1:]
@@ -640,6 +675,10 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
             j_env[0].DeleteLocalRef(j_env, j_elem)
 
     else:
-        raise JavaException('Invalid array definition', definition, pyarray)
+        raise JavaException(
+            'Invalid array definition {!r} for variable {!r}'.format(
+                definition, pyarray
+            )
+        )
 
     return <jobject>ret
