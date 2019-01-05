@@ -95,6 +95,7 @@ from functools import partial
 import sys
 import traceback
 
+include "jnius_compat.pxi"
 include "jni.pxi"
 include "config.pxi"
 
