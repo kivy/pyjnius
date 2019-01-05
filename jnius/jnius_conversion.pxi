@@ -1,6 +1,7 @@
 from cpython.version cimport PY_MAJOR_VERSION
 from cpython cimport PyUnicode_DecodeUTF16
 
+
 cdef jstringy_arg(argtype):
     return argtype in ('Ljava/lang/String;',
                        'Ljava/lang/CharSequence;',
@@ -56,8 +57,10 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
         elif argtype[0] == 'L':
             if py_arg is None:
                 j_args[index].l = NULL
-            elif isinstance(py_arg, basestring) and jstringy_arg(argtype):
-                j_args[index].l = convert_pystr_to_java(j_env, py_arg)
+            elif isinstance(py_arg, base_string) and jstringy_arg(argtype):
+                j_args[index].l = convert_pystr_to_java(
+                    j_env, to_unicode(py_arg)
+                )
             elif isinstance(py_arg, JavaClass):
                 jc = py_arg
                 check_assignable_from(j_env, jc, argtype[1:-1])
@@ -348,8 +351,8 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
     elif definition[0] == 'L':
         if obj is None:
             return NULL
-        elif isinstance(obj, basestring) and jstringy_arg(definition):
-            return convert_pystr_to_java(j_env, obj)
+        elif isinstance(obj, base_string) and jstringy_arg(definition):
+            return convert_pystr_to_java(j_env, to_unicode(obj))
         elif isinstance(obj, (int, long)) and \
                 definition in (
                     'Ljava/lang/Integer;',
@@ -461,17 +464,11 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
     retobject = j_env[0].NewObjectA(j_env, retclass, retmidinit, j_ret)
     return retobject
 
-cdef jstring convert_pystr_to_java(JNIEnv *j_env, basestring py_str) except NULL:
+cdef jstring convert_pystr_to_java(JNIEnv *j_env, unicode py_uni) except NULL:
     cdef bytes py_bytes
-    cdef unicode py_uni
     cdef jstring j_str
     cdef jsize j_strlen
     cdef char *buff
-
-    if isinstance(py_str, bytes):
-        py_uni = (<bytes>py_str).decode('utf-8')
-    else:
-        py_uni = py_str
 
     py_bytes = py_uni.encode('utf-16')
     # skip byte-order mark

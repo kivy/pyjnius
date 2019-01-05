@@ -52,7 +52,7 @@ class MetaJavaBase(type):
         cdef jmethodID meth
         cdef object wrapped_python
 
-        if isinstance(value, basestring):
+        if isinstance(value, base_string):
             obj = j_env[0].NewStringUTF(j_env, <char *>"")
         elif isinstance(value, JavaClass):
             jc = value
@@ -271,7 +271,7 @@ cdef class JavaClass(object):
         definitions = [('()V', False)]
         if hasattr(self, '__javaconstructor__'):
             definitions = self.__javaconstructor__
-        if isinstance(definitions, basestring):
+        if isinstance(definitions, base_string):
             definitions = [definitions]
 
         if len(definitions) == 0:
