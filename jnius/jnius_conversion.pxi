@@ -614,7 +614,7 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
                 )
 
             elif isinstance(arg, basestring):
-                j_string = convert_pystr_to_java(j_env, arg)
+                j_string = convert_pystr_to_java(j_env, to_unicode(arg))
                 j_env[0].SetObjectArrayElement(
                     j_env, <jobjectArray>ret, i, j_string
                 )

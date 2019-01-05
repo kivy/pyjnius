@@ -23,7 +23,7 @@ cdef unicode to_unicode(object arg):
 
     if not isinstance(arg, base_string):
         raise JavaException(
-            'Argument {!r} is not of a text type.'
+            'Argument {!r} is not of a text type.'.format(arg)
         )
 
     cdef unicode result
