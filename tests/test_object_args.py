@@ -71,10 +71,7 @@ class ArgumentsTest(unittest.TestCase):
         '''
         Converts Python bytes to Java String.
         '''
-        with self.assertRaises(JavaException):
-            self.assertEqual(
-                ObjectArgument.checkObject(b''), 0
-            )
+        self.assertEqual(ObjectArgument.checkObject(b''), 0)
 
 
 if __name__ == '__main__':
