@@ -34,6 +34,7 @@ def getenv(key):
 
 FILES = [
     'jni.pxi',
+    'jnius_compat.pxi',
     'jnius_conversion.pxi',
     'jnius_export_class.pxi',
     'jnius_export_func.pxi',
