@@ -184,6 +184,18 @@ Reflection functions
     >>> autoclass('android.provider.Settings$Secure')
     <class 'jnius.reflect.android.provider.Settings$Secure'>
 
+    .. note::
+        There are sometimes cases when a Java class contains a member that is
+        a Python keyword (such as `from`, `class`, etc). You will need to use
+        `getattr()` to access the member and then you will be able to call it::
+
+            from jnius import autoclass
+            func_from = getattr(autoclass('some.java.Class'), 'from')
+            func_from()
+
+        There is also a special case for a `SomeClass.class` class literal
+        which you will find in the `__javaclass__` python attribute.
+
 Java class implementation in Python
 -----------------------------------
 
