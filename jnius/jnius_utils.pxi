@@ -324,6 +324,12 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
                 elif isinstance(arg, (list, tuple)):
                     score += 5
                     continue
+                elif isinstance(arg, int):
+                    score += 5
+                    continue
+                elif isinstance(arg, float):
+                    score += 5
+                    continue
                 return -1
 
             # accept an autoclass class for java/lang/Class.
