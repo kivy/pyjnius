@@ -17,14 +17,14 @@ import sys
 from platform import machine
 from setup_sdist import SETUP_KWARGS
 
-PY3 = sys.version_info >= (3, 0, 0)
+PY2 = sys.version_info < (3, 0, 0)
 
 
 def getenv(key):
     '''Get value from environment and decode it.'''
     val = environ.get(key)
     if val is not None:
-        if PY3:
+        if not PY2:
             try:
                 return val.decode()
             except AttributeError:
@@ -107,7 +107,7 @@ elif PLATFORM == 'darwin':
         '/usr/libexec/java_home',
         stdout=subprocess.PIPE, shell=True).communicate()[0]
 
-    if PY3:
+    if not PY2:
         FRAMEWORK = FRAMEWORK.decode('utf-8')
 
     FRAMEWORK = FRAMEWORK.strip()
@@ -169,7 +169,7 @@ else:
                 'readlink -f `which javac` | sed "s:bin/javac::"',
                 shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
 
-            if JDK_HOME is not None and PY3:
+            if JDK_HOME is not None and not PY2:
                 JDK_HOME = JDK_HOME.decode('utf-8')
 
     if not JDK_HOME or not exists(JDK_HOME):
@@ -243,7 +243,7 @@ else:
 # generate the config.pxi
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
     fd.write('DEF JNIUS_PLATFORM = {0!r}\n\n'.format(PLATFORM))
-    if PY3:
+    if not PY2:
         fd.write('DEF JNIUS_PYTHON3 = True\n\n')
     else:
         fd.write('DEF JNIUS_PYTHON3 = False\n\n')

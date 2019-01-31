@@ -1,5 +1,5 @@
 cdef str_for_c(s):
-     if not PY3:
+     if PY2:
         if isinstance(s, unicode):
             return s.encode('utf-8')
         else:
@@ -8,7 +8,7 @@ cdef str_for_c(s):
         return s.encode('utf-8')
 
 cdef items_compat(d):
-     if PY3:
+     if not PY2:
          return d.items()
      else:
         return d.iteritems()                
@@ -304,11 +304,11 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
                 continue
 
             # if it's a string, accept any python string
-            if r == 'java/lang/String' and isinstance(arg, base_string) and not PY3:
+            if r == 'java/lang/String' and isinstance(arg, base_string) and PY2:
                 score += 10
                 continue
 
-            if r == 'java/lang/String' and isinstance(arg, str) and PY3:
+            if r == 'java/lang/String' and isinstance(arg, str) and not PY2:
                 score += 10
                 continue
 
@@ -369,15 +369,15 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
                 score += 10
                 continue
 
-            if (r == '[B' or r == '[C') and isinstance(arg, base_string) and not PY3:
+            if (r == '[B' or r == '[C') and isinstance(arg, base_string) and PY2:
                 score += 10
                 continue
 
-            if (r == '[B') and isinstance(arg, bytes) and PY3:
+            if (r == '[B') and isinstance(arg, bytes) and not PY2:
                 score += 10
                 continue
 
-            if (r == '[C') and isinstance(arg, str) and PY3:
+            if (r == '[C') and isinstance(arg, str) and not PY2:
                 score += 10
                 continue
 
