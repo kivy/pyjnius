@@ -433,7 +433,7 @@ cdef class JavaField(object):
             )
         if self.j_field == NULL:
             raise JavaException(
-                'Unable to found the field {0}'.format(self.name)
+                'Unable to find the field {0}'.format(self.name)
             )
 
     def __get__(self, obj, objtype):
