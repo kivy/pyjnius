@@ -7,6 +7,12 @@ Android has a great and extensive API to control devices, your application
 etc. Some parts of the Android API are directly accessible with Pyjnius but
 some of them require you to code in Java.
 
+.. note::
+    Since Android 8.0 (Oreo) the maximum limit for the local references
+    previously known as "local reference table overflow" after 512 refs
+    has been lifted, therefore PyJNIus can create proper Java applications
+    with a lot of local references. `Android JNI tips
+    <https://developer.android.com/training/articles/perf-jni>`_
 
 Get the DPI
 -----------
