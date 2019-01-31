@@ -74,7 +74,8 @@ class MetaJavaBase(type):
 
             if NULL != proxy and 0 != j_env[0].IsInstanceOf(j_env, obj, proxy):
                 # value is a proxy object. check whether it's one of ours
-                meth = j_env[0].GetStaticMethodID(j_env, proxy, <char *>'getInvocationHandler',
+                meth = j_env[0].GetStaticMethodID(
+                    j_env, proxy, <char *>'getInvocationHandler',
                     <char *>'(Ljava/lang/Object;)Ljava/lang/reflect/InvocationHandler;'
                 )
                 obj = j_env[0].CallStaticObjectMethod(j_env, proxy, meth, obj)
@@ -86,8 +87,10 @@ class MetaJavaBase(type):
                     # is just a POJO from elsewhere.
                     j_env[0].ExceptionClear(j_env)
                 else:
-                    meth = j_env[0].GetMethodID(j_env, nih, <char *>'getPythonObjectPointer',
-                                                <char *>'()J')
+                    meth = j_env[0].GetMethodID(
+                        j_env, nih, <char *>'getPythonObjectPointer',
+                        <char *>'()J'
+                    )
                     if NULL == meth:
                         # Perhaps we have an old nih
                         j_env[0].ExceptionClear(j_env)
@@ -266,6 +269,7 @@ cdef class JavaClass(object):
         cdef jobject j_self = NULL
         cdef jmethodID constructor = NULL
         cdef JNIEnv *j_env = get_jnienv()
+        cdef list found_definitions = []
 
         # get the constructor definition if exist
         definitions = [('()V', False)]
@@ -279,6 +283,7 @@ cdef class JavaClass(object):
 
         elif len(definitions) == 1:
             definition, is_varargs = definitions[0]
+            found_definitions = [definition]
             d_ret, d_args = parse_definition(definition)
 
             if is_varargs:
@@ -286,11 +291,14 @@ cdef class JavaClass(object):
             else:
                 args_ = args
             if len(args or ()) != len(d_args or ()):
-                raise JavaException('Invalid call, number of argument'
-                        ' mismatch for constructor')
+                raise JavaException(
+                    'Invalid call, number of argument mismatch for '
+                    'constructor, available: {}'.format(found_definitions)
+                )
         else:
             scores = []
             for definition, is_varargs in definitions:
+                found_definitions.append(definition)
                 d_ret, d_args = parse_definition(definition)
                 if is_varargs:
                     args_ = args[:len(d_args) - 1] + (args[len(d_args) - 1:],)
@@ -302,7 +310,10 @@ cdef class JavaClass(object):
                     continue
                 scores.append((score, definition, d_ret, d_args, args_))
             if not scores:
-                raise JavaException('No constructor matching your arguments')
+                raise JavaException(
+                    'No constructor matching your arguments, available: '
+                    '{}'.format(found_definitions)
+                )
             scores.sort()
             score, definition, d_ret, d_args, args_ = scores[-1]
 
@@ -410,16 +421,20 @@ cdef class JavaField(object):
         if self.is_static:
             defstr = str_for_c(self.definition)
             self.j_field = j_env[0].GetStaticFieldID(
-                    j_env, self.j_cls, <char *>self.name,
-                    <char *>defstr)
+                j_env, self.j_cls, <char *>self.name,
+                <char *>defstr
+            )
         else:
             defstr = str_for_c(self.definition)
             namestr = str_for_c(self.name)
             self.j_field = j_env[0].GetFieldID(
-                    j_env, self.j_cls, <char *>namestr,
-                    <char *>defstr)
+                j_env, self.j_cls, <char *>namestr,
+                <char *>defstr
+            )
         if self.j_field == NULL:
-            raise JavaException('Unable to found the field {0}'.format(self.name))
+            raise JavaException(
+                'Unable to found the field {0}'.format(self.name)
+            )
 
     def __get__(self, obj, objtype):
         cdef jobject j_self
@@ -487,7 +502,9 @@ cdef class JavaField(object):
             j_env[0].SetObjectField(j_env, j_self, self.j_field, j_object)
             j_env[0].DeleteLocalRef(j_env, j_object)
         else:
-            raise Exception('Invalid field definition')
+            raise Exception(
+                "Invalid field definition '{}'".format(r)
+            )
 
         check_exception(j_env)
 
@@ -561,7 +578,9 @@ cdef class JavaField(object):
                 ret = convert_jarray_to_python(j_env, r, j_object)
                 j_env[0].DeleteLocalRef(j_env, j_object)
         else:
-            raise Exception('Invalid field definition')
+            raise Exception(
+                "Invalid field definition '{}'".format(r)
+            )
 
         check_exception(j_env)
         return ret
@@ -632,7 +651,9 @@ cdef class JavaField(object):
                 ret = convert_jarray_to_python(j_env, r, j_object)
                 j_env[0].DeleteLocalRef(j_env, j_object)
         else:
-            raise Exception('Invalid field definition')
+            raise Exception(
+                "Invalid field definition '{}'".format(r)
+            )
 
         check_exception(j_env)
         return ret
@@ -660,8 +681,9 @@ cdef class JavaMethod(object):
     def __init__(self, definition, **kwargs):
         super(JavaMethod, self).__init__()
         self.definition = definition
-        self.definition_return, self.definition_args = \
-                parse_definition(definition)
+        self.definition_return, self.definition_args = parse_definition(
+            definition
+        )
         self.is_static = kwargs.get('static', False)
         self.is_varargs = kwargs.get('varargs', False)
 
@@ -706,23 +728,29 @@ cdef class JavaMethod(object):
         # argument array to pass to the method
         cdef jvalue *j_args = NULL
         cdef tuple d_args = self.definition_args
+        cdef int d_args_len = len(d_args)
         cdef JNIEnv *j_env = get_jnienv()
 
         if self.is_varargs:
-            args = args[:len(d_args) - 1] + (args[len(d_args) - 1:],)
+            args = args[:d_args_len - 1] + (args[d_args_len - 1:],)
 
-        if len(args) != len(d_args):
-            raise JavaException('Invalid call, number of argument mismatch')
+        if len(args) != d_args_len:
+            raise JavaException(
+                'Invalid call, number of argument mismatch, '
+                'got {} need {}'.format(len(args), d_args_len)
+            )
 
         if not self.is_static and j_env == NULL:
-            raise JavaException('Cannot call instance method on a un-instanciated class')
+            raise JavaException(
+                'Cannot call instance method on a un-instanciated class'
+            )
 
         self.ensure_method()
 
         try:
             # convert python argument if necessary
             if len(args):
-                j_args = <jvalue *>malloc(sizeof(jvalue) * len(d_args))
+                j_args = <jvalue *>malloc(sizeof(jvalue) * d_args_len)
                 if j_args == NULL:
                     raise MemoryError('Unable to allocate memory for java args')
                 populate_args(j_env, self.definition_args, j_args, args)
@@ -823,7 +851,7 @@ cdef class JavaMethod(object):
                 ret = convert_jarray_to_python(j_env, r, j_object)
                 j_env[0].DeleteLocalRef(j_env, j_object)
         else:
-            raise Exception('Invalid return definition?')
+            raise Exception("Invalid return definition '{}'".format(r))
 
         check_exception(j_env)
         return ret
@@ -911,7 +939,7 @@ cdef class JavaMethod(object):
                 ret = convert_jarray_to_python(j_env, r, j_object)
                 j_env[0].DeleteLocalRef(j_env, j_object)
         else:
-            raise Exception('Invalid return definition?')
+            raise Exception("Invalid return definition '{}'".format(r))
 
         check_exception(j_env)
         return ret
@@ -973,6 +1001,8 @@ cdef class JavaMultipleMethod(object):
         cdef JavaMethod jm
         cdef list scores = []
         cdef dict methods
+        cdef int max_sign_args
+        cdef list found_signatures = []
 
         if self.j_self:
             methods = self.instance_methods
@@ -980,9 +1010,13 @@ cdef class JavaMultipleMethod(object):
             methods = self.static_methods
 
         for signature, jm in items_compat(methods):
+            # store signatures for the exception
+            found_signatures.append(signature)
+
             sign_ret, sign_args = jm.definition_return, jm.definition_args
             if jm.is_varargs:
-                args_ = args[:len(sign_args) - 1] + (args[len(sign_args) - 1:],)
+                max_sign_args = len(sign_args) - 1
+                args_ = args[:max_sign_args] + (args[max_sign_args:],)
             else:
                 args_ = args
 
@@ -993,7 +1027,11 @@ cdef class JavaMultipleMethod(object):
             scores.append((score, signature))
 
         if not scores:
-            raise JavaException('No methods matching your arguments')
+            raise JavaException(
+                'No methods matching your arguments, available: {}'.format(
+                    found_signatures
+                )
+            )
         scores.sort()
         score, signature = scores[-1]
 
