@@ -259,7 +259,7 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
             continue
 
         if r == 'C':
-            if not isinstance(arg, str) or args_len != 1:
+            if not isinstance(arg, str) or len(arg) != 1:
                 return -1
             score += 10
             continue
@@ -389,9 +389,9 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
                 return -1
 
             # calculate the score for our subarray
-            if args_len > 0:
+            if len(arg) > 0:
                 # if there are supplemantal arguments we compute the score
-                subscore = calculate_score([r[1:]] * args_len, arg)
+                subscore = calculate_score([r[1:]] * len(arg), arg)
                 if subscore == -1:
                     return -1
                 # the supplemental arguments match the varargs arguments
