@@ -224,15 +224,17 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
     cdef int index
     cdef int score = 0
     cdef JavaClass jc
+    cdef int args_len = len(args)
+    cdef int sign_args_len = len(sign_args)
 
-    if len(args) != len(sign_args) and not is_varargs:
+    if args_len != sign_args_len and not is_varargs:
         # if the number of arguments expected is not the same
         # as the number of arguments the method gets
         # it can not be the method we are looking for except
         # if the method has varargs aka. it takes
         # an undefined number of arguments
         return -1
-    elif len(args) == len(sign_args) and not is_varargs:
+    elif args_len == sign_args_len and not is_varargs:
         # if the method has the good number of arguments and
         # the method doesn't take varargs increment the score
         # so that it takes precedence over a method with the same
@@ -242,7 +244,7 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
         # (Integer, Integer, Integer) takes precedence over (Integer, Integer, Integer...)
         score += 10
 
-    for index in range(len(sign_args)):
+    for index in range(sign_args_len):
         r = sign_args[index]
         arg = args[index]
 
@@ -259,7 +261,7 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
             continue
 
         if r == 'C':
-            if not isinstance(arg, str) or len(arg) != 1:
+            if not isinstance(arg, str) or args_len != 1:
                 return -1
             score += 10
             continue
@@ -383,9 +385,9 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
                 return -1
 
             # calculate the score for our subarray
-            if len(arg) > 0:
+            if args_len > 0:
                 # if there are supplemantal arguments we compute the score
-                subscore = calculate_score([r[1:]] * len(arg), arg)
+                subscore = calculate_score([r[1:]] * args_len, arg)
                 if subscore == -1:
                     return -1
                 # the supplemental arguments match the varargs arguments
