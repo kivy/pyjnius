@@ -348,6 +348,10 @@ cdef class JavaClass(object):
             self.j_self = create_local_ref(j_env, j_self)
             j_env[0].DeleteLocalRef(j_env, j_self)
         finally:
+            # in case NewObjectA() throws an exception,
+            # the execution might not get further, but 'finally' block
+            # will still be called
+            check_exception(j_env)
             if j_args != NULL:
                 free(j_args)
 
