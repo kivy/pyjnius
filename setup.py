@@ -11,7 +11,8 @@ try:
     import subprocess32 as subprocess
 except ImportError:
     import subprocess
-from os import environ, readlink
+import os
+from os import environ
 from os.path import dirname, join, exists
 import sys
 from platform import machine
@@ -165,9 +166,9 @@ else:
                 JDK_HOME = TMP_JDK_HOME
 
         else:
-            JDK_HOME = readlink(
+            JDK_HOME = os.readlink(
                 subprocess.Popen(
-                    ['which', 'javac'], stdout=subprocess.PIPE
+                    'which javac', stdout=subprocess.PIPE
                 ).communicate()[0].strip()
             ).replace('bin/javac', '')
 
@@ -182,9 +183,9 @@ else:
         JRE_HOME = join(JDK_HOME, 'jre')
 
     if PLATFORM != 'win32' and not JRE_HOME:
-        JRE_HOME = readlink(
+        JRE_HOME = os.readlink(
             subprocess.Popen(
-                ['which', 'java'], stdout=subprocess.PIPE
+                'which java', stdout=subprocess.PIPE
             ).communicate()[0].strip()
         ).replace('bin/java', '')
 
