@@ -194,7 +194,8 @@ Reflection functions
             func_from()
 
         There is also a special case for a `SomeClass.class` class literal
-        which you will find in the `__javaclass__` python attribute.
+        which you will find either as a result of `SomeClass.getClass()`
+        or in the `__javaclass__` python attribute.
 
 Java class implementation in Python
 -----------------------------------
