@@ -197,6 +197,11 @@ Reflection functions
         which you will find either as a result of `SomeClass.getClass()`
         or in the `__javaclass__` python attribute.
 
+    .. warning::
+        Currently `SomeClass.getClass()` returns a different Python object,
+        therefore to safely compare whether something is the same class in
+        Java use `A.hashCode() == B.hashCode()`.
+
 Java class implementation in Python
 -----------------------------------
 
