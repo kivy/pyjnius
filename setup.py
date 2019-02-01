@@ -11,7 +11,7 @@ try:
     import subprocess32 as subprocess
 except ImportError:
     import subprocess
-from os import environ
+from os import environ, readlink
 from os.path import dirname, join, exists
 import sys
 from platform import machine
@@ -165,9 +165,11 @@ else:
                 JDK_HOME = TMP_JDK_HOME
 
         else:
-            JDK_HOME = subprocess.Popen(
-                'readlink -f `which javac` | sed "s:bin/javac::"',
-                shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+            JDK_HOME = readlink(
+                subprocess.Popen(
+                    ['which', 'javac'], stdout=subprocess.PIPE
+                ).communicate()[0].strip()
+            ).replace('bin/javac', '')
 
             if JDK_HOME is not None and not PY2:
                 JDK_HOME = JDK_HOME.decode('utf-8')
@@ -180,9 +182,11 @@ else:
         JRE_HOME = join(JDK_HOME, 'jre')
 
     if PLATFORM != 'win32' and not JRE_HOME:
-        JRE_HOME = subprocess.Popen(
-            'readlink -f `which java` | sed "s:bin/java::"',
-            shell=True, stdout=subprocess.PIPE).communicate()[0].strip()
+        JRE_HOME = readlink(
+            subprocess.Popen(
+                ['which', 'java'], stdout=subprocess.PIPE
+            ).communicate()[0].strip()
+        ).replace('bin/java', '')
 
     # This dictionary converts values from platform.machine()
     # to a "cpu" string. It is needed to set the correct lib path,
