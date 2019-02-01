@@ -4,6 +4,8 @@ Handle Python 2 vs 3 differences here.
 
 from cpython.version cimport PY_MAJOR_VERSION
 
+cdef int PY2 = PY_MAJOR_VERSION < 3
+
 # because Cython's basestring doesn't work with isinstance() properly
 # and has differences between Python 2 and Python 3 runtime behavior
 # so it's not really usable unless some bug in the upstream is fixed

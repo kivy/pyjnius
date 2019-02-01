@@ -1,7 +1,5 @@
-from cpython.version cimport PY_MAJOR_VERSION
-
 cdef str_for_c(s):
-     if PY_MAJOR_VERSION < 3:
+     if PY2:
         if isinstance(s, unicode):
             return s.encode('utf-8')
         else:
@@ -10,7 +8,7 @@ cdef str_for_c(s):
         return s.encode('utf-8')
 
 cdef items_compat(d):
-     if PY_MAJOR_VERSION >= 3:
+     if not PY2:
          return d.items()
      else:
         return d.iteritems()                
@@ -224,15 +222,17 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
     cdef int index
     cdef int score = 0
     cdef JavaClass jc
+    cdef int args_len = len(args)
+    cdef int sign_args_len = len(sign_args)
 
-    if len(args) != len(sign_args) and not is_varargs:
+    if args_len != sign_args_len and not is_varargs:
         # if the number of arguments expected is not the same
         # as the number of arguments the method gets
         # it can not be the method we are looking for except
         # if the method has varargs aka. it takes
         # an undefined number of arguments
         return -1
-    elif len(args) == len(sign_args) and not is_varargs:
+    elif args_len == sign_args_len and not is_varargs:
         # if the method has the good number of arguments and
         # the method doesn't take varargs increment the score
         # so that it takes precedence over a method with the same
@@ -242,7 +242,7 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
         # (Integer, Integer, Integer) takes precedence over (Integer, Integer, Integer...)
         score += 10
 
-    for index in range(len(sign_args)):
+    for index in range(sign_args_len):
         r = sign_args[index]
         arg = args[index]
 
@@ -304,11 +304,11 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
                 continue
 
             # if it's a string, accept any python string
-            if r == 'java/lang/String' and isinstance(arg, base_string) and PY_MAJOR_VERSION < 3:
+            if r == 'java/lang/String' and isinstance(arg, base_string) and PY2:
                 score += 10
                 continue
 
-            if r == 'java/lang/String' and isinstance(arg, str) and PY_MAJOR_VERSION >= 3:
+            if r == 'java/lang/String' and isinstance(arg, str) and not PY2:
                 score += 10
                 continue
 
@@ -322,6 +322,12 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
                     score += 5
                     continue
                 elif isinstance(arg, (list, tuple)):
+                    score += 5
+                    continue
+                elif isinstance(arg, int):
+                    score += 5
+                    continue
+                elif isinstance(arg, float):
                     score += 5
                     continue
                 return -1
@@ -363,15 +369,15 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
                 score += 10
                 continue
 
-            if (r == '[B' or r == '[C') and isinstance(arg, base_string) and PY_MAJOR_VERSION < 3:
+            if (r == '[B' or r == '[C') and isinstance(arg, base_string) and PY2:
                 score += 10
                 continue
 
-            if (r == '[B') and isinstance(arg, bytes) and PY_MAJOR_VERSION >= 3:
+            if (r == '[B') and isinstance(arg, bytes) and not PY2:
                 score += 10
                 continue
 
-            if (r == '[C') and isinstance(arg, str) and PY_MAJOR_VERSION >= 3:
+            if (r == '[C') and isinstance(arg, str) and not PY2:
                 score += 10
                 continue
 

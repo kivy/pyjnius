@@ -57,6 +57,18 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
         elif argtype[0] == 'L':
             if py_arg is None:
                 j_args[index].l = NULL
+
+            # numeric types
+            elif isinstance(py_arg, (int, long)):
+                j_args[index].l = convert_python_to_jobject(
+                    j_env, 'Ljava/lang/Integer;', py_arg
+                )
+            elif isinstance(py_arg, float):
+                j_args[index].l = convert_python_to_jobject(
+                    j_env, 'Ljava/lang/Float;', py_arg
+                )
+
+            # string types
             elif isinstance(py_arg, base_string) and jstringy_arg(argtype):
                 j_args[index].l = convert_pystr_to_java(
                     j_env, to_unicode(py_arg)
@@ -65,6 +77,8 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                 jc = py_arg
                 check_assignable_from(j_env, jc, argtype[1:-1])
                 j_args[index].l = jc.j_self.obj
+
+            # objects
             elif isinstance(py_arg, JavaObject):
                 jo = py_arg
                 j_args[index].l = jo.obj
@@ -81,15 +95,21 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                     jc = pc.j_self
                 # get the localref
                 j_args[index].l = jc.j_self.obj
+
+            # implementation of Java class in Python (needs j_cls)
             elif isinstance(py_arg, type):
                 jc = py_arg
                 j_args[index].l = jc.j_cls
+
+            # array
             elif isinstance(py_arg, (tuple, list)):
                 j_args[index].l = convert_pyarray_to_java(j_env, argtype, py_arg)
+
             else:
                 raise JavaException('Invalid python object for this '
                         'argument. Want {0!r}, got {1!r}'.format(
                             argtype[1:-1], py_arg))
+
         elif argtype[0] == '[':
             if py_arg is None:
                 j_args[index].l = NULL
@@ -351,22 +371,40 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
     elif definition[0] == 'L':
         if obj is None:
             return NULL
+
+        # string types
         elif isinstance(obj, base_string) and jstringy_arg(definition):
             return convert_pystr_to_java(j_env, to_unicode(obj))
+
+        # numeric types
         elif isinstance(obj, (int, long)) and \
                 definition in (
                     'Ljava/lang/Integer;',
                     'Ljava/lang/Number;',
                     'Ljava/lang/Long;',
                     'Ljava/lang/Object;'):
-            j_ret[0].i = obj
+            j_ret[0].i = int(obj)
             retclass = j_env[0].FindClass(j_env, 'java/lang/Integer')
             retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(I)V')
             retobject = j_env[0].NewObjectA(j_env, retclass, retmidinit, j_ret)
             return retobject
+        elif isinstance(obj, float) and \
+                definition in (
+                    'Ljava/lang/Float;',
+                    'Ljava/lang/Number;',
+                    'Ljava/lang/Object;'):
+            j_ret[0].f = obj
+            retclass = j_env[0].FindClass(j_env, 'java/lang/Float')
+            retmidinit = j_env[0].GetMethodID(j_env, retclass, '<init>', '(F)V')
+            retobject = j_env[0].NewObjectA(j_env, retclass, retmidinit, j_ret)
+            return retobject
+
+        # implementation of Java class in Python (needs j_cls)
         elif isinstance(obj, type):
             jc = obj
             return jc.j_cls
+
+        # objects
         elif isinstance(obj, JavaClass):
             jc = obj
             check_assignable_from(j_env, jc, definition[1:-1])
@@ -387,8 +425,11 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
                 jc = pc.j_self
             # get the localref
             return jc.j_self.obj
+
+        # array
         elif isinstance(obj, (tuple, list)):
             return convert_pyarray_to_java(j_env, definition, obj)
+
         else:
             raise JavaException('Invalid python object for this '
                     'argument. Want {0!r}, got {1!r}'.format(
