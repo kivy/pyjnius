@@ -156,6 +156,9 @@ else:
         if PLATFORM == 'win32':
             TMP_JDK_HOME = getenv('JAVA_HOME')
             print(TMP_JDK_HOME)
+            if not TMP_JDK_HOME:
+                raise Exception('Unable to find JAVA_HOME')
+
             # Remove /bin if it's appended to JAVA_HOME
             if TMP_JDK_HOME[-3:] == 'bin':
                 TMP_JDK_HOME = TMP_JDK_HOME[:-4]
