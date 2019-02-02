@@ -170,11 +170,7 @@ cdef convert_jobject_to_python(JNIEnv *j_env, definition, jobject j_object):
     if r == 'java/lang/Long':
         retclass = j_env[0].GetObjectClass(j_env, j_object)
         retmeth = j_env[0].GetMethodID(j_env, retclass, 'longValue', '()J')
-        value = j_env[0].CallLongMethod(j_env, j_object, retmeth)
-        if value < 2 ** 31:
-            return j_env[0].CallIntMethod(j_env, j_object, retmeth)
-        else:
-            return j_env[0].CallLongMethod(j_env, j_object, retmeth)
+        return j_env[0].CallLongMethod(j_env, j_object, retmeth)
     if r == 'java/lang/Integer':
         retclass = j_env[0].GetObjectClass(j_env, j_object)
         retmeth = j_env[0].GetMethodID(j_env, retclass, 'intValue', '()I')
