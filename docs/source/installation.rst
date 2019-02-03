@@ -110,6 +110,39 @@ Python and pip must be installed and present in the ``PATH`` environment variabl
        or ``C:\Program Files (x86)\Java\jdkx.y.z_b``.
 
 
+Installation for macOS
+----------------------
+
+Python and pip must be installed and present in the ``PATH`` environment variable.
+
+
+1. Download and install the JDK containing the JRE:
+
+   http://www.oracle.com/technetwork/java/javase/downloads/index.html
+
+2. Edit your system and environment variables (use the appropriate Java bitness
+   and version in the paths):
+
+    Add to your `Environment Variables
+    <https://en.wikipedia.org/wiki/Environment_variable>`_:
+
+    * ``export JAVA_HOME=/usr/libexec/java_home``
+
+3. Install Xcode command-line tools.
+
+4. Update `pip <https://pip.pypa.io/en/stable/installing>`_ and setuptools::
+
+      python -m pip install --upgrade pip setuptools
+
+5. Install Cython::
+
+       python -m pip install --upgrade cython
+
+6. Install Pyjnius::
+
+       pip install pyjnius
+
+
 Installation for Conda
 ----------------------
 
