@@ -13,7 +13,7 @@ except ImportError:
     import subprocess
 import os
 from os import environ
-from os.path import dirname, join, exists
+from os.path import dirname, join, exists, realpath
 import sys
 from platform import machine
 from setup_sdist import SETUP_KWARGS
@@ -166,7 +166,7 @@ else:
                 JDK_HOME = TMP_JDK_HOME
 
         else:
-            JDK_HOME = os.readlink(
+            JDK_HOME = realpath(
                 subprocess.check_output(
                     ['which', 'javac']
                 ).strip()
@@ -183,7 +183,7 @@ else:
         JRE_HOME = join(JDK_HOME, 'jre')
 
     if PLATFORM != 'win32' and not JRE_HOME:
-        JRE_HOME = os.readlink(
+        JRE_HOME = realpath(
             subprocess.check_output(
                 ['which', 'java']
             ).strip()
