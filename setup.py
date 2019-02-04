@@ -169,11 +169,8 @@ else:
             JDK_HOME = realpath(
                 subprocess.check_output(
                     ['which', 'javac']
-                ).strip()
+                ).decode('utf-8').strip()
             ).replace('bin/javac', '')
-
-            if JDK_HOME is not None and not PY2:
-                JDK_HOME = JDK_HOME.decode('utf-8')
 
     if not JDK_HOME or not exists(JDK_HOME):
         raise Exception('Unable to determine JDK_HOME')
@@ -186,7 +183,7 @@ else:
         JRE_HOME = realpath(
             subprocess.check_output(
                 ['which', 'java']
-            ).strip()
+            ).decode('utf-8').strip()
         ).replace('bin/java', '')
 
     # This dictionary converts values from platform.machine()
