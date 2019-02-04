@@ -168,7 +168,9 @@ else:
         else:
             JDK_HOME = os.readlink(
                 subprocess.Popen(
-                    'which javac', stdout=subprocess.PIPE
+                    ['which', 'javac'],
+                    stdout=subprocess.PIPE,
+                    env=os.environ.copy()
                 ).communicate()[0].strip()
             ).replace('bin/javac', '')
 
@@ -185,7 +187,9 @@ else:
     if PLATFORM != 'win32' and not JRE_HOME:
         JRE_HOME = os.readlink(
             subprocess.Popen(
-                'which java', stdout=subprocess.PIPE
+                ['which', 'java'],
+                stdout=subprocess.PIPE,
+                env=os.environ.copy()
             ).communicate()[0].strip()
         ).replace('bin/java', '')
 
