@@ -167,11 +167,9 @@ else:
 
         else:
             JDK_HOME = os.readlink(
-                subprocess.Popen(
-                    ['which', 'javac'],
-                    stdout=subprocess.PIPE,
-                    env=os.environ.copy()
-                ).communicate()[0].strip()
+                subprocess.check_output(
+                    ['which', 'javac']
+                ).strip()
             ).replace('bin/javac', '')
 
             if JDK_HOME is not None and not PY2:
@@ -186,11 +184,9 @@ else:
 
     if PLATFORM != 'win32' and not JRE_HOME:
         JRE_HOME = os.readlink(
-            subprocess.Popen(
-                ['which', 'java'],
-                stdout=subprocess.PIPE,
-                env=os.environ.copy()
-            ).communicate()[0].strip()
+            subprocess.check_output(
+                ['which', 'java']
+            ).strip()
         ).replace('bin/java', '')
 
     # This dictionary converts values from platform.machine()
