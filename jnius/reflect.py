@@ -44,7 +44,7 @@ class Class(with_metaclass(MetaJavaClass, JavaClass)):
     getResource = JavaMethod('(Ljava/lang/String;)Ljava/net/URL;')
     getResourceAsStream = JavaMethod('(Ljava/lang/String;)Ljava/io/InputStream;')
     getSigners = JavaMethod('()[Ljava/lang/Object;')
-    getSuperclass = JavaMethod('()Ljava/lang/reflect/Class;')
+    getSuperclass = JavaMethod('()Ljava/lang/Class;')
     isArray = JavaMethod('()Z')
     isAssignableFrom = JavaMethod('(Ljava/lang/reflect/Class;)Z')
     isInstance = JavaMethod('(Ljava/lang/Object;)Z')
@@ -168,56 +168,61 @@ def autoclass(clsname):
         constructors.append((sig, constructor.isVarArgs()))
     classDict['__javaconstructor__'] = constructors
 
-    methods = c.getMethods()
-    methods_name = [x.getName() for x in methods]
-    for index, method in enumerate(methods):
-        name = methods_name[index]
-        if name in classDict:
-            continue
-        count = methods_name.count(name)
+    parent_class = c
+    while parent_class is not None:
+        methods = parent_class.getDeclaredMethods()
+        methods_name = [x.getName() for x in methods]
 
-        # only one method available
-        if count == 1:
-            static = Modifier.isStatic(method.getModifiers())
-            varargs = method.isVarArgs()
-            sig = '({0}){1}'.format(
-                ''.join([get_signature(x) for x in method.getParameterTypes()]),
-                get_signature(method.getReturnType()))
-            cls = JavaStaticMethod if static else JavaMethod
-            classDict[name] = cls(sig, varargs=varargs)
-            if name != 'getClass' and bean_getter(name) and len(method.getParameterTypes()) == 0:
-                lowername = lower_name(name[2 if name.startswith('is') else 3:])
-                classDict[lowername] = (lambda n: property(lambda self: getattr(self, n)()))(name)
-            continue
-
-        # multiple signatures
-        signatures = []
-        for index, subname in enumerate(methods_name):
-            if subname != name:
+        for index, method in enumerate(methods):
+            name = methods_name[index]
+            if name in classDict:
                 continue
-            method = methods[index]
-            sig = '({0}){1}'.format(
-                ''.join([get_signature(x) for x in method.getParameterTypes()]),
-                get_signature(method.getReturnType()))
-            '''
-            print 'm', name, sig, method.getModifiers()
-            m = method.getModifiers()
-            print 'Public', Modifier.isPublic(m)
-            print 'Private', Modifier.isPrivate(m)
-            print 'Protected', Modifier.isProtected(m)
-            print 'Static', Modifier.isStatic(m)
-            print 'Final', Modifier.isFinal(m)
-            print 'Synchronized', Modifier.isSynchronized(m)
-            print 'Volatile', Modifier.isVolatile(m)
-            print 'Transient', Modifier.isTransient(m)
-            print 'Native', Modifier.isNative(m)
-            print 'Interface', Modifier.isInterface(m)
-            print 'Abstract', Modifier.isAbstract(m)
-            print 'Strict', Modifier.isStrict(m)
-            '''
-            signatures.append((sig, Modifier.isStatic(method.getModifiers()), method.isVarArgs()))
+            count = methods_name.count(name)
 
-        classDict[name] = JavaMultipleMethod(signatures)
+            # only one method available
+            if count == 1:
+                static = Modifier.isStatic(method.getModifiers())
+                varargs = method.isVarArgs()
+                sig = '({0}){1}'.format(
+                    ''.join([get_signature(x) for x in method.getParameterTypes()]),
+                    get_signature(method.getReturnType()))
+                cls = JavaStaticMethod if static else JavaMethod
+                classDict[name] = cls(sig, varargs=varargs)
+                if name != 'getClass' and bean_getter(name) and len(method.getParameterTypes()) == 0:
+                    lowername = lower_name(name[2 if name.startswith('is') else 3:])
+                    classDict[lowername] = (lambda n: property(lambda self: getattr(self, n)()))(name)
+                continue
+
+            # multiple signatures
+            signatures = []
+            for index, subname in enumerate(methods_name):
+                if subname != name:
+                    continue
+                method = methods[index]
+                sig = '({0}){1}'.format(
+                    ''.join([get_signature(x) for x in method.getParameterTypes()]),
+                    get_signature(method.getReturnType()))
+                '''
+                print 'm', name, sig, method.getModifiers()
+                m = method.getModifiers()
+                print 'Public', Modifier.isPublic(m)
+                print 'Private', Modifier.isPrivate(m)
+                print 'Protected', Modifier.isProtected(m)
+                print 'Static', Modifier.isStatic(m)
+                print 'Final', Modifier.isFinal(m)
+                print 'Synchronized', Modifier.isSynchronized(m)
+                print 'Volatile', Modifier.isVolatile(m)
+                print 'Transient', Modifier.isTransient(m)
+                print 'Native', Modifier.isNative(m)
+                print 'Interface', Modifier.isInterface(m)
+                print 'Abstract', Modifier.isAbstract(m)
+                print 'Strict', Modifier.isStrict(m)
+                '''
+                signatures.append((sig, Modifier.isStatic(method.getModifiers()), method.isVarArgs()))
+
+            classDict[name] = JavaMultipleMethod(signatures)
+
+        parent_class = parent_class.getSuperclass()
 
     def _getitem(self, index):
         try:
