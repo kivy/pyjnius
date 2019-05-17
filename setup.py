@@ -84,7 +84,7 @@ def find_javac(possible_homes):
     for home in possible_homes:
         for javac in [join(home, name), join(home, 'bin', name)]:
             if exists(javac):
-                if sys.platform == "win32": # Avoid path space execution error
+                if sys.platform == "win32" and not PY2: # Avoid path space execution error
                     return'"%s"' % javac
                 return javac
     return name  # Fall back to "hope it's on the path"
@@ -93,10 +93,16 @@ def find_javac(possible_homes):
 def compile_native_invocation_handler(*possible_homes):
     '''Find javac and compile NativeInvocationHandler.java.'''
     javac = find_javac(possible_homes)
-    subprocess.check_call([
-        javac, '-target', '1.6', '-source', '1.6',
-        join('jnius', 'src', 'org', 'jnius', 'NativeInvocationHandler.java')
-    ])
+    try:
+        subprocess.check_call([
+            javac, '-target', '1.6', '-source', '1.6',
+            join('jnius', 'src', 'org', 'jnius', 'NativeInvocationHandler.java')
+        ])
+    except FileNotFoundError:
+        subprocess.check_call([
+            javac.replace('""', ''), '-target', '1.6', '-source', '1.6',
+            join('jnius', 'src', 'org', 'jnius', 'NativeInvocationHandler.java')
+        ])
 
 
 if PLATFORM == 'android':
