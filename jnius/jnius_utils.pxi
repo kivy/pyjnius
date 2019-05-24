@@ -402,3 +402,79 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
             # a method with a better signature so we don't
             # change this method score
     return score
+
+cdef readable_sig(sig, is_var):
+    """
+    Converts JNI signature to easily readable Signature.
+    :param sig: JNI signature string
+    :param is_var: if the function has varargs
+    :return:([arg], rtn)
+    """
+    dic = {'Z': 'boolean',
+           'B': 'byte',
+           'C': 'char',
+           'D': 'double',
+           'F': 'float',
+           'I': 'int',
+           'J': 'long',
+           'S': 'short',
+           'V': 'void',
+           '[': 'array',
+           'L': 'fqs'}
+
+    splt = sig.split(')')
+    # remove first '('
+    args_str = splt[0][1:]
+    args = []
+    is_array = False
+    i = 0
+    while i < len(args_str):
+        c = args_str[i]
+        type_ = dic[c]
+        if type_ == 'array':
+            is_array = True
+            i += 1
+        elif type_ == 'fqs':
+            cls_n = ''
+            for fqs_i in range(i+1, len(args_str)):
+                if args_str[fqs_i] == ';':
+                    i = fqs_i + 1
+                    break
+                else:
+                    cls_n += args_str[fqs_i]
+            args.append(cls_n + '[]' if is_array else cls_n)
+            is_array = False
+        else:
+            args.append(dic[c] + '[]' if is_array else dic[c])
+            is_array = False
+            i += 1
+
+    # last element of args is array and function has Varargs
+    if len(args) > 0 and args[-1][-2:] == '[]' and is_var:
+        args[-1] = args[-1][:-2] + '...'
+
+    rtn_str = splt[1]
+    rtn = ''
+    i = 0
+    is_array = False
+    while i < len(rtn_str):
+        c = rtn_str[i]
+        type_ = dic[c]
+        if type_ == 'array':
+            is_array = True
+            i += 1
+        elif type_ == 'fqs':
+            cls_n = ''
+            for fqs_i in range(i + 1, len(rtn_str)):
+                if rtn_str[fqs_i] == ';':
+                    i = fqs_i + 1
+                    break
+                else:
+                    cls_n += rtn_str[fqs_i]
+            rtn = cls_n + '[]' if is_array else cls_n
+        else:
+            rtn = dic[c] + '[]' if is_array else dic[c]
+            i += 1
+
+    return args, rtn
+

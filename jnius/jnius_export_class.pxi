@@ -682,6 +682,9 @@ cdef class JavaMethod(object):
         self.j_cls = NULL
         self.j_self = None
 
+    def __dir__(self):
+        return list([readable_sig(self.definition, self.is_varargs)])
+
     def __init__(self, definition, **kwargs):
         super(JavaMethod, self).__init__()
         self.definition = definition
@@ -957,6 +960,9 @@ cdef class JavaMultipleMethod(object):
     cdef dict instance_methods
     cdef bytes name
     cdef bytes classname
+
+    def __dir__(self):
+        return [readable_sig(args, is_varargs) for args, static, is_varargs in self.definitions]
 
     def __cinit__(self, definition, **kwargs):
         self.j_self = None
