@@ -14,6 +14,7 @@ except ImportError:
 import os
 from os import environ
 from os.path import dirname, join, exists, realpath
+import re
 import sys
 from platform import machine
 from setup_sdist import SETUP_KWARGS
@@ -91,8 +92,16 @@ def find_javac(possible_homes):
 def compile_native_invocation_handler(*possible_homes):
     '''Find javac and compile NativeInvocationHandler.java.'''
     javac = find_javac(possible_homes)
+    source_level = '1.6'
+    # We have to check what version of javac this is, because -target 1.6 is
+    # no longer supported on JDKs >= 12.
+    javac_version = subprocess.check_output([javac, '-version'])
+    for m in re.finditer(r'\d+', javac_version.decode('ascii')):
+        if int(m.group(0)) >= 12:
+            source_level = '1.7'
+        break
     subprocess.check_call([
-        javac, '-target', '1.6', '-source', '1.6',
+        javac, '-target', source_level, '-source', source_level,
         join('jnius', 'src', 'org', 'jnius', 'NativeInvocationHandler.java')
     ])
 
