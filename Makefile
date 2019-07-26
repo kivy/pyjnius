@@ -10,10 +10,11 @@ PYTHON=python
 NOSETESTS=nosetests
 endif
 
-JAVAC_OPTS=-target 1.6 -source 1.6
+JAVA_TARGET ?= $(shell javac -version | $(PYTHON) -c "import re; print('1.6' if int(re.findall(r'\d+', input())[0]) < 12 else '1.7')" )
+JAVAC_OPTS=-target $(JAVA_TARGET) -source $(JAVA_TARGET)
 JAVAC=javac $(JAVAC_OPTS)
 
-ANT=ant
+ANT=ant -Dant.build.javac.source=$(JAVA_TARGET) -Dant.build.javac.target=$(JAVA_TARGET)
 
 build_ext:
 	$(ANT) all
