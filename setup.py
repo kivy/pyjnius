@@ -95,7 +95,8 @@ def compile_native_invocation_handler(*possible_homes):
     source_level = '1.6'
     # We have to check what version of javac this is, because -target 1.6 is
     # no longer supported on JDKs >= 12.
-    javac_version = subprocess.check_output([javac, '-version'])
+    javac_version = subprocess.check_output([javac, '-version'],
+                                            stderr=subprocess.STDOUT)
     for m in re.finditer(r'\d+', javac_version.decode('ascii')):
         if int(m.group(0)) >= 12:
             source_level = '1.7'
