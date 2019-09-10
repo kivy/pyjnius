@@ -125,7 +125,7 @@ elif PLATFORM == 'darwin':
             )
         )]
     else:
-        LIB_LOCATION = 'jre/lib/server/libjvm.dylib'
+        LIB_LOCATION = 'jre/lib/jli/libjli.dylib'
 
         # We want to favor Java installation declaring JAVA_HOME
         if getenv('JAVA_HOME'):
@@ -136,7 +136,7 @@ elif PLATFORM == 'darwin':
         if not exists(FULL_LIB_LOCATION):
             # In that case, the Java version is very likely >=9.
             # So we need to modify the `libjvm.so` path.
-            LIB_LOCATION = 'lib/server/libjvm.dylib'
+            LIB_LOCATION = 'lib/jli/libjli.dylib'
 
         INCLUDE_DIRS = [
             '{0}/include'.format(FRAMEWORK),
