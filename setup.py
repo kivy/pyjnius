@@ -137,6 +137,12 @@ elif PLATFORM == 'darwin':
             # In that case, the Java version is very likely >=9.
             # So we need to modify the `libjvm.so` path.
             LIB_LOCATION = 'lib/jli/libjli.dylib'
+            FULL_LIB_LOCATION = join(FRAMEWORK, LIB_LOCATION)
+
+        if not exists(FULL_LIB_LOCATION):
+            # adoptopenjdk12 doesn't have the jli subfolder either
+            LIB_LOCATION = 'lib/libjli.dylib'
+            FULL_LIB_LOCATION = join(FRAMEWORK, LIB_LOCATION)
 
         INCLUDE_DIRS = [
             '{0}/include'.format(FRAMEWORK),
