@@ -203,7 +203,9 @@ else:
     MACHINE2CPU = {
         "i686": "i386",
         "x86_64": "amd64",
-        "armv7l": "arm"
+        "armv7l": "arm",
+        "sun4u": "sparcv9",
+        "sun4v": "sparcv9"
     }
     if machine() in MACHINE2CPU.keys():
         CPU = MACHINE2CPU[machine()]
@@ -218,6 +220,9 @@ else:
     if PLATFORM == 'win32':
         INCL_DIR = join(JDK_HOME, 'include', 'win32')
         LIBRARIES = ['jvm']
+    elif PLATFORM == 'sunos5':
+        INCL_DIR = join(jdk_home, 'include', 'solaris')
+        LIB_LOCATION = 'jre/lib/{}/server/libjvm.so'.format(CPU)
     else:
         INCL_DIR = join(JDK_HOME, 'include', 'linux')
         LIB_LOCATION = 'jre/lib/{}/server/libjvm.so'.format(CPU)
