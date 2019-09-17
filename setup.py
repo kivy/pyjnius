@@ -3,10 +3,7 @@ Setup.py for creating a binary distribution.
 '''
 
 from __future__ import print_function
-try:
-    from setuptools import setup, Extension
-except ImportError:
-    from distutils.core import setup, Extension
+from setuptools import setup, Extension
 try:
     import subprocess32 as subprocess
 except ImportError:
@@ -18,6 +15,7 @@ import re
 import sys
 from platform import machine
 from setup_sdist import SETUP_KWARGS
+
 
 PY2 = sys.version_info < (3, 0, 0)
 
@@ -220,6 +218,7 @@ else:
     MACHINE2CPU = {
         "i686": "i386",
         "x86_64": "amd64",
+        "AMD64": "amd64",
         "armv7l": "arm",
         "sun4u": "sparcv9",
         "sun4v": "sparcv9"
@@ -279,8 +278,10 @@ else:
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
     fd.write('DEF JNIUS_PLATFORM = {0!r}\n\n'.format(PLATFORM))
     if not PY2:
+        fd.write('# cython: language_level=3\n\n')
         fd.write('DEF JNIUS_PYTHON3 = True\n\n')
     else:
+        fd.write('# cython: language_level=2\n\n')
         fd.write('DEF JNIUS_PYTHON3 = False\n\n')
     if LIB_LOCATION is not None:
         fd.write('DEF JNIUS_LIB_SUFFIX = {0!r}\n\n'.format(LIB_LOCATION))
@@ -299,8 +300,13 @@ setup(
             libraries=LIBRARIES,
             library_dirs=LIBRARY_DIRS,
             include_dirs=INCLUDE_DIRS,
-            extra_link_args=EXTRA_LINK_ARGS
+            extra_link_args=EXTRA_LINK_ARGS,
+            # extra_objects=['jnius.{}'.format('pyd' if PLATFORM == 'win32' else 'so')]
         )
     ],
+    extras_require={
+        'dev': ['nose', 'wheel', 'pytest-cov', 'pycodestyle'],
+        'ci': ['coveralls', 'pytest-rerunfailures', 'setuptools>=34.4.0'],
+    },
     **SETUP_KWARGS
 )
