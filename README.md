@@ -40,27 +40,30 @@ hello
 Usage on desktop
 ----------------
 
-You need a java JDK installed (OpenJDK will do), Cython and make to build it.
-Please ensure that your `JDK_HOME` or `JAVA_HOME` environment variable points
-to the installed JDK root directory, and that the JVM library (`jvm.so` or
-`jvm.dll`) is available from your `PATH` environment variable. **Failure to do
-so may result in a failed install, or a successful install but inability to
-use the pyjnius library.**
+You need a Java Development Kit (JDK) installed (OpenJDK will do), `Cython` and
+`make` to build it. Please ensure that your `JDK_HOME` or `JAVA_HOME`
+environment variable points to the installed JDK root directory, and that the
+JVM library (`jvm.so` or `jvm.dll`) is available from your `PATH` environment
+variable. **Failure to do so may result in a failed install, or a successful
+install but inability to use the PyJNIus library.**
 
-    make
+```
+make
+```
 
-That's it! You can run the tests using
+That's it! You can ensure everything is running correctly using::
 
-    make tests
-
-to ensure everything is running correctly.
+```
+make tests
+```
 
 Usage with python-for-android
 -----------------------------
 
-* Get http://github.com/kivy/python-for-android
-* Compile a distribution with kivy (pyjnius will be automatically added)
-* Then, you can do this kind of thing:
+* Get [http://github.com/kivy/python-for-android]()
+* Compile a distribution with kivy (PyJNIus will be automatically added)
+
+Then, you can do this kind of things:
 
 ```python
 from time import sleep
@@ -106,8 +109,8 @@ I/python  ( 5983): [0.13407529890537262, 9.4235782623291016, 2.2026655673980713]
 Advanced example
 ----------------
 
-When you use autoclass, it will discover all the methods and fields of the
-object and resolve them. For now, it is better to declare and use only what you
+When you use `autoclass`, it will discover all the methods and fields of the
+class and resolve them. You may want to declare and use only what you
 need. The previous example can be done manually as follows:
 
 ```python
@@ -139,11 +142,9 @@ If you need assistance, you can ask for help on our mailing list:
 * User Group : https://groups.google.com/group/kivy-users
 * Email      : kivy-users@googlegroups.com
 
-We also have an IRC channel:
+We also have a Discord server:
 
-* Server  : irc.freenode.net
-* Port    : 6667, 6697 (SSL only)
-* Channel : #kivy
+[https://chat.kivy.org/](https://chat.kivy.org/)
 
 Contributing
 ------------
@@ -158,17 +159,11 @@ discussions about developing the Kivy framework and its sister projects:
 * Dev Group : https://groups.google.com/group/kivy-dev
 * Email     : kivy-dev@googlegroups.com
 
-IRC channel:
-
-* Server  : irc.freenode.net
-* Port    : 6667, 6697 (SSL only)
-* Channel : #kivy-dev
-
 License
 -------
 
 PyJNIus is released under the terms of the MIT License. Please refer to the
-LICENSE file.
+LICENSE file for more information.
 
 
 ## Backers

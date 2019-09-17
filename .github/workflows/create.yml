@@ -1,0 +1,18 @@
+on: create
+name: Continiuous Delivery
+jobs:
+  Release:
+    name: release
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: build
+      run: |
+          pip install -U setuptools
+          python setup.py sdist
+
+    - name: release
+      run: .github/actions/scripts/release.sh
+      env:
+        TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+        GITHUB_OAUTH_TOKEN: ${{ secrets.GITHUB_OAUTH_TOKEN }}
