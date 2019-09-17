@@ -53,6 +53,7 @@ LIB_LOCATION = None
 EXTRA_LINK_ARGS = []
 INCLUDE_DIRS = []
 INSTALL_REQUIRES = ['six>=1.7.0']
+SETUP_REQUIRES = []
 
 # detect Python for android
 PLATFORM = sys.platform
@@ -71,11 +72,12 @@ except ImportError:
     except ImportError:
         from distutils.command.build_ext import build_ext
     if PLATFORM != 'android':
-        print('\n\nYou need Cython to compile Pyjnius.\n\n')
-        raise
-    # On Android we expect to see 'c' files lying about.
-    # and we go ahead with the 'desktop' file? Odd.
-    FILES = [fn[:-3] + 'c' for fn in FILES if fn.endswith('pyx')]
+        SETUP_REQUIRES.append('cython')
+        INSTALL_REQUIRES.append('cython')
+    else:
+        # On Android we expect to see 'c' files lying about.
+        # and we go ahead with the 'desktop' file? Odd.
+        FILES = [fn[:-3] + 'c' for fn in FILES if fn.endswith('pyx')]
 
 
 def find_javac(possible_homes):
@@ -268,6 +270,7 @@ SETUP_KWARGS['py_modules'].remove('setup')
 setup(
     cmdclass={'build_ext': build_ext},
     install_requires=INSTALL_REQUIRES,
+    setup_requires=SETUP_REQUIRES,
     ext_modules=[
         Extension(
             'jnius', [join('jnius', x) for x in FILES],
