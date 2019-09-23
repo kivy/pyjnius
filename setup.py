@@ -229,7 +229,7 @@ else:
         INCL_DIR = join(JDK_HOME, 'include', 'win32')
         LIBRARIES = ['jvm']
     elif PLATFORM == 'sunos5':
-        INCL_DIR = join(jdk_home, 'include', 'solaris')
+        INCL_DIR = join(JDK_HOME, 'include', 'solaris')
         LIB_LOCATION = 'jre/lib/{}/server/libjvm.so'.format(CPU)
     else:
         INCL_DIR = join(JDK_HOME, 'include', 'linux')
