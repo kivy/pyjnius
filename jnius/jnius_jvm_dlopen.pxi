@@ -42,7 +42,7 @@ cdef void create_jnienv() except *:
     cdef bytes py_bytes
     import jnius_config
 
-    JAVA_HOME = os.environ['JAVA_HOME']
+    JAVA_HOME = os.getenv('JAVA_HOME')
     if JAVA_HOME is None or JAVA_HOME == '':
         raise SystemError("JAVA_HOME is not set.")
     IF JNIUS_PYTHON3:
