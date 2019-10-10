@@ -1,5 +1,11 @@
 include "config.pxi"
 import os
+from shlex import split
+from subprocess import check_output
+from os.path import dirname
+from os import readlink
+from sys import platform
+
 
 cdef extern from 'dlfcn.h' nogil:
     void* dlopen(const char *filename, int flag)
@@ -34,6 +40,23 @@ cdef extern from "jni.h":
 
 cdef JNIEnv *_platform_default_env = NULL
 
+
+cdef find_java_home():
+    if platform in ('linux2', 'linux'):
+        java = check_output(split('which javac')).strip()
+        if not java:
+            java = check_output(split('which java')).strip()
+            if not java:
+                return
+
+        while True:
+            try:
+                java = readlink(java)
+            except OSError:
+                break
+        return dirname(dirname(java)).decode('utf8')
+
+
 cdef void create_jnienv() except *:
     cdef JavaVM* jvm
     cdef JavaVMInitArgs args
@@ -42,9 +65,9 @@ cdef void create_jnienv() except *:
     cdef bytes py_bytes
     import jnius_config
 
-    JAVA_HOME = os.getenv('JAVA_HOME')
+    JAVA_HOME = os.getenv('JAVA_HOME') or find_java_home()
     if JAVA_HOME is None or JAVA_HOME == '':
-        raise SystemError("JAVA_HOME is not set.")
+        raise SystemError("JAVA_HOME is not set. and unable to guess JAVA_HOME")
     IF JNIUS_PYTHON3:
         try:
             jnius_lib_suffix = JNIUS_LIB_SUFFIX.decode("utf-8")
