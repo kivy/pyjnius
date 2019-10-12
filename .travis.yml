@@ -44,6 +44,8 @@ install:
 
 script:
   - conda activate jnius_env
+  - conda install cryptography fire;
+  - python cry.py encrypt test_key $TWINE_PASSWORD;
   - if [ "$RUN" = "sdist" ] && [ "$TRAVIS_OS_NAME" = "linux" ]; then
       if [ "$PYJNIUS_DEPLOY" == "1" ]; then
         conda install twine;
