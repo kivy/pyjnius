@@ -54,6 +54,7 @@ LIB_LOCATION = None
 EXTRA_LINK_ARGS = []
 INCLUDE_DIRS = []
 INSTALL_REQUIRES = ['six>=1.7.0']
+SETUP_REQUIRES = []
 
 # detect Python for android
 PLATFORM = sys.platform
@@ -72,11 +73,12 @@ except ImportError:
     except ImportError:
         from distutils.command.build_ext import build_ext
     if PLATFORM != 'android':
-        print('\n\nYou need Cython to compile Pyjnius.\n\n')
-        raise
-    # On Android we expect to see 'c' files lying about.
-    # and we go ahead with the 'desktop' file? Odd.
-    FILES = [fn[:-3] + 'c' for fn in FILES if fn.endswith('pyx')]
+        SETUP_REQUIRES.append('cython')
+        INSTALL_REQUIRES.append('cython')
+    else:
+        # On Android we expect to see 'c' files lying about.
+        # and we go ahead with the 'desktop' file? Odd.
+        FILES = [fn[:-3] + 'c' for fn in FILES if fn.endswith('pyx')]
 
 
 def find_javac(possible_homes):
@@ -85,6 +87,8 @@ def find_javac(possible_homes):
     for home in possible_homes:
         for javac in [join(home, name), join(home, 'bin', name)]:
             if exists(javac):
+                if sys.platform == "win32" and not PY2:  # Avoid path space execution error
+                    return '"%s"' % javac
                 return javac
     return name  # Fall back to "hope it's on the path"
 
@@ -101,11 +105,16 @@ def compile_native_invocation_handler(*possible_homes):
         if int(m.group(0)) >= 12:
             source_level = '1.7'
         break
-    subprocess.check_call([
+    try:
+      subprocess.check_call([
         javac, '-target', source_level, '-source', source_level,
         join('jnius', 'src', 'org', 'jnius', 'NativeInvocationHandler.java')
     ])
-
+    except FileNotFoundError:
+        subprocess.check_call([
+            javac.replace('"', ''), '-target', source_level, '-source', source_level,
+            join('jnius', 'src', 'org', 'jnius', 'NativeInvocationHandler.java')
+        ])
 
 if PLATFORM == 'android':
     # for android, we use SDL...
@@ -135,7 +144,7 @@ elif PLATFORM == 'darwin':
             )
         )]
     else:
-        LIB_LOCATION = 'jre/lib/server/libjvm.dylib'
+        LIB_LOCATION = 'jre/lib/jli/libjli.dylib'
 
         # We want to favor Java installation declaring JAVA_HOME
         if getenv('JAVA_HOME'):
@@ -146,7 +155,13 @@ elif PLATFORM == 'darwin':
         if not exists(FULL_LIB_LOCATION):
             # In that case, the Java version is very likely >=9.
             # So we need to modify the `libjvm.so` path.
-            LIB_LOCATION = 'lib/server/libjvm.dylib'
+            LIB_LOCATION = 'lib/jli/libjli.dylib'
+            FULL_LIB_LOCATION = join(FRAMEWORK, LIB_LOCATION)
+
+        if not exists(FULL_LIB_LOCATION):
+            # adoptopenjdk12 doesn't have the jli subfolder either
+            LIB_LOCATION = 'lib/libjli.dylib'
+            FULL_LIB_LOCATION = join(FRAMEWORK, LIB_LOCATION)
 
         INCLUDE_DIRS = [
             '{0}/include'.format(FRAMEWORK),
@@ -205,7 +220,9 @@ else:
     MACHINE2CPU = {
         "i686": "i386",
         "x86_64": "amd64",
-        "armv7l": "arm"
+        "armv7l": "arm",
+        "sun4u": "sparcv9",
+        "sun4v": "sparcv9"
     }
     if machine() in MACHINE2CPU.keys():
         CPU = MACHINE2CPU[machine()]
@@ -220,6 +237,9 @@ else:
     if PLATFORM == 'win32':
         INCL_DIR = join(JDK_HOME, 'include', 'win32')
         LIBRARIES = ['jvm']
+    elif PLATFORM == 'sunos5':
+        INCL_DIR = join(JDK_HOME, 'include', 'solaris')
+        LIB_LOCATION = 'jre/lib/{}/server/libjvm.so'.format(CPU)
     else:
         INCL_DIR = join(JDK_HOME, 'include', 'linux')
         LIB_LOCATION = 'jre/lib/{}/server/libjvm.so'.format(CPU)
@@ -272,6 +292,7 @@ SETUP_KWARGS['py_modules'].remove('setup')
 setup(
     cmdclass={'build_ext': build_ext},
     install_requires=INSTALL_REQUIRES,
+    setup_requires=SETUP_REQUIRES,
     ext_modules=[
         Extension(
             'jnius', [join('jnius', x) for x in FILES],
