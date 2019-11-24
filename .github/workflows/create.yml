@@ -1,18 +1,69 @@
 on: create
 name: Continiuous Delivery
 jobs:
-  Release:
-    name: release
-    runs-on: ubuntu-latest
+  PrepareRelease:
+    name: prepare release
+    strategy:
+      matrix:
+        python:
+           - '2.7'
+           - '3.6'
+           - '3.7'
+           - '3.8'
+        java:
+          # - '8'
+          # - '9'
+          # - '10'
+          # - '11'
+          - '12'
+        os:
+          - 'ubuntu-latest'
+          - 'windows-latest'
+          - 'macOs-latest'
+        architecture:
+          - 'x64'
+          - 'x86'
+
+        # exclude problematic combinations
+        exclude:
+        - os: windows-latest
+          python: '3.8'
+        - os: windows-latest
+          python: '2.7'
+        - os: macOs-latest
+          architecture: 'x86'
+
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@master
-    - name: build
+    - name: build sdist
+      if: matrix.os == 'ubuntu-latest' && matrix.python == '3.8' && matrix.architecture == 'x64'
       run: |
           pip install -U setuptools
           python setup.py sdist
 
-    - name: release
-      run: .github/actions/scripts/release.sh
-      env:
-        TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-        GITHUB_OAUTH_TOKEN: ${{ secrets.GITHUB_OAUTH_TOKEN }}
+    - name: build wheel
+      run: |
+          pip install -U wheel
+          python setup.py bdist_wheel
+
+    - name: upload wheel
+      uses: actions/upload-artifact@master
+      with:
+        name: dist
+        path: dist
+
+  # Release:
+  # - name: release
+  #   runs-on: 'ubuntu-latest'
+  #   steps:
+  #   - uses: actions/download-artifacts@master
+  #     with:
+  #       name: dist
+  #       path: dist
+
+  #   - name: create release
+  #     run: .github/actions/scripts/release.sh
+  #     env:
+  #       TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+  #       GITHUB_OAUTH_TOKEN: ${{ secrets.GITHUB_OAUTH_TOKEN }}
