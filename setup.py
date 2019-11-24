@@ -103,6 +103,10 @@ def compile_native_invocation_handler(*possible_homes):
         if int(m.group(0)) >= 12:
             source_level = '1.7'
         break
+    else:
+        for m in re.finditer(r'1\.\d+', javac_version.decode('ascii')):
+            source_level = m
+            break
     try:
       subprocess.check_call([
         javac, '-target', source_level, '-source', source_level,
