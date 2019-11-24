@@ -5,6 +5,7 @@ from subprocess import check_output
 from os.path import dirname
 from os import readlink
 from sys import platform
+from jnius.env import get_jnius_lib_location
 
 
 cdef extern from 'dlfcn.h' nogil:
@@ -67,7 +68,9 @@ cdef void create_jnienv() except *:
 
     JAVA_HOME = os.getenv('JAVA_HOME') or find_java_home()
     if JAVA_HOME is None or JAVA_HOME == '':
-        raise SystemError("JAVA_HOME is not set. and unable to guess JAVA_HOME")
+        raise SystemError("JAVA_HOME is not set, and unable to guess JAVA_HOME")
+    cdef str JNIUS_LIB_SUFFIX = get_jnius_lib_location(JNIUS_PLATFORM)
+
     IF JNIUS_PYTHON3:
         try:
             jnius_lib_suffix = JNIUS_LIB_SUFFIX.decode("utf-8")
