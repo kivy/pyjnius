@@ -17,7 +17,11 @@ import sys
 from platform import machine
 from setup_sdist import SETUP_KWARGS
 
-from jnius.env import (
+# XXX hack to be able to import jnius.env withough having build
+# jnius.jnius yet, better solution welcome
+syspath = sys.path[:]
+sys.path.insert(0, 'jnius')
+from env import (
     get_possible_homes,
     get_library_dirs,
     get_include_dirs,
@@ -25,6 +29,7 @@ from jnius.env import (
     find_javac,
     PY2,
 )
+sys.path = syspath
 
 def getenv(key):
     '''Get value from environment and decode it.'''
