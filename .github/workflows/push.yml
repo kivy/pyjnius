@@ -20,7 +20,7 @@ jobs:
           - 'windows-latest'
         architecture:
           - 'x64'
-          - 'x86'
+          # - 'x86'
 
     runs-on: ${{ matrix.os }}
     steps:
