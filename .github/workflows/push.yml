@@ -11,15 +11,15 @@ jobs:
            - '3.7'
            - '3.8'
         java:
-          # - '8'
-          # - '9'
-          # - '10'
-          # - '11'
+          - '8'
+          - '9'
+          - '10'
+          - '11'
           - '12'
         os:
-          # - 'ubuntu-latest'
+          - 'ubuntu-latest'
           - 'windows-latest'
-          # - 'macOs-latest'
+          - 'macOs-latest'
         architecture:
           - 'x64'
           - 'x86'
@@ -28,6 +28,8 @@ jobs:
         exclude:
         - os: windows-latest
           python: '3.8'
+        - os: windows-latest
+          python: '2.7'
         - os: macOs-latest
           architecture: 'x86'
 
