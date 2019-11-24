@@ -42,10 +42,20 @@ jobs:
           pip install -U setuptools
           python setup.py sdist
 
-    - name: build wheel
+    - name: build-wheel-windows
+      if: matrix.os == 'windows-latest'
       run: |
-          pip install -U wheel
-          python setup.py bdist_wheel
+        "%VS140COMNTOOLS%../../VC/vcvarsall.bat"
+        echo "$INCLUDE"
+        set INCLUDE "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/ucrt"
+        pip install --timeout=120 -U setuptools wheel
+        python setup.py bdist_wheel
+
+    - name: build wheel
+      if: matrix.os != 'windows-latest'
+      run: |
+        pip install -U --timeout=120 -U setuptools wheel
+        python setup.py bdist_wheel
 
     - name: upload wheel
       uses: actions/upload-artifact@master
