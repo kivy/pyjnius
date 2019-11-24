@@ -230,9 +230,9 @@ def get_jnius_lib_location(platform):
 
         lib_location = 'jre/lib/{}/server/libjvm.so'.format(cpu)
 
-        jre_home = dirname(get_jre_home(platform))
+        jre_home = dirname(get_jre_home(platform)).strip('jre')
 
-        full_lib_location = join(JAVA_HOME, lib_location)
+        full_lib_location = join(jre_home, lib_location)
 
         if not exists(full_lib_location):
             # In that case, the Java version is very likely >=9.
