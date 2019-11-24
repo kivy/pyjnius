@@ -96,20 +96,12 @@ def find_javac(possible_homes):
 def compile_native_invocation_handler(*possible_homes):
     '''Find javac and compile NativeInvocationHandler.java.'''
     javac = find_javac(possible_homes)
-    source_level = '1.6'
-    # We have to check what version of javac this is, because -target 1.6 is
-    # no longer supported on JDKs >= 12.
-    javac_version = subprocess.check_output([javac, '-version'],
-                                            stderr=subprocess.STDOUT)
-    for m in re.finditer(r'\d+', javac_version.decode('ascii')):
-        if int(m.group(0)) >= 12:
-            source_level = '1.7'
-        break
+    source_level = '1.7'
     try:
-      subprocess.check_call([
-        javac, '-target', source_level, '-source', source_level,
-        join('jnius', 'src', 'org', 'jnius', 'NativeInvocationHandler.java')
-    ])
+        subprocess.check_call([
+            javac, '-target', source_level, '-source', source_level,
+            join('jnius', 'src', 'org', 'jnius', 'NativeInvocationHandler.java')
+        ])
     except FileNotFoundError:
         subprocess.check_call([
             javac.replace('"', ''), '-target', source_level, '-source', source_level,
