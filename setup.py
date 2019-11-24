@@ -4,6 +4,7 @@ Setup.py for creating a binary distribution.
 
 from __future__ import print_function
 from setuptools import setup, Extension
+from setuptools.command.build_ext import build_ext
 try:
     import subprocess32 as subprocess
 except ImportError:
@@ -61,22 +62,13 @@ if NDKPLATFORM is not None and getenv('LIBLINK'):
     PLATFORM = 'android'
 
 # detect cython
-try:
-    from Cython.Distutils import build_ext
+if PLATFORM != 'android':
+    SETUP_REQUIRES.append('cython')
     INSTALL_REQUIRES.append('cython')
-except ImportError:
-    # pylint: disable=ungrouped-imports
-    try:
-        from setuptools.command.build_ext import build_ext
-    except ImportError:
-        from distutils.command.build_ext import build_ext
-    if PLATFORM != 'android':
-        SETUP_REQUIRES.append('cython')
-        INSTALL_REQUIRES.append('cython')
-    else:
-        # On Android we expect to see 'c' files lying about.
-        # and we go ahead with the 'desktop' file? Odd.
-        FILES = [fn[:-3] + 'c' for fn in FILES if fn.endswith('pyx')]
+else:
+    # On Android we expect to see 'c' files lying about.
+    # and we go ahead with the 'desktop' file? Odd.
+    FILES = [fn[:-3] + 'c' for fn in FILES if fn.endswith('pyx')]
 
 
 def find_javac(possible_homes):
@@ -293,7 +285,6 @@ setup(
             library_dirs=LIBRARY_DIRS,
             include_dirs=INCLUDE_DIRS,
             extra_link_args=EXTRA_LINK_ARGS,
-            # extra_objects=['jnius.{}'.format('pyd' if PLATFORM == 'win32' else 'so')]
         )
     ],
     extras_require={
