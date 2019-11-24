@@ -9,7 +9,7 @@ meant for installing via pip.
 from io import open
 
 # pylint: disable=import-error,no-name-in-module
-from distutils.core import setup
+from setuptools import setup
 from os.path import join
 
 with open("README.md", encoding='utf8') as f:
@@ -37,7 +37,7 @@ SETUP_KWARGS = {
     'long_description': README,
     'author': 'Kivy Team and other contributors',
     'author_email': 'kivy-dev@googlegroups.com',
-    'short_description': "A Python module to access Java classes as Python classes using JNI.",
+    'description': "A Python module to access Java classes as Python classes using JNI.",
     'keywords': 'Java JNI Android',
     'classifiers': [
         'Development Status :: 5 - Production/Stable',
