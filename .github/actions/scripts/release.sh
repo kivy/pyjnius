@@ -7,7 +7,7 @@ fi
 
 owner=kivy
 repository=pyjnius
-access_token=$GITHUB_TOKEN
+access_token=$GITHUB_OAUTH_TOKEN
 
 tag=${GITHUB_REF#refs/tags/}
 draft="false"

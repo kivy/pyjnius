@@ -1,74 +1,73 @@
 on: create
 name: Continiuous Delivery
 jobs:
-  # PrepareRelease:
-  #   name: prepare release
-  #   strategy:
-  #     matrix:
-  #       python:
-  #          - '2.7'
-  #          - '3.6'
-  #          - '3.7'
-  #          - '3.8'
-  #       java:
-  #         - '12'
-  #       os:
-  #         # - 'ubuntu-latest'
-  #         - 'windows-latest'
-  #         - 'macOs-latest'
-  #       architecture:
-  #         - 'x64'
-  #         - 'x86'
+  PrepareRelease:
+    name: prepare release
+    strategy:
+      matrix:
+        python:
+           - '2.7'
+           - '3.6'
+           - '3.7'
+           - '3.8'
+        java:
+          - '12'
+        os:
+          - 'windows-latest'
+          - 'macOs-latest'
+        architecture:
+          - 'x64'
+          - 'x86'
 
-  #       # exclude problematic combinations
-  #       exclude:
-  #       - os: windows-latest
-  #         python: '3.8'
-  #       - os: windows-latest
-  #         python: '2.7'
-  #       - os: macOs-latest
-  #         architecture: 'x86'
+        # exclude problematic combinations
+        exclude:
+        - os: windows-latest
+          python: '3.8'
+        - os: windows-latest
+          python: '2.7'
+        - os: macOs-latest
+          architecture: 'x86'
 
-  #   runs-on: ${{ matrix.os }}
-  #   steps:
-  #   - uses: actions/checkout@master
-  #   - name: Setup python
-  #     uses: actions/setup-python@v1
-  #     with:
-  #       python-version: ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@master
+    - name: Setup python
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python }}
 
-  #   - name: Setup java
-  #     uses: actions/setup-java@v1
-  #     with:
-  #       java-version: ${{ matrix.java }}
-  #       architecture: ${{ matrix.architecture }}
+    - name: Setup java
+      uses: actions/setup-java@v1
+      with:
+        java-version: ${{ matrix.java }}
+        architecture: ${{ matrix.architecture }}
 
-  #   - name: build sdist
-  #     if: matrix.os == 'windows-latest' && matrix.python == '3.8' && matrix.architecture == 'x64'
-  #     run: |
-  #         pip install -U setuptools
-  #         python setup.py sdist
+    - name: build sdist
+      if: matrix.os == 'windows-latest' && matrix.python == '3.8' && matrix.architecture == 'x64'
+      run: |
+          pip install -U setuptools
+          python setup.py sdist
 
-  #   - name: build-wheel-windows
-  #     if: matrix.os == 'windows-latest'
-  #     run: |
-  #       "%VS140COMNTOOLS%../../VC/vcvarsall.bat"
-  #       echo "$INCLUDE"
-  #       set INCLUDE "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/ucrt"
-  #       pip install --timeout=120 -U setuptools wheel cython
-  #       python setup.py bdist_wheel
+    - name: build-wheel-windows
+      if: matrix.os == 'windows-latest'
+      run: |
+        "%VS140COMNTOOLS%../../VC/vcvarsall.bat"
+        echo "$INCLUDE"
+        set INCLUDE "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/ucrt"
+        pip install --timeout=120 -U setuptools wheel cython
+        python setup.py bdist_wheel
 
-  #   - name: build wheel
-  #     if: matrix.os != 'windows-latest'
-  #     run: |
-  #       pip install -U --timeout=120 -U setuptools wheel cython
-  #       python setup.py bdist_wheel
+    - name: build wheel
+      if: matrix.os != 'windows-latest'
+      run: |
+        pip install -U --timeout=120 -U setuptools wheel cython
+        python setup.py bdist_wheel
 
-  #   - name: upload wheel
-  #     uses: actions/upload-artifact@master
-  #     with:
-  #       name: dist
-  #       path: dist
+    - name: upload wheel
+      uses: actions/upload-artifact@master
+      with:
+        name: dist
+        path: dist
 
   ManyLinux:
     name: prepare-manylinux
@@ -80,20 +79,10 @@ jobs:
           - 'cp36-cp36m'
           - 'cp37-cp37m'
           - 'cp38-cp38'
-        # arch:
-        #   - 'x86_64'
-        #   - 'i686'
-        # manylinux_target:
-        #   - 2010
-        #   - 2014
 
     runs-on: 'ubuntu-latest'
     steps:
     - uses: actions/checkout@master
-    # - name: Setup python
-    #   uses: actions/setup-python@v1
-    #   with:
-    #     python-version: ${{ matrix.python }}
 
     - uses: docker://quay.io/pypa/manylinux2010_x86_64
       with:
@@ -106,17 +95,17 @@ jobs:
         name: dist
         path: dist
 
-  # Release:
-  # - name: release
-  #   runs-on: 'ubuntu-latest'
-  #   steps:
-  #   - uses: actions/download-artifacts@master
-  #     with:
-  #       name: dist
-  #       path: dist
+  Release:
+    name: release
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: actions/download-artifacts@master
+      with:
+        name: dist
+        path: dist
 
-  #   - name: create release
-  #     run: .github/actions/scripts/release.sh
-  #     env:
-  #       TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-  #       GITHUB_OAUTH_TOKEN: ${{ secrets.GITHUB_OAUTH_TOKEN }}
+    - name: create release
+      run: .github/actions/scripts/release.sh
+      env:
+        TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+        GITHUB_OAUTH_TOKEN: ${{ secrets.GITHUB_OAUTH_TOKEN }}
