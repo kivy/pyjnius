@@ -75,10 +75,11 @@ jobs:
     strategy:
       matrix:
         python:
-          - '2.7'
-          - '3.6'
-          - '3.7'
-          - '3.8'
+          - 'cp27-cp27m'
+          - 'cp27-cp27mu'
+          - 'cp36-cp36m'
+          - 'cp37-cp37m'
+          - 'cp38-cp38'
         # arch:
         #   - 'x86_64'
         #   - 'i686'
@@ -97,7 +98,7 @@ jobs:
     - uses: docker://quay.io/pypa/manylinux2010_x86_64
       with:
         entrypoint: .github/actions/scripts/manylinux_entrypoint.sh
-        args: cp${{ matrix.python }}-cp${{ matrix.python }}
+        args: ${{ matrix.python }}
 
     - name: upload wheel
       uses: actions/upload-artifact@master
