@@ -94,7 +94,7 @@ def get_library_dirs(platform, arch=None):
 
 def get_jre_home(platform):
     jre_home = None
-    if exists(join(JAVA_HOME, 'jre')):
+    if JAVA_HOME and exists(join(JAVA_HOME, 'jre')):
         jre_home = join(JAVA_HOME, 'jre')
 
     if platform != 'win32' and not jre_home:
