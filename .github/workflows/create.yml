@@ -99,7 +99,7 @@ jobs:
     name: release
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: actions/download-artifacts@master
+    - uses: actions/download-artifact@master
       with:
         name: dist
         path: dist
