@@ -44,7 +44,7 @@ jobs:
         architecture: ${{ matrix.architecture }}
 
     - name: build sdist
-      if: matrix.os == 'windows-latest' && matrix.python == '3.7' && matrix.architecture == 'x64'
+      if: matrix.os == 'windows-latest' && matrix.python == '3.8' && matrix.architecture == 'x64'
       run: |
           pip install -U setuptools
           python setup.py sdist
@@ -80,20 +80,10 @@ jobs:
           - 'cp36-cp36m'
           - 'cp37-cp37m'
           - 'cp38-cp38'
-        # arch:
-        #   - 'x86_64'
-        #   - 'i686'
-        # manylinux_target:
-        #   - 2010
-        #   - 2014
 
     runs-on: 'ubuntu-latest'
     steps:
     - uses: actions/checkout@master
-    # - name: Setup python
-    #   uses: actions/setup-python@v1
-    #   with:
-    #     python-version: ${{ matrix.python }}
 
     - uses: docker://quay.io/pypa/manylinux2010_x86_64
       with:
@@ -106,17 +96,17 @@ jobs:
         name: dist
         path: dist
 
-  # Release:
-  # - name: release
-  #   runs-on: 'ubuntu-latest'
-  #   steps:
-  #   - uses: actions/download-artifacts@master
-  #     with:
-  #       name: dist
-  #       path: dist
+  Release:
+    name: release
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: actions/download-artifact@master
+      with:
+        name: dist
+        path: dist
 
-  #   - name: create release
-  #     run: .github/actions/scripts/release.sh
-  #     env:
-  #       TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-  #       GITHUB_OAUTH_TOKEN: ${{ secrets.GITHUB_OAUTH_TOKEN }}
+    - name: create release
+      run: .github/actions/scripts/release.sh
+      env:
+        TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+        GITHUB_OAUTH_TOKEN: ${{ secrets.GITHUB_OAUTH_TOKEN }}
