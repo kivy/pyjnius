@@ -54,30 +54,30 @@ jobs:
         "%VS140COMNTOOLS%../../VC/vcvarsall.bat"
         echo "$INCLUDE"
         set INCLUDE "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/ucrt"
-        pip install --timeout=120 -U setuptools wheel cython
+        pip install --timeout=120 -U setuptools cython
         pip install --timeout=120 -vv .[dev,ci]
 
     - name: install
       if: matrix.os == 'ubuntu-latest'
       run: |
-        pip install --timeout=120 -U setuptools wheel cython
+        pip install --timeout=120 -U setuptools cython
         pip install --timeout=120 .[dev,ci]
 
     - name: install-osx
       if: matrix.os == 'macOs-latest'
       run: |
         brew install ant
-        pip install --timeout=120 --user -U setuptools wheel cython
+        pip install --timeout=120 --user -U setuptools cython
         pip install --timeout=120 --user .[dev,ci]
 
     - name: test-windows
       if: matrix.os == 'windows-latest'
       run: |
         $env:PATH +=";$env:JAVA_HOME\jre\bin\server\;$env:JAVA_HOME\jre\bin\client\;$env:JAVA_HOME\bin\server\"
+        $env:CLASSPATH ="../build/test-classes;../build/classes"
 
         ant all
         cd tests
-        $env:CLASSPATH ="../build/test-classes;../build/classes"
         nosetests -v
 
     - name: test
