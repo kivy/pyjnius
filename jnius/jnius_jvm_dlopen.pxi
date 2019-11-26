@@ -5,7 +5,7 @@ from subprocess import check_output
 from os.path import dirname
 from os import readlink
 from sys import platform
-from jnius.env import get_jnius_lib_location
+from .env import get_jnius_lib_location
 
 
 cdef extern from 'dlfcn.h' nogil:
