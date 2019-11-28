@@ -109,12 +109,6 @@ jobs:
         name: dist
         path: dist
 
-    # - name: create release
-    #   run: .github/actions/scripts/release.sh
-    #   env:
-    #     TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-    #     GITHUB_OAUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     - name: Upload Test Release Asset
       id: create_test_release
       if: startsWith(github.ref, 'refs/tags/') && endsWith(github.ref, '-test')
@@ -139,3 +133,18 @@ jobs:
           dist/*.tar.gz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Publish package
+      if: startsWith(github.ref, 'refs/tags/') && endsWith(github.ref, '-test')
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_TOKEN_TEST }}
+        repository_url: https://test.pypi.org/legacy/
+
+    - name: Publish package
+      if: startsWith(github.ref, 'refs/tags/') && ! endsWith(github.ref, '-test')
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_TOKEN }}
