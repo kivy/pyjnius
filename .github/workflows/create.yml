@@ -44,7 +44,7 @@ jobs:
         architecture: ${{ matrix.architecture }}
 
     - name: build sdist
-      if: matrix.os == 'windows-latest' && matrix.python == '3.8' && matrix.architecture == 'x64'
+      if: matrix.os == 'windows-latest' && matrix.python == '3.7' && matrix.architecture == 'x64'
       run: |
           pip install -U setuptools
           python setup.py sdist

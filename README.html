@@ -1,0 +1,150 @@
+<h1>PyJNIus</h1>
+<p>A Python module to access Java classes as Python classes using JNI.
+Warning: the pypi name is now <code>pyjnius</code> instead of <code>jnius</code>.</p>
+<p><a href="https://travis-ci.org/kivy/pyjnius" rel="nofollow"><img alt="Build Status" src="https://travis-ci.org/kivy/pyjnius.svg?branch=master"></a>
+<a href="" rel="nofollow"><img alt="PyPI" src="https://img.shields.io/pypi/v/pyjnius.svg"></a>
+<a href="#backers" rel="nofollow"><img alt="Backers on Open Collective" src="https://opencollective.com/kivy/backers/badge.svg"></a>
+<a href="#sponsors" rel="nofollow"><img alt="Sponsors on Open Collective" src="https://opencollective.com/kivy/sponsors/badge.svg"></a></p>
+<h2>Installation</h2>
+<p>Requirements: Cython</p>
+<pre><code>pip install Cython
+pip install pyjnius
+</code></pre>
+<h2>Quick overview</h2>
+<pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">jnius</span> <span class="k">import</span> <span class="n">autoclass</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">autoclass</span><span class="p">(</span><span class="s1">&#39;java.lang.System&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">println</span><span class="p">(</span><span class="s1">&#39;Hello world&#39;</span><span class="p">)</span>
+<span class="n">Hello</span> <span class="n">world</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">Stack</span> <span class="o">=</span> <span class="n">autoclass</span><span class="p">(</span><span class="s1">&#39;java.util.Stack&#39;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">stack</span> <span class="o">=</span> <span class="n">Stack</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">stack</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="s1">&#39;hello&#39;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">stack</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="s1">&#39;world&#39;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span> <span class="n">stack</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+<span class="n">world</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span> <span class="n">stack</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+<span class="n">hello</span>
+</pre>
+<h2>Usage on desktop</h2>
+<p>You need a java JDK installed (OpenJDK will do), Cython and make to build it.
+Please ensure that your <code>JDK_HOME</code> or <code>JAVA_HOME</code> environment variable points
+to the installed JDK root directory, and that the JVM library (<code>jvm.so</code> or
+<code>jvm.dll</code>) is available from your <code>PATH</code> environment variable. <strong>Failure to do
+so may result in a failed install, or a successful install but inability to
+use the PyJNIus library.</strong></p>
+<pre><code>make
+</code></pre>
+<p>That's it! You can run the tests using</p>
+<pre><code>make tests
+</code></pre>
+<p>to ensure everything is running correctly.</p>
+<h2>Usage with python-for-android</h2>
+<ul>
+<li>Get <a href="http://github.com/kivy/python-for-android" rel="nofollow">http://github.com/kivy/python-for-android</a></li>
+<li>Compile a distribution with kivy (pyjnius will be automatically added)</li>
+<li>Then, you can do this kind of thing:</li>
+</ul>
+<pre><span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">sleep</span>
+<span class="kn">from</span> <span class="nn">jnius</span> <span class="k">import</span> <span class="n">autoclass</span>
+
+<span class="n">Hardware</span> <span class="o">=</span> <span class="n">autoclass</span><span class="p">(</span><span class="s1">&#39;org.renpy.android.Hardware&#39;</span><span class="p">)</span>
+<span class="nb">print</span> <span class="s1">&#39;DPI is&#39;</span><span class="p">,</span> <span class="n">Hardware</span><span class="o">.</span><span class="n">getDPI</span><span class="p">()</span>
+
+<span class="n">Hardware</span><span class="o">.</span><span class="n">accelerometerEnable</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="mi">20</span><span class="p">):</span>
+    <span class="nb">print</span> <span class="n">Hardware</span><span class="o">.</span><span class="n">accelerometerReading</span><span class="p">()</span>
+    <span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">1</span><span class="p">)</span>
+</pre>
+<p>It will output something like:</p>
+<pre><code>I/python  ( 5983): Android kivy bootstrap done. __name__ is __main__
+I/python  ( 5983): Run user program, change dir and execute main.py
+I/python  ( 5983): DPI is 160
+I/python  ( 5983): [0.0, 0.0, 0.0]
+I/python  ( 5983): [-0.0095768067985773087, 9.3852710723876953, 2.2218191623687744]
+I/python  ( 5983): [-0.0095768067985773087, 9.3948478698730469, 2.2218191623687744]
+I/python  ( 5983): [-0.0095768067985773087, 9.3948478698730469, 2.2026655673980713]
+I/python  ( 5983): [-0.028730420395731926, 9.4044246673583984, 2.2122423648834229]
+I/python  ( 5983): [-0.019153613597154617, 9.3852710723876953, 2.2026655673980713]
+I/python  ( 5983): [-0.028730420395731926, 9.3852710723876953, 2.2122423648834229]
+I/python  ( 5983): [-0.0095768067985773087, 9.3852710723876953, 2.1835119724273682]
+I/python  ( 5983): [-0.0095768067985773087, 9.3756942749023438, 2.1835119724273682]
+I/python  ( 5983): [0.019153613597154617, 9.3948478698730469, 2.2122423648834229]
+I/python  ( 5983): [0.038307227194309235, 9.3852710723876953, 2.2218191623687744]
+I/python  ( 5983): [-0.028730420395731926, 9.3948478698730469, 2.2026655673980713]
+I/python  ( 5983): [-0.028730420395731926, 9.3852710723876953, 2.2122423648834229]
+I/python  ( 5983): [-0.038307227194309235, 9.3756942749023438, 2.2026655673980713]
+I/python  ( 5983): [0.3926490843296051, 9.3086557388305664, 1.3311761617660522]
+I/python  ( 5983): [-0.10534487664699554, 9.4331550598144531, 2.1068975925445557]
+I/python  ( 5983): [0.26815059781074524, 9.3469638824462891, 2.3463177680969238]
+I/python  ( 5983): [-0.1149216815829277, 9.3852710723876953, 2.31758713722229]
+I/python  ( 5983): [-0.038307227194309235, 9.41400146484375, 1.8674772977828979]
+I/python  ( 5983): [0.13407529890537262, 9.4235782623291016, 2.2026655673980713]
+</code></pre>
+<h2>Advanced example</h2>
+<p>When you use autoclass, it will discover all the methods and fields of the
+object and resolve them. For now, it is better to declare and use only what you
+need. The previous example can be done manually as follows:</p>
+<pre><span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">sleep</span>
+<span class="kn">from</span> <span class="nn">jnius</span> <span class="k">import</span> <span class="n">MetaJavaClass</span><span class="p">,</span> <span class="n">JavaClass</span><span class="p">,</span> <span class="n">JavaMethod</span><span class="p">,</span> <span class="n">JavaStaticMethod</span>
+
+<span class="k">class</span> <span class="nc">Hardware</span><span class="p">(</span><span class="n">JavaClass</span><span class="p">):</span>
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">MetaJavaClass</span>
+    <span class="n">__javaclass__</span> <span class="o">=</span> <span class="s1">&#39;org/renpy/android/Hardware&#39;</span>
+    <span class="n">vibrate</span> <span class="o">=</span> <span class="n">JavaStaticMethod</span><span class="p">(</span><span class="s1">&#39;(D)V&#39;</span><span class="p">)</span>
+    <span class="n">accelerometerEnable</span> <span class="o">=</span> <span class="n">JavaStaticMethod</span><span class="p">(</span><span class="s1">&#39;(Z)V&#39;</span><span class="p">)</span>
+    <span class="n">accelerometerReading</span> <span class="o">=</span> <span class="n">JavaStaticMethod</span><span class="p">(</span><span class="s1">&#39;()[F&#39;</span><span class="p">)</span>
+    <span class="n">getDPI</span> <span class="o">=</span> <span class="n">JavaStaticMethod</span><span class="p">(</span><span class="s1">&#39;()I&#39;</span><span class="p">)</span>
+    
+<span class="c1"># use that new class!</span>
+<span class="nb">print</span> <span class="s1">&#39;DPI is&#39;</span><span class="p">,</span> <span class="n">Hardware</span><span class="o">.</span><span class="n">getDPI</span><span class="p">()</span>
+
+<span class="n">Hardware</span><span class="o">.</span><span class="n">accelerometerEnable</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="mi">20</span><span class="p">):</span>
+    <span class="nb">print</span> <span class="n">Hardware</span><span class="o">.</span><span class="n">accelerometerReading</span><span class="p">()</span>
+    <span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">1</span><span class="p">)</span>
+</pre>
+<h2>Support</h2>
+<p>If you need assistance, you can ask for help on our mailing list:</p>
+<ul>
+<li>User Group : <a href="https://groups.google.com/group/kivy-users" rel="nofollow">https://groups.google.com/group/kivy-users</a></li>
+<li>Email      : <a href="mailto:kivy-users@googlegroups.com">kivy-users@googlegroups.com</a></li>
+</ul>
+<p>We also have an IRC channel:</p>
+<ul>
+<li>Server  : irc.freenode.net</li>
+<li>Port    : 6667, 6697 (SSL only)</li>
+<li>Channel : #kivy</li>
+</ul>
+<h2>Contributing</h2>
+<p>We love pull requests and discussing novel ideas. Check out our
+<a href="http://kivy.org/docs/contribute.html" rel="nofollow">contribution guide</a> and
+feel free to improve PyJNIus.</p>
+<p>The following mailing list and IRC channel are used exclusively for
+discussions about developing the Kivy framework and its sister projects:</p>
+<ul>
+<li>Dev Group : <a href="https://groups.google.com/group/kivy-dev" rel="nofollow">https://groups.google.com/group/kivy-dev</a></li>
+<li>Email     : <a href="mailto:kivy-dev@googlegroups.com">kivy-dev@googlegroups.com</a></li>
+</ul>
+<p>IRC channel:</p>
+<ul>
+<li>Server  : irc.freenode.net</li>
+<li>Port    : 6667, 6697 (SSL only)</li>
+<li>Channel : #kivy-dev</li>
+</ul>
+<h2>License</h2>
+<p>PyJNIus is released under the terms of the MIT License. Please refer to the
+LICENSE file.</p>
+<h2>Backers</h2>
+<p>Thank you to all our backers! 🙏 [<a href="https://opencollective.com/kivy#backer" rel="nofollow">Become a backer</a>]</p>
+<p><a href="https://opencollective.com/kivy#backers" rel="nofollow"><img src="https://opencollective.com/kivy/backers.svg?width=890"></a></p>
+<h2>Sponsors</h2>
+<p>Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [<a href="https://opencollective.com/kivy#sponsor" rel="nofollow">Become a sponsor</a>]</p>
+<p><a href="https://opencollective.com/kivy/sponsor/0/website" rel="nofollow"><img src="https://opencollective.com/kivy/sponsor/0/avatar.svg"></a>
+<a href="https://opencollective.com/kivy/sponsor/1/website" rel="nofollow"><img src="https://opencollective.com/kivy/sponsor/1/avatar.svg"></a>
+<a href="https://opencollective.com/kivy/sponsor/2/website" rel="nofollow"><img src="https://opencollective.com/kivy/sponsor/2/avatar.svg"></a>
+<a href="https://opencollective.com/kivy/sponsor/3/website" rel="nofollow"><img src="https://opencollective.com/kivy/sponsor/3/avatar.svg"></a>
+<a href="https://opencollective.com/kivy/sponsor/4/website" rel="nofollow"><img src="https://opencollective.com/kivy/sponsor/4/avatar.svg"></a>
+<a href="https://opencollective.com/kivy/sponsor/5/website" rel="nofollow"><img src="https://opencollective.com/kivy/sponsor/5/avatar.svg"></a>
+<a href="https://opencollective.com/kivy/sponsor/6/website" rel="nofollow"><img src="https://opencollective.com/kivy/sponsor/6/avatar.svg"></a>
+<a href="https://opencollective.com/kivy/sponsor/7/website" rel="nofollow"><img src="https://opencollective.com/kivy/sponsor/7/avatar.svg"></a>
+<a href="https://opencollective.com/kivy/sponsor/8/website" rel="nofollow"><img src="https://opencollective.com/kivy/sponsor/8/avatar.svg"></a>
+<a href="https://opencollective.com/kivy/sponsor/9/website" rel="nofollow"><img src="https://opencollective.com/kivy/sponsor/9/avatar.svg"></a></p>
