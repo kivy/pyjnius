@@ -71,8 +71,6 @@ if PLATFORM != 'android':
     SETUP_REQUIRES.append('cython')
     INSTALL_REQUIRES.append('cython')
 else:
-    # On Android we expect to see 'c' files lying about.
-    # and we go ahead with the 'desktop' file? Odd.
     FILES = [fn[:-3] + 'c' for fn in FILES if fn.endswith('pyx')]
 
 
