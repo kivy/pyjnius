@@ -6,28 +6,21 @@ jobs:
     strategy:
       matrix:
         python:
-           - '2.7'
-           # - '3.6'
-           - '3.7'
            - '3.8'
         java:
-          - '8'
+          # - '8'
           # - '9'
-          - '10'
+          # - '10'
           # - '11'
           - '12'
         os:
-          - 'ubuntu-latest'
           - 'windows-latest'
-          - 'macOs-latest'
         architecture:
           - 'x64'
-          - 'x86'
+          # - 'x86'
 
         # exclude problematic combinations
         exclude:
-        - os: windows-latest
-          python: '3.8'
         - os: windows-latest
           python: '2.7'
         - os: macOs-latest
