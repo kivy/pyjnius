@@ -1,5 +1,5 @@
 on: create
-name: Continiuous Delivery
+name: Continuous Delivery
 jobs:
   PrepareRelease:
     name: prepare-release
