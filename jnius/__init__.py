@@ -9,9 +9,38 @@ All the documentation is available at: http://pyjnius.readthedocs.org
 
 __version__ = '1.2.1.dev3'
 
-from .env import get_jnius_lib_location
-from .jnius import *  # noqa
-from .reflect import *  # noqa
+from .env import get_jnius_lib_location, get_jdk_home
+
+import os
+import sys
+if sys.platform == 'win32' and sys.version_info >= (3, 8):
+    path = os.path.dirname(__file__)
+    jdk_home = get_jdk_home(sys.platform)
+    with os.add_dll_directory(path):
+        for suffix in (
+            ('bin', 'client'),
+            ('bin', 'server'),
+            ('jre', 'bin', 'client'),
+            ('jre', 'bin', 'server'),
+        ):
+            path = os.path.join(jdk_home, *suffix)
+            if not os.path.isdir(path):
+                continue
+
+            with os.add_dll_directory(path):
+                try:
+                    from .jnius import *  # noqa
+                    from .reflect import *  # noqa
+                except Exception as e:
+                    pass
+                else:
+                    break
+        else:
+            raise Exception("Unable to create jni env, no jvm dll found.")
+else:
+    from .jnius import *  # noqa
+    from .reflect import *  # noqa
+
 from six import with_metaclass
 
 # XXX monkey patch methods that cannot be in cython.

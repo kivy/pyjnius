@@ -10,6 +10,7 @@ from platform import machine
 from subprocess import Popen, check_output, PIPE
 from shlex import split
 
+
 PY2 = sys.version_info.major < 3
 
 machine = machine()  # not expected to change at runtime
@@ -139,6 +140,7 @@ def get_jdk_home(platform):
         raise Exception('Unable to determine JDK_HOME')
 
     return jdk_home
+
 
 def get_osx_framework():
     framework = Popen(

@@ -23,8 +23,6 @@ jobs:
         # exclude problematic combinations
         exclude:
         - os: windows-latest
-          python: '3.8'
-        - os: windows-latest
           python: '2.7'
         - os: macOs-latest
           architecture: 'x86'

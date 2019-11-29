@@ -1,3 +1,7 @@
+import sys
+import os
+from os.path import join
+from jnius.env import get_jdk_home
 from cpython.version cimport PY_MAJOR_VERSION
 
 # on desktop, we need to create an env :)
@@ -43,7 +47,31 @@ cdef void create_jnienv() except *:
     args.nOptions = len(optarr)
     args.ignoreUnrecognized = JNI_FALSE
 
-    ret = JNI_CreateJavaVM(&jvm, <void **>&_platform_default_env, &args)
+    if sys.version_info >= (3, 8):
+        # uh, let's see if this works and cleanup later
+        jdk_home = get_jdk_home('win32')
+        for suffix in (
+            ('bin', 'client'),
+            ('bin', 'server'),
+            ('jre', 'bin', 'client'),
+            ('jre', 'bin', 'server'),
+        ):
+            path = join(jdk_home, *suffix)
+            if not os.path.isdir(path):
+                continue
+            with os.add_dll_directory(path):
+                try:
+                    ret = JNI_CreateJavaVM(&jvm, <void **>&_platform_default_env, &args)
+                except Exception as e:
+                    pass
+                else:
+                    break
+        else:
+            raise Exception("Unable to create jni env, no jvm dll found.")
+
+    else:
+        ret = JNI_CreateJavaVM(&jvm, <void **>&_platform_default_env, &args)
+
     free(options)
 
     if ret != JNI_OK:
