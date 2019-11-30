@@ -12,9 +12,9 @@ jobs:
            - '3.8'
         java:
           - '8'
-          # - '9'
+          # - '9' # commented out just for faster CI
           - '10'
-          # - '11'
+          # - '11' # commented out just for faster CI
           - '12'
         os:
           - 'ubuntu-latest'
