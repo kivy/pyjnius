@@ -2,7 +2,7 @@ include "config.pxi"
 import os
 from shlex import split
 from subprocess import check_output
-from os.path import dirname
+from os.path import dirname, join
 from os import readlink
 from sys import platform
 from .env import get_jnius_lib_location
@@ -64,6 +64,7 @@ cdef void create_jnienv() except *:
     cdef JavaVMOption *options
     cdef int ret
     cdef bytes py_bytes
+    cdef void *handle
     import jnius_config
 
     JAVA_HOME = os.getenv('JAVA_HOME') or find_java_home()
@@ -80,7 +81,8 @@ cdef void create_jnienv() except *:
     ELSE:
         lib_path = str_for_c(os.path.join(JAVA_HOME, JNIUS_LIB_SUFFIX))
 
-    cdef void *handle = dlopen(lib_path, RTLD_NOW | RTLD_GLOBAL)
+    handle = dlopen(lib_path, RTLD_NOW | RTLD_GLOBAL)
+
     if handle == NULL:
         raise SystemError("Error calling dlopen({0}: {1}".format(lib_path, dlerror()))
 

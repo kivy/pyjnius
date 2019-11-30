@@ -3,12 +3,14 @@ This module determine and expose various information about the java
 environment.
 '''
 
+import os
 import sys
 from os.path import join, exists, dirname, realpath
 from os import getenv
 from platform import machine
 from subprocess import Popen, check_output, PIPE
 from shlex import split
+
 
 PY2 = sys.version_info.major < 3
 
@@ -139,6 +141,7 @@ def get_jdk_home(platform):
         raise Exception('Unable to determine JDK_HOME')
 
     return jdk_home
+
 
 def get_osx_framework():
     framework = Popen(

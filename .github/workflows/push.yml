@@ -71,7 +71,7 @@ jobs:
 
         ant all
         cd tests
-        nosetests -v
+        nosetests -v -s
 
     - name: test
       if: matrix.os == 'ubuntu-latest'
