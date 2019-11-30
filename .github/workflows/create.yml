@@ -53,13 +53,13 @@ jobs:
         "%VS140COMNTOOLS%../../VC/vcvarsall.bat"
         echo "$INCLUDE"
         set INCLUDE "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/ucrt"
-        pip install --timeout=120 -U setuptools wheel
+        pip install --timeout=120 -U setuptools wheel cython
         python setup.py bdist_wheel
 
     - name: build wheel
       if: matrix.os != 'windows-latest'
       run: |
-        pip install -U --timeout=120 -U setuptools wheel
+        pip install -U --timeout=120 -U setuptools wheel cython
         python setup.py bdist_wheel
 
     - name: upload wheel
