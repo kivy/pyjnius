@@ -696,7 +696,10 @@ cdef class JavaMethod(object):
             return
         cdef JNIEnv *j_env = get_jnienv()
         if self.name is None:
-            raise JavaException('Unable to find a None method!')
+            raise JavaException(
+                'Unable to find a None method!\nclassname: {}, definition: {}'
+                .format(self.classname, self.definition)
+            )
         if self.is_static:
             defstr = str_for_c(self.definition)
             self.j_method = j_env[0].GetStaticMethodID(

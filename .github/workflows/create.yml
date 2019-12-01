@@ -1,0 +1,138 @@
+on: create
+name: Continuous Delivery
+jobs:
+  PrepareRelease:
+    name: prepare-release
+    if: startsWith(github.ref, 'refs/tags/')
+    strategy:
+      matrix:
+        python:
+           - '2.7'
+           - '3.6'
+           - '3.7'
+           - '3.8'
+        java:
+          - '12'
+        os:
+          - 'windows-latest'
+          - 'macOs-latest'
+        architecture:
+          - 'x64'
+          - 'x86'
+
+        # exclude problematic combinations
+        exclude:
+        - os: windows-latest
+          python: '2.7'
+        - os: macOs-latest
+          architecture: 'x86'
+
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@master
+    - name: Setup python
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python }}
+
+    - name: Setup java
+      uses: actions/setup-java@v1
+      with:
+        java-version: ${{ matrix.java }}
+        architecture: ${{ matrix.architecture }}
+
+    - name: build sdist
+      if: matrix.os == 'windows-latest' && matrix.python == '3.8' && matrix.architecture == 'x64'
+      run: |
+          pip install -U setuptools
+          python setup.py sdist
+
+    - name: build-wheel-windows
+      if: matrix.os == 'windows-latest'
+      run: |
+        "%VS140COMNTOOLS%../../VC/vcvarsall.bat"
+        echo "$INCLUDE"
+        set INCLUDE "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/ucrt"
+        pip install --timeout=120 -U setuptools wheel cython
+        python setup.py bdist_wheel
+
+    - name: build wheel
+      if: matrix.os != 'windows-latest'
+      run: |
+        pip install -U --timeout=120 -U setuptools wheel cython
+        python setup.py bdist_wheel
+
+    - name: upload wheel
+      uses: actions/upload-artifact@master
+      with:
+        name: dist
+        path: dist
+
+  PrepareManylinux:
+    name: prepare-manylinux
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: actions/checkout@master
+
+    - uses: docker://quay.io/pypa/manylinux2010_x86_64
+      with:
+        entrypoint: .github/actions/scripts/manylinux_entrypoint.sh
+
+    - name: upload wheel
+      uses: actions/upload-artifact@master
+      with:
+        name: dist
+        path: dist
+
+  Release:
+    name: release
+    needs:
+      - PrepareRelease
+      - PrepareManylinux
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: actions/download-artifact@master
+      with:
+        name: dist
+        path: dist
+
+    - name: Upload Test Release Asset
+      id: create_test_release
+      if: startsWith(github.ref, 'refs/tags/') && endsWith(github.ref, '-test')
+      uses: softprops/action-gh-release@78c309e
+      with:
+        prerelease: true
+        files: |
+          dist/*.whl
+          dist/*.zip
+          dist/*.tar.gz
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Release Asset
+      id: upload-release-asset
+      if: startsWith(github.ref, 'refs/tags/') && ! endsWith(github.ref, '-test')
+      uses: softprops/action-gh-release@78c309e
+      with:
+        files: |
+          dist/*.whl
+          dist/*.zip
+          dist/*.tar.gz
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Publish package
+      if: startsWith(github.ref, 'refs/tags/') && endsWith(github.ref, '-test')
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_TOKEN_TEST }}
+        repository_url: https://test.pypi.org/legacy/
+
+    - name: Publish package
+      if: startsWith(github.ref, 'refs/tags/') && ! endsWith(github.ref, '-test')
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_TOKEN }}

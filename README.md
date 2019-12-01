@@ -1,10 +1,12 @@
 PyJNIus
 =======
 
-A Python module to access Java classes as Python classes using JNI.
+A Python module to access Java classes as Python classes using the Java Native
+Interface (JNI).
 Warning: the pypi name is now `pyjnius` instead of `jnius`.
 
-[![Build Status](https://travis-ci.org/kivy/pyjnius.svg?branch=master)](https://travis-ci.org/kivy/pyjnius)
+[![Tests](https://github.com/kivy/pyjnius/workflows/Continuous%20Integration/badge.svg)](https://github.com//kivy/pyjnius/actions)
+[![Builds](https://github.com/kivy/pyjnius/workflows/Continuous%20Delivery/badge.svg)](https://github.com//kivy/pyjnius/actions)
 [![PyPI](https://img.shields.io/pypi/v/pyjnius.svg)]()
 [![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers) 
 [![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors) 
@@ -12,10 +14,7 @@ Warning: the pypi name is now `pyjnius` instead of `jnius`.
 Installation
 ------------
 
-Requirements: Cython
-
 ```
-pip install Cython
 pip install pyjnius
 ```
 
@@ -37,30 +36,13 @@ world
 hello
 ```
 
-Usage on desktop
-----------------
-
-You need a java JDK installed (OpenJDK will do), Cython and make to build it.
-Please ensure that your `JDK_HOME` or `JAVA_HOME` environment variable points
-to the installed JDK root directory, and that the JVM library (`jvm.so` or
-`jvm.dll`) is available from your `PATH` environment variable. **Failure to do
-so may result in a failed install, or a successful install but inability to
-use the pyjnius library.**
-
-    make
-
-That's it! You can run the tests using
-
-    make tests
-
-to ensure everything is running correctly.
-
 Usage with python-for-android
 -----------------------------
 
-* Get http://github.com/kivy/python-for-android
-* Compile a distribution with kivy (pyjnius will be automatically added)
-* Then, you can do this kind of thing:
+* Get [http://github.com/kivy/python-for-android]()
+* Compile a distribution with kivy (PyJNIus will be automatically added)
+
+Then, you can do this kind of things:
 
 ```python
 from time import sleep
@@ -106,8 +88,8 @@ I/python  ( 5983): [0.13407529890537262, 9.4235782623291016, 2.2026655673980713]
 Advanced example
 ----------------
 
-When you use autoclass, it will discover all the methods and fields of the
-object and resolve them. For now, it is better to declare and use only what you
+When you use `autoclass`, it will discover all the methods and fields of the
+class and resolve them. You may want to declare and use only what you
 need. The previous example can be done manually as follows:
 
 ```python
@@ -131,6 +113,18 @@ for x in xrange(20):
     sleep(.1)
 ```
 
+Troubleshooting
+---------------
+
+Make sure a Java Development Kit (JDK) is installed on your operating system if
+you want to use PyJNIus on desktop. OpenJDK is known to work, and the Oracle
+Java JDK should work as well.
+
+On windows, make sure `JAVA_HOME` points to your java installation, so PyJNIus
+can locate the `jvm.dll` file allowing it to start java. This shouldn't be
+necessary on OSX and Linux, but in case PyJNIus fails to find it, setting
+`JAVA_HOME` should help.
+
 Support
 -------
 
@@ -139,11 +133,9 @@ If you need assistance, you can ask for help on our mailing list:
 * User Group : https://groups.google.com/group/kivy-users
 * Email      : kivy-users@googlegroups.com
 
-We also have an IRC channel:
+We also have a Discord server:
 
-* Server  : irc.freenode.net
-* Port    : 6667, 6697 (SSL only)
-* Channel : #kivy
+[https://chat.kivy.org/](https://chat.kivy.org/)
 
 Contributing
 ------------
@@ -158,17 +150,11 @@ discussions about developing the Kivy framework and its sister projects:
 * Dev Group : https://groups.google.com/group/kivy-dev
 * Email     : kivy-dev@googlegroups.com
 
-IRC channel:
-
-* Server  : irc.freenode.net
-* Port    : 6667, 6697 (SSL only)
-* Channel : #kivy-dev
-
 License
 -------
 
 PyJNIus is released under the terms of the MIT License. Please refer to the
-LICENSE file.
+LICENSE file for more information.
 
 
 ## Backers

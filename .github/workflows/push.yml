@@ -1,0 +1,98 @@
+on: push
+name: Continuous Integration
+jobs:
+  Tests:
+    name: base
+    strategy:
+      matrix:
+        python:
+           - '2.7'
+           - '3.6'
+           - '3.7'
+           - '3.8'
+        java:
+          - '8'
+          # - '9' # commented out just for faster CI
+          - '10'
+          # - '11' # commented out just for faster CI
+          - '12'
+        os:
+          - 'ubuntu-latest'
+          - 'windows-latest'
+          - 'macOs-latest'
+        architecture:
+          - 'x64'
+          - 'x86'
+
+        # exclude problematic combinations
+        exclude:
+        - os: windows-latest
+          python: '2.7'
+        - os: macOs-latest
+          architecture: 'x86'
+
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@master
+
+    - name: Setup python
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python }}
+
+    - name: Setup java
+      uses: actions/setup-java@v1
+      with:
+        java-version: ${{ matrix.java }}
+        architecture: ${{ matrix.architecture }}
+
+    - name: install-windows
+      if: matrix.os == 'windows-latest'
+      run: |
+        "%VS140COMNTOOLS%../../VC/vcvarsall.bat"
+        echo "$INCLUDE"
+        set INCLUDE "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/ucrt"
+        pip install --timeout=120 -U setuptools cython
+        pip install --timeout=120 -vv .[dev,ci]
+
+    - name: install
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        pip install --timeout=120 -U setuptools cython
+        pip install --timeout=120 .[dev,ci]
+
+    - name: install-osx
+      if: matrix.os == 'macOs-latest'
+      run: |
+        brew install ant
+        pip install --timeout=120 --user -U setuptools cython
+        pip install --timeout=120 --user .[dev,ci]
+
+    - name: test-windows
+      if: matrix.os == 'windows-latest'
+      run: |
+        $env:PATH +=";$env:JAVA_HOME\jre\bin\server\;$env:JAVA_HOME\jre\bin\client\;$env:JAVA_HOME\bin\server\"
+        $env:CLASSPATH ="../build/test-classes;../build/classes"
+
+        ant all
+        cd tests
+        nosetests -v
+
+    - name: test
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        ant all
+        cd tests
+        CLASSPATH=../build/test-classes:../build/classes nosetests -v
+
+    - name: test
+      if: matrix.os == 'macOs-latest'
+      run: |
+        ant all
+        cd tests
+          CLASSPATH=../build/test-classes:../build/classes python -m nose -v
+
+#     - name: coveralls
+#       run: python -m coveralls
+#       env:
+#         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
