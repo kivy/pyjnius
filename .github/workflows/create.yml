@@ -71,15 +71,6 @@ jobs:
   PrepareManylinux:
     name: prepare-manylinux
     if: startsWith(github.ref, 'refs/tags/')
-    strategy:
-      matrix:
-        python:
-          - 'cp27-cp27m'
-          - 'cp27-cp27mu'
-          - 'cp36-cp36m'
-          - 'cp37-cp37m'
-          - 'cp38-cp38'
-
     runs-on: 'ubuntu-latest'
     steps:
     - uses: actions/checkout@master
@@ -87,7 +78,6 @@ jobs:
     - uses: docker://quay.io/pypa/manylinux2010_x86_64
       with:
         entrypoint: .github/actions/scripts/manylinux_entrypoint.sh
-        args: ${{ matrix.python }}
 
     - name: upload wheel
       uses: actions/upload-artifact@master
