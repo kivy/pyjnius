@@ -11,7 +11,7 @@ from .jnius import (
     JavaException
 )
 
-log = logging.getLogger(__file__)
+log = logging.getLogger(__name__)
 
 
 class Class(with_metaclass(MetaJavaClass, JavaClass)):
