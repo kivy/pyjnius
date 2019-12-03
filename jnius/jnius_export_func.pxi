@@ -1,5 +1,6 @@
 from cpython.version cimport PY_MAJOR_VERSION
 
+
 def cast(destclass, obj):
     cdef JavaClass jc
     cdef JavaClass jobj = obj
@@ -11,6 +12,7 @@ def cast(destclass, obj):
         jc = destclass(noinstance=True)
     jc.instanciate_from(jobj.j_self)
     return jc
+
 
 def find_javaclass(namestr):
     namestr = namestr.replace('.', '/')

@@ -5,8 +5,8 @@ import unittest
 from jnius.reflect import autoclass
 from jnius import cast
 
-class MultipleSignatureTest(unittest.TestCase):
 
+class MultipleSignatureTest(unittest.TestCase):
     def test_multiple_constructors(self):
         String = autoclass('java.lang.String')
         s = String('hello world')
@@ -14,3 +14,11 @@ class MultipleSignatureTest(unittest.TestCase):
         o = cast('java.lang.Object', s)
         self.assertEquals(o.__javaclass__, 'java/lang/Object')
 
+    def test_mmap_toString(self):
+        mapClass = autoclass('java.util.HashMap')
+        hmap = mapClass()
+        hmap.put("a", "1")
+        hmap.toString()
+        mmap = cast('java.util.Map', hmap)
+        mmap.toString()
+        mmap.getClass()

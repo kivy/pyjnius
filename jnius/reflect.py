@@ -1,15 +1,17 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from __future__ import print_function
 from __future__ import division
 __all__ = ('autoclass', 'ensureclass')
 from six import with_metaclass
+import logging
 
 from .jnius import (
     JavaClass, MetaJavaClass, JavaMethod, JavaStaticMethod,
     JavaField, JavaStaticField, JavaMultipleMethod, find_javaclass,
     JavaException
 )
+
+log = logging.getLogger(__name__)
 
 
 class Class(with_metaclass(MetaJavaClass, JavaClass)):
@@ -52,6 +54,19 @@ class Class(with_metaclass(MetaJavaClass, JavaClass)):
     isPrimitive = JavaMethod('()Z')
     newInstance = JavaMethod('()Ljava/lang/Object;')
     toString = JavaMethod('()Ljava/lang/String;')
+
+    def __str__(self):
+        return (
+            '%s: [%s]' if self.isArray() else '%s: %s'
+        ) % (
+            'Interface' if self.isInterface() else
+            'Primitive' if self.isPrimitive() else
+            'Class',
+            self.getName()
+        )
+
+    def __repr__(self):
+        return '<%s at 0x%x>' % (self, id(self))
 
 
 class Object(with_metaclass(MetaJavaClass, JavaClass)):
@@ -147,9 +162,45 @@ def bean_getter(s):
     return (s.startswith('get') and len(s) > 3 and s[3].isupper()) or (s.startswith('is') and len(s) > 2 and s[2].isupper())
 
 
+def log_method(method, name, signature):
+    mods = method.getModifiers()
+    log.debug(
+        '\nmeth: %s\n'
+        '  sig: %s\n'
+        '  Public %s\n'
+        '  Private %s\n'
+        '  Protected %s\n'
+        '  Static %s\n'
+        '  Final %s\n'
+        '  Synchronized %s\n'
+        '  Volatile %s\n'
+        '  Transient %s\n'
+        '  Native %s\n'
+        '  Interface %s\n'
+        '  Abstract %s\n'
+        '  Strict %s\n',
+        name,
+        signature,
+        Modifier.isPublic(mods),
+        Modifier.isPrivate(mods),
+        Modifier.isProtected(mods),
+        Modifier.isStatic(mods),
+        Modifier.isFinal(mods),
+        Modifier.isSynchronized(mods),
+        Modifier.isVolatile(mods),
+        Modifier.isTransient(mods),
+        Modifier.isNative(mods),
+        Modifier.isInterface(mods),
+        Modifier.isAbstract(mods),
+        Modifier.isStrict(mods)
+    )
+
+
 def autoclass(clsname):
     jniname = clsname.replace('.', '/')
+    log.debug(jniname)
     cls = MetaJavaClass.get_javaclass(jniname)
+    log.debug(cls)
     if cls:
         return cls
 
@@ -161,33 +212,39 @@ def autoclass(clsname):
         raise Exception('Java class {0} not found'.format(c))
         return None
 
+    log.debug('found %s', repr(c))
+
     constructors = []
     for constructor in c.getConstructors():
         sig = '({0})V'.format(
             ''.join([get_signature(x) for x in constructor.getParameterTypes()]))
         constructors.append((sig, constructor.isVarArgs()))
+        log.debug('constructor: %s' % sig)
     classDict['__javaconstructor__'] = constructors
 
-    parent_class = c
-    while parent_class is not None:
-        methods = parent_class.getDeclaredMethods()
+    cls = c
+    while cls is not None:
+        methods = cls.getDeclaredMethods()
         methods_name = [x.getName() for x in methods]
 
         for index, method in enumerate(methods):
+            log.debug('method %s: %s', index, method)
             name = methods_name[index]
+            log.debug('method name: %s', name)
             if name in classDict:
+                log.debug('already known')
                 continue
-            count = methods_name.count(name)
 
             # only one method available
-            if count == 1:
+            if methods_name.count(name) == 1:
                 static = Modifier.isStatic(method.getModifiers())
                 varargs = method.isVarArgs()
                 sig = '({0}){1}'.format(
                     ''.join([get_signature(x) for x in method.getParameterTypes()]),
                     get_signature(method.getReturnType()))
-                cls = JavaStaticMethod if static else JavaMethod
-                classDict[name] = cls(sig, varargs=varargs)
+                if log.level <= logging.DEBUG:
+                    log_method(method, name, sig)
+                classDict[name] = (JavaStaticMethod if static else JavaMethod)(sig, varargs=varargs)
                 if name != 'getClass' and bean_getter(name) and len(method.getParameterTypes()) == 0:
                     lowername = lower_name(name[2 if name.startswith('is') else 3:])
                     classDict[lowername] = (lambda n: property(lambda self: getattr(self, n)()))(name)
@@ -202,27 +259,20 @@ def autoclass(clsname):
                 sig = '({0}){1}'.format(
                     ''.join([get_signature(x) for x in method.getParameterTypes()]),
                     get_signature(method.getReturnType()))
-                '''
-                print 'm', name, sig, method.getModifiers()
-                m = method.getModifiers()
-                print 'Public', Modifier.isPublic(m)
-                print 'Private', Modifier.isPrivate(m)
-                print 'Protected', Modifier.isProtected(m)
-                print 'Static', Modifier.isStatic(m)
-                print 'Final', Modifier.isFinal(m)
-                print 'Synchronized', Modifier.isSynchronized(m)
-                print 'Volatile', Modifier.isVolatile(m)
-                print 'Transient', Modifier.isTransient(m)
-                print 'Native', Modifier.isNative(m)
-                print 'Interface', Modifier.isInterface(m)
-                print 'Abstract', Modifier.isAbstract(m)
-                print 'Strict', Modifier.isStrict(m)
-                '''
+
+                if log.level <= logging.DEBUG:
+                    log_method(method, name, sig)
                 signatures.append((sig, Modifier.isStatic(method.getModifiers()), method.isVarArgs()))
 
             classDict[name] = JavaMultipleMethod(signatures)
 
-        parent_class = parent_class.getSuperclass()
+        _cls = cls.getSuperclass()
+        if not _cls and cls.isInterface():
+            cls = find_javaclass('java.lang.Object')
+        else:
+            cls = _cls
+
+        log.debug('next parent class is %s', repr(cls))
 
     def _getitem(self, index):
         try:
