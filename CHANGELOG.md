@@ -1,5 +1,32 @@
 # Change Log
 
+## [1.2.1](https://github.com/kivy/pyjnius/tree/1.2.1) (2019-12-04)
+[Full Changelog](https://github.com/kivy/pyjnius/compare/1.2.0...1.2.1)
+
+- Make sure methods are discovered in reverse-inheritance order
+- fix unreferenced variable
+- Avoid windows execution error when JAVA_HOME path has space (test on w10)
+- Link to libjli, not libjvm, on macOS
+- Add support for adoptopenjdk12
+- Add build support for Oracle Solaris on SPARC sun4u and sun4v
+- make sure Interface have access to Object's methods
+- wheels built for:
+  - Windows: Python 3.6, 3.7 and 3.8
+  - OSX: Python 2.7, 3.6, 3.7 and 3.8
+  - Manylinux: Python 2.7, 3.6, 3.7 and 3.8
+
+## [1.2.0](https://github.com/kivy/pyjnius/tree/1.2.0) (2019-02-04)
+[Full Changelog](https://github.com/kivy/pyjnius/compare/1.1.4...1.2.0)
+
+## [1.1.4](https://github.com/kivy/pyjnius/tree/1.1.4) (2018-12-05)
+[Full Changelog](https://github.com/kivy/pyjnius/compare/1.1.3...1.1.4)
+
+## [1.1.3](https://github.com/kivy/pyjnius/tree/1.1.3) (2018-10-22)
+[Full Changelog](https://github.com/kivy/pyjnius/compare/1.1.2...1.1.3)
+
+## [1.1.2](https://github.com/kivy/pyjnius/tree/1.1.2) (2018-10-17)
+[Full Changelog](https://github.com/kivy/pyjnius/compare/1.1.1...1.1.2)
+
 ## [1.1.1](https://github.com/kivy/pyjnius/tree/1.1.1) (2017-03-24)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.1.0...1.1.1)
 
