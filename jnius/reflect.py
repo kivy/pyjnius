@@ -198,9 +198,7 @@ def log_method(method, name, signature):
 
 def autoclass(clsname):
     jniname = clsname.replace('.', '/')
-    log.debug(jniname)
     cls = MetaJavaClass.get_javaclass(jniname)
-    log.debug(cls)
     if cls:
         return cls
 
@@ -212,14 +210,11 @@ def autoclass(clsname):
         raise Exception('Java class {0} not found'.format(c))
         return None
 
-    log.debug('found %s', repr(c))
-
     constructors = []
     for constructor in c.getConstructors():
         sig = '({0})V'.format(
             ''.join([get_signature(x) for x in constructor.getParameterTypes()]))
         constructors.append((sig, constructor.isVarArgs()))
-        log.debug('constructor: %s' % sig)
     classDict['__javaconstructor__'] = constructors
 
     cls = c
@@ -228,11 +223,8 @@ def autoclass(clsname):
         methods_name = [x.getName() for x in methods]
 
         for index, method in enumerate(methods):
-            log.debug('method %s: %s', index, method)
             name = methods_name[index]
-            log.debug('method name: %s', name)
             if name in classDict:
-                log.debug('already known')
                 continue
 
             # only one method available
@@ -271,8 +263,6 @@ def autoclass(clsname):
             cls = find_javaclass('java.lang.Object')
         else:
             cls = _cls
-
-        log.debug('next parent class is %s', repr(cls))
 
     def _getitem(self, index):
         try:
