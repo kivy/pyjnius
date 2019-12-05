@@ -120,7 +120,7 @@ setup(
         )
     ],
     extras_require={
-        'dev': ['nose', 'wheel', 'pytest-cov', 'pycodestyle'],
+        'dev': ['pytest', 'wheel', 'pytest-cov', 'pycodestyle'],
         'ci': ['coveralls', 'pytest-rerunfailures', 'setuptools>=34.4.0'],
     },
     **SETUP_KWARGS

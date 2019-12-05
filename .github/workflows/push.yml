@@ -76,21 +76,21 @@ jobs:
 
         ant all
         cd tests
-        nosetests -v
+        pytest -v
 
     - name: test
       if: matrix.os == 'ubuntu-latest'
       run: |
         ant all
         cd tests
-        CLASSPATH=../build/test-classes:../build/classes nosetests -v
+        CLASSPATH=../build/test-classes:../build/classes pytest -v
 
     - name: test
       if: matrix.os == 'macOs-latest'
       run: |
         ant all
         cd tests
-          CLASSPATH=../build/test-classes:../build/classes python -m nose -v
+          CLASSPATH=../build/test-classes:../build/classes python -m pytest -v
 
 #     - name: coveralls
 #       run: python -m coveralls
