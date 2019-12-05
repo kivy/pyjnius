@@ -117,7 +117,6 @@ def get_jdk_home(platform):
     if not jdk_home:
         if platform == 'win32':
             TMP_JDK_HOME = getenv('JAVA_HOME')
-            print(TMP_JDK_HOME)
             if not TMP_JDK_HOME:
                 raise Exception('Unable to find JAVA_HOME')
 
