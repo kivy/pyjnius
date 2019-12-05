@@ -6,6 +6,7 @@ for target in $(ls /opt/python/); do
     python=/opt/python/$target/bin/python
     $python -m pip install -U setuptools cython
     $python setup.py bdist_wheel
+    git clean -dfx jnius/
 done
 
 for whl in dist/*.whl; do
