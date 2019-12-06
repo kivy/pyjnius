@@ -3,15 +3,15 @@ import unittest
 from jnius import autoclass, cast, PythonJavaClass, java_method
 
 
-class TestImplemIterator(PythonJavaClass):
+class _TestImplemIterator(PythonJavaClass):
     __javainterfaces__ = ['java/util/ListIterator']
 
 
-class TestImplem(PythonJavaClass):
+class _TestImplem(PythonJavaClass):
     __javainterfaces__ = ['java/util/List']
 
     def __init__(self, *args):
-        super(TestImplem, self).__init__(*args)
+        super(_TestImplem, self).__init__(*args)
         self.data = list(args)
 
     @java_method('()I')
@@ -39,7 +39,7 @@ class TestIntLongConversion(unittest.TestCase):
         Collections = autoclass('java.util.Collections')
         List = autoclass('java.util.List')
         pylist = list(range(10))
-        a = TestImplem(*pylist)
+        a = _TestImplem(*pylist)
         self.assertEqual(a.data, pylist)
         self.assertEqual(str(a.data), '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]')
 

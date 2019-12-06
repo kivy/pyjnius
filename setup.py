@@ -95,6 +95,10 @@ compile_native_invocation_handler(*get_possible_homes(PLATFORM))
 # generate the config.pxi
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
     fd.write('DEF JNIUS_PLATFORM = {0!r}\n\n'.format(PLATFORM))
+    if getenv('GITHUB_WORKFLOW') == 'Tests':
+        print("GITHUB_WORKFLOW Tests detected, tracing cython code for coverage")
+        fd.write('# cython: linetrace=True')
+        fd.write('# distutils: define_macros=CYTHON_TRACE=1')
     if not PY2:
         fd.write('# cython: language_level=3\n\n')
         fd.write('DEF JNIUS_PYTHON3 = True\n\n')
