@@ -30,6 +30,9 @@ jobs:
           python: '2.7'
         - os: macOs-latest
           architecture: 'x86'
+        - os: ubuntu-latest
+          python: '3.8'
+          java: '10'
 
     runs-on: ${{ matrix.os }}
     steps:
