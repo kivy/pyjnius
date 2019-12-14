@@ -219,7 +219,7 @@ def autoclass(clsname):
 
     cls = c
     while cls is not None:
-        methods = cls.getDeclaredMethods()
+        methods = cls.getMethods()
         methods_name = [x.getName() for x in methods]
 
         for index, method in enumerate(methods):
