@@ -12,10 +12,15 @@ class DirTest(unittest.TestCase):
         # >>> dir(cls.out.printf)
         # [(['java/lang/String', 'java/lang/Object...'], 'java/io/PrintStream'),
         # (['java/util/Locale', 'java/lang/String', 'java/lang/Object...'], 'java/io/PrintStream')]
+
         cls = autoclass("java.lang.System")
-        assert isinstance(dir(cls.out.printf), list)
-        for f in dir(cls.out.printf):
-            assert isinstance(f, tuple)
+        result = dir(cls.out.printf)
+
+        assert isinstance(result, list)
+        assert all(isinstance(f, tuple) for f in result)
+
+        assert (['java/lang/String', 'java/lang/Object...'], 'java/io/PrintStream') in result
+        assert (['java/util/Locale', 'java/lang/String', 'java/lang/Object...'], 'java/io/PrintStream') in result
 
     def test_array_dir(self):
         # >>> from jnius import autoclass
@@ -23,11 +28,15 @@ class DirTest(unittest.TestCase):
         # >>> dir(cls.toArray)
         # [([], 'java/lang/Object[]'),
         # (['java/lang/Object[]'], 'java/lang/Object[]')]
-        cls = autoclass("java.util.List")
-        assert isinstance(dir(cls.toArray), list)
 
-        for f in dir(cls.toArray):
-            assert isinstance(f, tuple)
+        cls = autoclass("java.util.List")
+        result = dir(cls.toArray)
+
+        assert isinstance(result, list)
+        assert all(isinstance(f, tuple) for f in result)
+
+        assert ([], 'java/lang/Object[]') in result
+        assert (['java/lang/Object[]'], 'java/lang/Object[]') in result
 
     def test_dir(self):
         # >>> from jnius import autoclass
@@ -42,12 +51,21 @@ class DirTest(unittest.TestCase):
         #  (['int'], 'java/lang/String'),
         #  (['java/lang/Object'], 'java/lang/String'),
         #  (['long'], 'java/lang/String')]
+
         cls = autoclass("java.lang.String")
-        assert isinstance(dir(cls.valueOf), list)
-        for f in dir(cls.charAt):
-            assert isinstance(f, tuple)
+        result = dir(cls.valueOf)
 
+        assert isinstance(result, list)
+        assert all(isinstance(f, tuple) for f in result)
 
-
-
-
+        assert result == [
+            (['boolean'], 'java/lang/String'),
+            (['char'], 'java/lang/String'),
+            (['char[]'], 'java/lang/String'),
+            (['char[]', 'int', 'int'], 'java/lang/String'),
+            (['double'], 'java/lang/String'),
+            (['float'], 'java/lang/String'),
+            (['int'], 'java/lang/String'),
+            (['java/lang/Object'], 'java/lang/String'),
+            (['long'], 'java/lang/String')
+        ]
