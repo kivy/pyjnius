@@ -405,7 +405,7 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
 
 cdef readable_sig(sig, is_var):
     """
-    Converts JNI signature to easily readable Signature.
+    Converts JNI signature to easily readable signature.
     :param sig: JNI signature string
     :param is_var: if the function has varargs
     :return:([arg], rtn)
