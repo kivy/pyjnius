@@ -58,7 +58,7 @@ class DirTest(unittest.TestCase):
         assert isinstance(result, list)
         assert all(isinstance(f, tuple) for f in result)
 
-        assert result == [
+        assert sorted(result) == sorted([
             (['boolean'], 'java/lang/String'),
             (['char'], 'java/lang/String'),
             (['char[]'], 'java/lang/String'),
@@ -68,4 +68,4 @@ class DirTest(unittest.TestCase):
             (['int'], 'java/lang/String'),
             (['java/lang/Object'], 'java/lang/String'),
             (['long'], 'java/lang/String')
-        ]
+        ])
