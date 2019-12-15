@@ -6,15 +6,15 @@ from jnius.reflect import autoclass
 
 class DirTest(unittest.TestCase):
 
-    def test_varargs_dir(self):
+    def test_varargs_signatures(self):
         # >>> from jnius import autoclass
         # >>> cls = autoclass('java.lang.System')
-        # >>> dir(cls.out.printf)
+        # >>> cls.out.printf.signatures()
         # [(['java/lang/String', 'java/lang/Object...'], 'java/io/PrintStream'),
         # (['java/util/Locale', 'java/lang/String', 'java/lang/Object...'], 'java/io/PrintStream')]
 
         cls = autoclass("java.lang.System")
-        result = dir(cls.out.printf)
+        result = cls.out.printf.signatures()
 
         assert isinstance(result, list)
         assert all(isinstance(f, tuple) for f in result)
@@ -22,15 +22,15 @@ class DirTest(unittest.TestCase):
         assert (['java/lang/String', 'java/lang/Object...'], 'java/io/PrintStream') in result
         assert (['java/util/Locale', 'java/lang/String', 'java/lang/Object...'], 'java/io/PrintStream') in result
 
-    def test_array_dir(self):
+    def test_array_signatures(self):
         # >>> from jnius import autoclass
         # >>> cls = autoclass('java.util.List')
-        # >>> dir(cls.toArray)
+        # >>> cls.toArray.signatures()
         # [([], 'java/lang/Object[]'),
         # (['java/lang/Object[]'], 'java/lang/Object[]')]
 
         cls = autoclass("java.util.List")
-        result = dir(cls.toArray)
+        result = cls.toArray.signatures()
 
         assert isinstance(result, list)
         assert all(isinstance(f, tuple) for f in result)
@@ -38,10 +38,10 @@ class DirTest(unittest.TestCase):
         assert ([], 'java/lang/Object[]') in result
         assert (['java/lang/Object[]'], 'java/lang/Object[]') in result
 
-    def test_dir(self):
+    def test_signatures(self):
         # >>> from jnius import autoclass
         # >>> cls = autoclass('java.lang.String')
-        # >>> dir(cls.valueOf)
+        # >>> cls.valueOf.signatures()
         # [(['boolean'], 'java/lang/String'),
         #  (['char'], 'java/lang/String'),
         #  (['char[]'], 'java/lang/String'),
@@ -53,7 +53,7 @@ class DirTest(unittest.TestCase):
         #  (['long'], 'java/lang/String')]
 
         cls = autoclass("java.lang.String")
-        result = dir(cls.valueOf)
+        result = cls.valueOf.signatures()
 
         assert isinstance(result, list)
         assert all(isinstance(f, tuple) for f in result)

@@ -403,6 +403,7 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
             # change this method score
     return score
 
+
 cdef readable_sig(sig, is_var):
     """
     Converts JNI signature to easily readable signature.
@@ -477,4 +478,3 @@ cdef readable_sig(sig, is_var):
             i += 1
 
     return args, rtn
-
