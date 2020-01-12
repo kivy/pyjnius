@@ -30,6 +30,12 @@ conflict with Pyjnius itself::
     world
     hello
 
+To load nested java classes, use the "$" separator as so::
+
+    version = autoclass("android.os.Build$VERSION")
+    base_os = version.BASE_OS
+
+
 Automatic recursive inspection
 ------------------------------
 
