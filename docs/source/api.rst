@@ -391,16 +391,25 @@ Pyjnius and threads
     But you must detach it before leaving the thread, and Pyjnius cannot do it for
     you.
 
+Pyjnius automatically calls this `detach()` function for you when a python thread exits. This is done by
+monkey-patching the default `run()` method of `threading.Thread` class.
+
+So if you entirely override `run()` from your own subclass of Thread, you must call `detach()` yourself
+on any kind of termination.
+
 Example::
 
     import threading
     import jnius
 
-    def run(...):
-        try:
-            # use pyjnius here
-        finally:
-            jnius.detach()
+    class MyThread(threading.Thread):
+
+        def run(...):
+            try:
+                # use pyjnius here
+            finally:
+                jnius.detach()
+
 
 If you don't, it will crash on dalvik and ART / Android::
 
