@@ -297,7 +297,7 @@ cdef class JavaClass(object):
                 )
         else:
             scores = []
-            requestedDefn = kwargs.get('signature', None)
+            requestedDefn = kwargs.pop('signature', None)
             for definition, is_varargs in definitions:
                 found_definitions.append(definition)
                 d_ret, d_args = parse_definition(definition)
