@@ -51,7 +51,7 @@ class TestConstructor(unittest.TestCase):
 
         outputStream = autoclass('java.lang.System').out
         ConstructorTest = autoclass('org.jnius.ConstructorTest')
-        inst = ConstructorTest(outputStream, param_types="(Ljava/io/OutputStream;)V")
+        inst = ConstructorTest(outputStream, signature="(Ljava/io/OutputStream;)V")
         self.assertEqual(inst.ret, 42)
         self.assertTrue(ConstructorTest.getClass().isInstance(inst))
 
