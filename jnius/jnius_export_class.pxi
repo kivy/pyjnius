@@ -297,12 +297,10 @@ cdef class JavaClass(object):
                 )
         else:
             scores = []
-            requestedDefn = kwargs.get('param_types', None)
+            requestedDefn = kwargs.get('signature', None)
             for definition, is_varargs in definitions:
                 found_definitions.append(definition)
                 d_ret, d_args = parse_definition(definition)
-                #print(definition)
-                #print(d_args)
                 if requestedDefn == definition:
                     assert not is_varargs
                     score=1
