@@ -20,4 +20,12 @@ public class ConstructorTest {
     public ConstructorTest(int cret, char charet) {
         ret = cret + (int) charet;
     }
+
+    public ConstructorTest(Object DO_NOT_CALL) {
+        throw new Error();
+    }
+
+    public ConstructorTest(java.io.OutputStream os) {
+        ret = 42;
+    }
 }

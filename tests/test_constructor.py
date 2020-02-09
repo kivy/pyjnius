@@ -43,6 +43,18 @@ class TestConstructor(unittest.TestCase):
         self.assertEqual(inst.ret, ord('a'))
         self.assertTrue(ConstructorTest.getClass().isInstance(inst))
 
+
+    def test_constructor_multiobj(self):
+        '''
+        Constructor expecting String.
+        '''
+
+        outputStream = autoclass('java.lang.System').out
+        ConstructorTest = autoclass('org.jnius.ConstructorTest')
+        inst = ConstructorTest(outputStream, signature="(Ljava/io/OutputStream;)V")
+        self.assertEqual(inst.ret, 42)
+        self.assertTrue(ConstructorTest.getClass().isInstance(inst))
+
     def test_constructor_int_string(self):
         '''
         Constructor expecting int and char, casting char to int and summing it

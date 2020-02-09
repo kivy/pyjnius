@@ -253,7 +253,7 @@ cdef class JavaClass(object):
         self.j_cls = jcs.j_cls
 
         if 'noinstance' not in kwargs:
-            self.call_constructor(args)
+            self.call_constructor(args, kwargs)
             self.resolve_methods()
             self.resolve_fields()
 
@@ -262,7 +262,7 @@ cdef class JavaClass(object):
         self.resolve_methods()
         self.resolve_fields()
 
-    cdef void call_constructor(self, args) except *:
+    cdef void call_constructor(self, args, kwargs) except *:
         # the goal is to find the class constructor, and call it with the
         # correct arguments.
         cdef jvalue *j_args = NULL
@@ -297,9 +297,16 @@ cdef class JavaClass(object):
                 )
         else:
             scores = []
+            requestedDefn = kwargs.pop('signature', None)
             for definition, is_varargs in definitions:
                 found_definitions.append(definition)
                 d_ret, d_args = parse_definition(definition)
+                if requestedDefn == definition:
+                    assert not is_varargs
+                    score=1
+                    scores.append((score, definition, d_ret, d_args, args))
+                    break
+                
                 if is_varargs:
                     args_ = args[:len(d_args) - 1] + (args[len(d_args) - 1:],)
                 else:
