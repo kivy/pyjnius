@@ -303,6 +303,7 @@ cdef class JavaClass(object):
                 d_ret, d_args = parse_definition(definition)
                 if requestedDefn == definition:
                     assert not is_varargs
+                    scores=[]
                     score=1
                     scores.append((score, definition, d_ret, d_args, args))
                     break
