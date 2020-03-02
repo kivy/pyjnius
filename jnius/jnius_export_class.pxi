@@ -318,7 +318,7 @@ cdef class JavaClass(object):
                 scores.append((score, definition, d_ret, d_args, args_))
             if requestedDefn is not None and len(scores) != 1:
                 raise JavaException(
-                    'No constructor matching requested signature of {}, available: '
+                    'No constructor matching requested signature of \'{}\', available: '
                     '{}'.format(requestedDefn, found_definitions)
                 )
             if not scores:
