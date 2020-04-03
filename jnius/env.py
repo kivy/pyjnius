@@ -230,8 +230,9 @@ def get_jnius_lib_location(platform):
             print("warning: unknown platform assuming linux")
 
         lib_location = 'jre/lib/{}/server/libjvm.so'.format(cpu)
-
-        jre_home = dirname(get_jre_home(platform)).strip('jre')
+        
+        if jre_home.endswith('jre'):
+            jre_home = dirname(get_jre_home(platform))[:-3]
 
         full_lib_location = join(jre_home, lib_location)
 
