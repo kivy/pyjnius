@@ -225,7 +225,6 @@ def autoclass(clsname):
           methods = cls.getDeclaredMethods()
         else:
           methods = cls.getMethods()
-        methods = cls.getMethods()
         methods_name = [x.getName() for x in methods]
 
         for index, method in enumerate(methods):
