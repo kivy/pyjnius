@@ -11,11 +11,11 @@ jobs:
            - '3.7'
            - '3.8'
         java:
-          - '8'
+          # - '8'
           # - '9' # commented out just for faster CI
-          # - '10'
+          - '10'
           # - '11' # commented out just for faster CI
-          - '12'
+          # - '12'
         os:
           - 'ubuntu-latest'
           - 'windows-latest'
