@@ -9,7 +9,7 @@ from jnius import autoclass, java_method, PythonJavaClass, cast
 print('1: declare a TestImplem that implement Collection')
 
 
-class TestImplemIterator(PythonJavaClass):
+class _TestImplemIterator(PythonJavaClass):
     __javainterfaces__ = [
         #'java/util/Iterator',
         'java/util/ListIterator', ]
@@ -55,16 +55,16 @@ class TestImplemIterator(PythonJavaClass):
         self.collection.data[self.index - 1] = obj
 
 
-class TestImplem(PythonJavaClass):
+class _TestImplem(PythonJavaClass):
     __javainterfaces__ = ['java/util/List']
 
     def __init__(self, *args):
-        super(TestImplem, self).__init__(*args)
+        super(_TestImplem, self).__init__(*args)
         self.data = list(args)
 
     @java_method('()Ljava/util/Iterator;')
     def iterator(self):
-        it = TestImplemIterator(self)
+        it = _TestImplemIterator(self)
         return it
 
     @java_method('()Ljava/lang/String;')
@@ -91,17 +91,17 @@ class TestImplem(PythonJavaClass):
 
     @java_method('()Ljava/util/ListIterator;')
     def listIterator(self):
-        it = TestImplemIterator(self)
+        it = _TestImplemIterator(self)
         return it
 
     @java_method('(I)Ljava/util/ListIterator;',
                          name='ListIterator')
     def listIteratorI(self, index):
-        it = TestImplemIterator(self, index)
+        it = _TestImplemIterator(self, index)
         return it
 
 
-class TestBadSignature(PythonJavaClass):
+class _TestBadSignature(PythonJavaClass):
     __javainterfaces__ = ['java/util/List']
 
     @java_method('(Landroid/bluetooth/BluetoothDevice;IB[])V')
@@ -110,7 +110,7 @@ class TestBadSignature(PythonJavaClass):
 
 
 print('2: instantiate the class, with some data')
-a = TestImplem(*list(range(10)))
+a = _TestImplem(*list(range(10)))
 print(a)
 print(dir(a))
 
@@ -158,7 +158,7 @@ if sys.version_info >= (3, 0):
 # test bad signature
 threw = False
 try:
-    TestBadSignature()
+    _TestBadSignature()
 except Exception:
     threw = True
 

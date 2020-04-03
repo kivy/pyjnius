@@ -8,12 +8,12 @@ JObject = autoclass('java/lang/Object')
 JString = autoclass('java/lang/String')
 JListIterator = autoclass("java.util.ListIterator")
 
-class TestImplemIterator(PythonJavaClass):
+class _TestImplemIterator(PythonJavaClass):
     __javainterfaces__ = [
         'java/util/ListIterator', ]
 
     def __init__(self, collection, index=0):
-        super(TestImplemIterator, self).__init__()
+        super(_TestImplemIterator, self).__init__()
         self.collection = collection
         self.index = index
 
@@ -54,16 +54,16 @@ class TestImplemIterator(PythonJavaClass):
         self.collection.data[self.index - 1] = obj
 
 
-class TestImplem(PythonJavaClass):
+class _TestImplem(PythonJavaClass):
     __javainterfaces__ = ['java/util/List']
 
     def __init__(self, *args):
-        super(TestImplem, self).__init__(*args)
+        super(_TestImplem, self).__init__(*args)
         self.data = list(args)
 
     @with_signature(autoclass("java.util.Iterator"), [])
     def iterator(self):
-        it = TestImplemIterator(self)
+        it = _TestImplemIterator(self)
         return it
 
     @with_signature(JString, [])
@@ -90,14 +90,14 @@ class TestImplem(PythonJavaClass):
 
     @with_signature(JListIterator, [])
     def listIterator(self):
-        it = TestImplemIterator(self)
+        it = _TestImplemIterator(self)
         return it
 
     # TODO cover this case of listIterator.
     @java_method(signature(JListIterator, [jint]),
                          name='ListIterator')
     def listIteratorI(self, index):
-        it = TestImplemIterator(self, index)
+        it = _TestImplemIterator(self, index)
         return it
 
 
@@ -107,7 +107,7 @@ class SignaturesTest(unittest.TestCase):
 
     def test_construct_stack_from_testimplem(self):
         Stack = autoclass("java.util.Stack")
-        pyjlist = TestImplem(1, 2, 3, 4, 5, 6, 7)
+        pyjlist = _TestImplem(1, 2, 3, 4, 5, 6, 7)
         stack = Stack()
         stack.addAll(pyjlist)
         self.assertEqual(7, pyjlist.size())
