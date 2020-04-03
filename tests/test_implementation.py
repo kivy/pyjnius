@@ -31,4 +31,4 @@ class ImplementationTest(unittest.TestCase):
         popped = stack.pop()
         if sys.version_info < (3, 0):
             popped = popped.decode('utf-8')
-        self.assertEquals(emoji, popped)
+        self.assertEqual(emoji, popped)

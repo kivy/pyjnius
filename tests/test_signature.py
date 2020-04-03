@@ -110,65 +110,65 @@ class SignaturesTest(unittest.TestCase):
         pyjlist = TestImplem(1, 2, 3, 4, 5, 6, 7)
         stack = Stack()
         stack.addAll(pyjlist)
-        self.assertEquals(7, pyjlist.size())
-        self.assertEquals(stack.size(), pyjlist.size())
+        self.assertEqual(7, pyjlist.size())
+        self.assertEqual(stack.size(), pyjlist.size())
         array = pyjlist.toArray()
 
     def test_return_types(self):
 
         # Void
         sig = signature(jvoid, [])
-        self.assertEquals(sig, "()V")
+        self.assertEqual(sig, "()V")
 
         # Boolean
         sig = signature(jboolean, [])
-        self.assertEquals(sig, "()Z")
+        self.assertEqual(sig, "()Z")
 
         # Byte
         sig = signature(jbyte, [])
-        self.assertEquals(sig, "()B")
+        self.assertEqual(sig, "()B")
 
         # Char
         sig = signature(jchar, [])
-        self.assertEquals(sig, "()C")
+        self.assertEqual(sig, "()C")
 
         # Double
         sig = signature(jdouble, [])
-        self.assertEquals(sig, "()D")
+        self.assertEqual(sig, "()D")
 
         # Float
         sig = signature(jfloat, [])
-        self.assertEquals(sig, "()F")
+        self.assertEqual(sig, "()F")
 
-        # Int 
+        # Int
         sig = signature(jint, [])
-        self.assertEquals(sig, "()I")
+        self.assertEqual(sig, "()I")
 
-        # Long 
+        # Long
         sig = signature(jlong, [])
-        self.assertEquals(sig, "()J")
+        self.assertEqual(sig, "()J")
 
-        # Short 
+        # Short
         sig = signature(jshort, [])
-        self.assertEquals(sig, "()S")
+        self.assertEqual(sig, "()S")
 
         # Object return method
         String = autoclass("java.lang.String")
         sig = signature(String, [])
-        self.assertEquals(sig, "()Ljava/lang/String;")
+        self.assertEqual(sig, "()Ljava/lang/String;")
 
         # Array return
         sig = signature(JArray(jint), [])
-        self.assertEquals(sig, "()[I")
+        self.assertEqual(sig, "()[I")
 
     def test_params(self):
         String = autoclass("java.lang.String")
 
         # Return void, takes objects as parameters
         sig = signature(jvoid, [String, String])
-        self.assertEquals(sig, "(Ljava/lang/String;Ljava/lang/String;)V")
+        self.assertEqual(sig, "(Ljava/lang/String;Ljava/lang/String;)V")
 
         # Multiple array parameter types
         sig = signature(jvoid, [JArray(jint), JArray(jboolean)])
-        self.assertEquals(sig, "([I[Z)V")
+        self.assertEqual(sig, "([I[Z)V")
 

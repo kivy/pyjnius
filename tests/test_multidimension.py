@@ -11,5 +11,5 @@ class MultipleDimensionsTest(unittest.TestCase):
         matrix = [[1, 2, 3],
                   [4, 5, 6],
                   [7, 8, 9]]
-        self.assertEquals(MultipleDims.methodParamsMatrixI(matrix), True)
-        self.assertEquals(MultipleDims.methodReturnMatrixI(), matrix)
+        self.assertEqual(MultipleDims.methodParamsMatrixI(matrix), True)
+        self.assertEqual(MultipleDims.methodReturnMatrixI(), matrix)

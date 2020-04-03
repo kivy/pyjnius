@@ -20,7 +20,7 @@ class StringArgumentForByteArrayTest(unittest.TestCase):
         Test = autoclass('org.jnius.BasicsTest')()
         Test.fillByteArray(arr)
         # we don't received signed byte, but unsigned in python.
-        self.assertEquals(
+        self.assertEqual(
             arr,
             [127, 1, 129])
 
@@ -28,23 +28,23 @@ class StringArgumentForByteArrayTest(unittest.TestCase):
         StringBufferInputStream = autoclass('java.io.StringBufferInputStream')
         nis = StringBufferInputStream("Hello world")
         barr = bytearray("\x00" * 5, encoding="utf8")
-        self.assertEquals(nis.read(barr, 0, 5), 5)
-        self.assertEquals(barr, b"Hello")
+        self.assertEqual(nis.read(barr, 0, 5), 5)
+        self.assertEqual(barr, b"Hello")
 
     def test_bytearray_ascii(self):
         ByteArrayInputStream = autoclass('java.io.ByteArrayInputStream')
         s = b"".join(bytes(x) for x in range(256))
         nis = ByteArrayInputStream(s)
         barr = bytearray("\x00" * 256, encoding="ascii")
-        self.assertEquals(nis.read(barr, 0, 256), 256)
-        self.assertEquals(barr[:256], s[:256])
+        self.assertEqual(nis.read(barr, 0, 256), 256)
+        self.assertEqual(barr[:256], s[:256])
 
     def test_empty_bytearray(self):
         Test = autoclass('org.jnius.BasicsTest')()
         arr = Test.methodReturnEmptyByteArray()
-        self.assertEquals(len(arr), 0)
+        self.assertEqual(len(arr), 0)
         with self.assertRaises(IndexError):
             arr[0]
-        self.assertEquals(arr, [])
-        self.assertEquals(arr[:1], [])
-        self.assertEquals(arr.tostring(), b'')
+        self.assertEqual(arr, [])
+        self.assertEqual(arr[:1], [])
+        self.assertEqual(arr.tostring(), b'')

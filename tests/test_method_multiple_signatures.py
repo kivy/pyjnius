@@ -24,10 +24,10 @@ class MultipleSignature(unittest.TestCase):
         String = autoclass('java.lang.String')
         s = String('hello')
         if sys.version_info >= (3, 0):
-            self.assertEquals(s.getBytes(), [104, 101, 108, 108, 111])
-            self.assertEquals(s.getBytes('utf8'), [104, 101, 108, 108, 111])
-        self.assertEquals(s.indexOf(ord('e')), 1)
-        self.assertEquals(s.indexOf(ord('e'), 2), -1)
+            self.assertEqual(s.getBytes(), [104, 101, 108, 108, 111])
+            self.assertEqual(s.getBytes('utf8'), [104, 101, 108, 108, 111])
+        self.assertEqual(s.indexOf(ord('e')), 1)
+        self.assertEqual(s.indexOf(ord('e'), 2), -1)
 
     def test_multiple_methods_no_args(self):
         MultipleMethods = autoclass('org.jnius.MultipleMethods')
