@@ -303,6 +303,7 @@ cdef class JavaClass(object):
                 d_ret, d_args = parse_definition(definition)
                 if requestedDefn == definition:
                     assert not is_varargs
+                    scores=[]
                     score=1
                     scores.append((score, definition, d_ret, d_args, args))
                     break
@@ -316,6 +317,11 @@ cdef class JavaClass(object):
                 if score == -1:
                     continue
                 scores.append((score, definition, d_ret, d_args, args_))
+            if requestedDefn is not None and len(scores) != 1:
+                raise JavaException(
+                    'No constructor matching requested signature of \'{}\', available: '
+                    '{}'.format(requestedDefn, found_definitions)
+                )
             if not scores:
                 raise JavaException(
                     'No constructor matching your arguments, available: '

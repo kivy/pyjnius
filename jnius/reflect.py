@@ -218,8 +218,14 @@ def autoclass(clsname):
     classDict['__javaconstructor__'] = constructors
 
     cls = c
+    level = -1
     while cls is not None:
-        methods = cls.getDeclaredMethods()
+        level += 1
+        if cls is c:
+          methods = cls.getDeclaredMethods()
+        else:
+          methods = cls.getMethods()
+        methods = cls.getMethods()
         methods_name = [x.getName() for x in methods]
 
         for index, method in enumerate(methods):
@@ -290,7 +296,10 @@ def autoclass(clsname):
         classDict[field.getName()] = cls(sig)
 
     classDict['__javaclass__'] = clsname.replace('.', '/')
-
+    #print(classDict)
+    #if "newInstance" in classDict:
+    #    print("newInstncae returns " + str(classDict["newInstance"].signatures()))
+    #print(clsname)
     return MetaJavaClass.__new__(
         MetaJavaClass,
         clsname,  # .replace('.', '_'),
