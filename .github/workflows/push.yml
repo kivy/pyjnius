@@ -6,20 +6,20 @@ jobs:
     strategy:
       matrix:
         python:
-           - '2.7'
+           # - '2.7'
            - '3.6'
-           - '3.7'
-           - '3.8'
+           # - '3.7'
+           # - '3.8'
         java:
-          # - '8'
-          # - '9' # commented out just for faster CI
+          - '8'
+          - '9' # commented out just for faster CI
           - '10'
-          # - '11' # commented out just for faster CI
-          # - '12'
+          - '11' # commented out just for faster CI
+          - '12'
         os:
           - 'ubuntu-latest'
           - 'windows-latest'
-          - 'macOs-latest'
+          # - 'macOs-latest'
         architecture:
           - 'x64'
           - 'x86'
