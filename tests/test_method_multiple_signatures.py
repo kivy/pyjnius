@@ -4,6 +4,7 @@ from __future__ import absolute_import
 import unittest
 import sys
 from jnius.reflect import autoclass
+from jnius import cast
 
 try:
     long
@@ -70,3 +71,23 @@ class MultipleSignature(unittest.TestCase):
         MultipleMethods = autoclass('org.jnius.MultipleMethods')
         self.assertEqual(MultipleMethods.resolve(
             1, 2 ** 63 - 1, "one"), "resolved one int, one long and a string")
+
+    def test_super_interface(self):
+        LinkedList = autoclass('java.util.LinkedList')
+        words = LinkedList()
+        words.add('hello')
+        words.add('world')
+        q = cast('java.util.Queue', words)
+        self.assertEqual(2, q.size())
+        self.assertIsNotNone(q.iterator())
+
+    def test_super_object(self):
+        LinkedList = autoclass('java.util.LinkedList')
+        words = LinkedList()
+        words.hashCode()
+
+    def test_super_interface_object(self):
+        LinkedList = autoclass('java.util.LinkedList')
+        words = LinkedList()
+        q = cast('java.util.Queue', words)
+        q.hashCode()
