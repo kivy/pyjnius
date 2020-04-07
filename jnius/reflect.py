@@ -196,7 +196,7 @@ def log_method(method, name, signature):
     )
 
 
-def autoclass(clsname):
+def autoclass(clsname, public_only=False):
     jniname = clsname.replace('.', '/')
     cls = MetaJavaClass.get_javaclass(jniname)
     if cls:
@@ -222,9 +222,9 @@ def autoclass(clsname):
     while cls is not None:
         level += 1
         if cls is c:
-          methods = cls.getDeclaredMethods()
+            methods = cls.getDeclaredMethods()
         else:
-          methods = cls.getMethods()
+            methods = cls.getMethods()
         methods_name = [x.getName() for x in methods]
 
         for index, method in enumerate(methods):
@@ -235,6 +235,8 @@ def autoclass(clsname):
             # only one method available
             if methods_name.count(name) == 1:
                 static = Modifier.isStatic(method.getModifiers())
+                if public_only and not Modifier.isPublic(method.getModifiers()):
+                    continue
                 varargs = method.isVarArgs()
                 sig = '({0}){1}'.format(
                     ''.join([get_signature(x) for x in method.getParameterTypes()]),
@@ -253,6 +255,8 @@ def autoclass(clsname):
                 if subname != name:
                     continue
                 method = methods[index]
+                if public_only and not Modifier.isPublic(method.getModifiers()):
+                    continue
                 sig = '({0}){1}'.format(
                     ''.join([get_signature(x) for x in method.getParameterTypes()]),
                     get_signature(method.getReturnType()))
@@ -290,6 +294,8 @@ def autoclass(clsname):
 
     for field in c.getFields():
         static = Modifier.isStatic(field.getModifiers())
+        if public_only and not Modifier.isPublic(field.getModifiers()):
+            continue
         sig = get_signature(field.getType())
         cls = JavaStaticField if static else JavaField
         classDict[field.getName()] = cls(sig)
