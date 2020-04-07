@@ -196,19 +196,19 @@ def log_method(method, name, signature):
         Modifier.isStrict(mods)
     )
 
-def identifyHierarchy(cls, level, classList, concrete=True):
-    classList.append((cls,level))
+def identify_hierarchy(cls, level, concrete=True):
     supercls = cls.getSuperclass()
     if supercls is not None:
-        identifyHierarchy(supercls, level+1, classList, concrete)
-    intfcs = cls.getInterfaces()
-    if intfcs is not None:
-        for intf in intfcs:
-            identifyHierarchy(intf, level+1, classList, concrete)
-    if not concrete and cls.isInterface() and len(intfcs) ==0:
-        classList.append((find_javaclass('java.lang.Object'),level+1))
-    #return classList
-         
+         for sup, lvl in identify_hierarchy(supercls, level + 1, concrete=concrete):
+             yield sup, lvl # we could use yield from when we drop python2
+    interfaces = cls.getInterfaces()
+    for interface in interfaces or []:
+        for sup, lvl in identify_hierarchy(interface, level + 1, concrete=concrete):
+            yield sup, lvl
+    #all object extends Object, so if this top interface in a hierarchy, yield Object
+    if not concrete and cls.isInterface() and not interfaces:
+        yield find_javaclass('java.lang.Object'), level +1
+    yield cls, level
 
 
 def autoclass(clsname):
@@ -232,39 +232,36 @@ def autoclass(clsname):
         constructors.append((sig, constructor.isVarArgs()))
     classDict['__javaconstructor__'] = constructors
 
-    classHierachy=[]
-    identifyHierarchy(c, 0, classHierachy, not c.isInterface())
-    classHierachy.reverse()
+    class_hierachy = identify_hierarchy(c, 0, not c.isInterface())
+    
+    log.debug("autoclass(%s) intf %r hierarchy is %s" % (clsname,c.isInterface(),class_hierachy))
+    cls_done=set()
 
-    print("autoclass(%s) intf %r hierarchy is %s" % (clsname,c.isInterface(),classHierachy))
-    clsDone=set()
-
-    clsMethods=defaultdict(list)
+    cls_methods=defaultdict(list)
 
     #we now walk the hierarchy, from top of the tree, identifying methods
     #hopefully we start at java.lang.Object 
-    for cls,level in classHierachy:
+    for cls,level in class_hierachy:
         #dont analyse a given class more than once.
         #many interfaces can lead to java.lang.Object 
-        if cls in clsDone:
+        if cls in cls_done:
             continue
-        clsDone.add(cls)
+        cls_done.add(cls)
         #as we are walking the entire hierarchy, we only need getDeclaredMethods()
         #to get what is in this class; other parts of the hierarchy will be found
         #in those respective classes.
         methods = cls.getDeclaredMethods()
         methods_name = [x.getName() for x in methods]
+        #collect all methods declared by this class of the hierarchy for later traversal
         for index, method in enumerate(methods):
             name = methods_name[index]
-            #print("%s %s" % (str(cls), name))
-
-            clsMethods[name].append((cls, method, level))
+            cls_methods[name].append((cls, method, level))
     
     #having collated the mthods, identify if there are any with the same name
-    for name in clsMethods:        
-        if len(clsMethods[name]) == 1:
+    for name in cls_methods:
+        if len(cls_methods[name]) == 1:
             #uniquely named method
-            owningCls, method, level = clsMethods[name][0]
+            owningCls, method, level = cls_methods[name][0]
             static = Modifier.isStatic(method.getModifiers())
             varargs = method.isVarArgs()
             sig = '({0}){1}'.format(
@@ -279,19 +276,17 @@ def autoclass(clsname):
         else:
             # multiple signatures
             signatures = []
-            #print("method with %d multiple signatures is %s in cls %s" % (len(clsMethods[name]), name, c))
+            log.debug("method %s has %d multiple signatures in cls %s" % (name, len(cls_methods[name]), c))
             
-            
-            #assume there can be no more than 10000 levels of inheritance
-            paramsig_to_level=defaultdict(lambda: 10000)
+            paramsig_to_level=defaultdict(lambda: float('inf'))
             #we now identify if any have the same signature, as we will call the _lowest_, ie min level
-            for owningCls, method, level in clsMethods[name]:
+            for owningCls, method, level in cls_methods[name]:
                 param_sig = ''.join([get_signature(x) for x in method.getParameterTypes()])
                 #print("\t owner %s level %d param_sig %s" % (str(owningCls), level, param_sig))
                 if level < paramsig_to_level[param_sig]:
                     paramsig_to_level[param_sig] = level
 
-            for owningCls, method, level in clsMethods[name]:
+            for owningCls, method, level in cls_methods[name]:
                 param_sig = ''.join([get_signature(x) for x in method.getParameterTypes()])
                 #only accept the parameter signature at the deepest level of hierarchy (i.e. min level)
                 if level > paramsig_to_level[param_sig]:
