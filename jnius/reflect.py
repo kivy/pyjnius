@@ -234,8 +234,9 @@ def autoclass(clsname, public_only=False):
 
             # only one method available
             if methods_name.count(name) == 1:
-                static = Modifier.isStatic(method.getModifiers())
-                if public_only and not Modifier.isPublic(method.getModifiers()):
+                method_modifiers = method.getModifiers()
+                static = Modifier.isStatic(method_modifiers)
+                if public_only and not Modifier.isPublic(method_modifiers):
                     continue
                 varargs = method.isVarArgs()
                 sig = '({0}){1}'.format(
@@ -255,7 +256,8 @@ def autoclass(clsname, public_only=False):
                 if subname != name:
                     continue
                 method = methods[index]
-                if public_only and not Modifier.isPublic(method.getModifiers()):
+                method_modifiers = method.getModifiers()
+                if public_only and not Modifier.isPublic(method_modifiers):
                     continue
                 sig = '({0}){1}'.format(
                     ''.join([get_signature(x) for x in method.getParameterTypes()]),
@@ -263,7 +265,7 @@ def autoclass(clsname, public_only=False):
 
                 if log.level <= logging.DEBUG:
                     log_method(method, name, sig)
-                signatures.append((sig, Modifier.isStatic(method.getModifiers()), method.isVarArgs()))
+                signatures.append((sig, Modifier.isStatic(method_modifiers), method.isVarArgs()))
 
             classDict[name] = JavaMultipleMethod(signatures)
 
@@ -293,8 +295,9 @@ def autoclass(clsname, public_only=False):
             break
 
     for field in c.getFields():
-        static = Modifier.isStatic(field.getModifiers())
-        if public_only and not Modifier.isPublic(field.getModifiers()):
+        field_modifiers = field.getModifiers()
+        static = Modifier.isStatic(field_modifiers)
+        if public_only and not Modifier.isPublic(field_modifiers):
             continue
         sig = get_signature(field.getType())
         cls = JavaStaticField if static else JavaField
