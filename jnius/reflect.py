@@ -312,17 +312,13 @@ def _getitem(self, index):
         else:
             raise
 
-
+# interface_map is a user-accessible API for patching class instances with additional methods 
 interface_map = {
     'java.util.List' : {
         '__getitem__' : _getitem,
         '__len__' : lambda self: self.size()
     },
-    #we need both java.io.Closeable and java.lang.AutoCloseable. 
-    'java.io.Closeable' : {
-        '__enter__' : lambda self: self,
-        '__exit__' : lambda self, type, value, traceback: self.close()
-    },
+    #this also addresses java.io.Closeable
     'java.lang.AutoCloseable' : {
         '__enter__' : lambda self: self,
         '__exit__' : lambda self, type, value, traceback: self.close()
