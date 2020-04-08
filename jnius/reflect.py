@@ -205,7 +205,7 @@ def identify_hierarchy(cls, level, concrete=True):
     for interface in interfaces or []:
         for sup, lvl in identify_hierarchy(interface, level + 1, concrete=concrete):
             yield sup, lvl
-    #all object extends Object, so if this top interface in a hierarchy, yield Object
+    # all object extends Object, so if this top interface in a hierarchy, yield Object
     if not concrete and cls.isInterface() and not interfaces:
         yield find_javaclass('java.lang.Object'), level +1
     yield cls, level
@@ -239,28 +239,28 @@ def autoclass(clsname):
 
     cls_methods=defaultdict(list)
 
-    #we now walk the hierarchy, from top of the tree, identifying methods
-    #hopefully we start at java.lang.Object 
+    # we now walk the hierarchy, from top of the tree, identifying methods
+    # hopefully we start at java.lang.Object 
     for cls,level in class_hierachy:
-        #dont analyse a given class more than once.
-        #many interfaces can lead to java.lang.Object 
+        # dont analyse a given class more than once.
+        # many interfaces can lead to java.lang.Object 
         if cls in cls_done:
             continue
         cls_done.add(cls)
-        #as we are walking the entire hierarchy, we only need getDeclaredMethods()
-        #to get what is in this class; other parts of the hierarchy will be found
-        #in those respective classes.
+        # as we are walking the entire hierarchy, we only need getDeclaredMethods()
+        # to get what is in this class; other parts of the hierarchy will be found
+        # in those respective classes.
         methods = cls.getDeclaredMethods()
         methods_name = [x.getName() for x in methods]
-        #collect all methods declared by this class of the hierarchy for later traversal
+        # collect all methods declared by this class of the hierarchy for later traversal
         for index, method in enumerate(methods):
             name = methods_name[index]
             cls_methods[name].append((cls, method, level))
     
-    #having collated the mthods, identify if there are any with the same name
+    # having collated the mthods, identify if there are any with the same name
     for name in cls_methods:
         if len(cls_methods[name]) == 1:
-            #uniquely named method
+            # uniquely named method
             owningCls, method, level = cls_methods[name][0]
             static = Modifier.isStatic(method.getModifiers())
             varargs = method.isVarArgs()
@@ -279,19 +279,19 @@ def autoclass(clsname):
             log.debug("method %s has %d multiple signatures in hierarchy of cls %s" % (name, len(cls_methods[name]), c))
             
             paramsig_to_level=defaultdict(lambda: float('inf'))
-            #we now identify if any have the same signature, as we will call the _lowest_ in the hierarchy,
+            # we now identify if any have the same signature, as we will call the _lowest_ in the hierarchy,
             # as reflected in min level
             for owningCls, method, level in cls_methods[name]:
                 param_sig = ''.join([get_signature(x) for x in method.getParameterTypes()])
-                #print("\t owner %s level %d param_sig %s" % (str(owningCls), level, param_sig))
+                log.debug("\t owner %s level %d param_sig %s" % (str(owningCls), level, param_sig))
                 if level < paramsig_to_level[param_sig]:
                     paramsig_to_level[param_sig] = level
 
             for owningCls, method, level in cls_methods[name]:
                 param_sig = ''.join([get_signature(x) for x in method.getParameterTypes()])
-                #only accept the parameter signature at the deepest level of hierarchy (i.e. min level)
+                # only accept the parameter signature at the deepest level of hierarchy (i.e. min level)
                 if level > paramsig_to_level[param_sig]:
-                    #print("discarding %s name from %s at level %d" % (name, str(owningCls), level))
+                    log.debug("discarding %s name from %s at level %d" % (name, str(owningCls), level))
                     continue
 
                 return_sig = get_signature(method.getReturnType())
@@ -301,7 +301,7 @@ def autoclass(clsname):
                     log_method(method, name, sig)
                 signatures.append((sig, Modifier.isStatic(method.getModifiers()), method.isVarArgs()))
 
-            #print("method selected %d multiple signatures of %s" % (len(signatures), str(signatures)))
+            log.debug("method selected %d multiple signatures of %s" % (len(signatures), str(signatures)))
             classDict[name] = JavaMultipleMethod(signatures)
 
     def _getitem(self, index):
