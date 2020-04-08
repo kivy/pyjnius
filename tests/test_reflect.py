@@ -10,7 +10,6 @@ from jnius import find_javaclass
 def identify_hierarchy_dict(cls, level, concrete=True):
     return({ cls.getName() : level for cls,level in identify_hierarchy(cls, level, concrete) })
 
-
 class ReflectTest(unittest.TestCase):
 
     def assertContains(self, d, clsName):
@@ -19,10 +18,10 @@ class ReflectTest(unittest.TestCase):
     def test_hierharchy_queue(self):
         d = identify_hierarchy_dict(find_javaclass("java.util.Queue"), 0, False)
         self.assertContains(d, "java.util.Queue")
-        #super interfaces
+        # super interfaces
         self.assertContains(d, "java.util.Collection")
         self.assertContains(d, "java.lang.Iterable")
-        #all instantiated interfaces are rooted at Object
+        # all instantiated interfaces are rooted at Object
         self.assertContains(d, "java.lang.Object")
         maxLevel = max(d.values())
         self.assertEqual(d["java.lang.Object"], maxLevel)
@@ -30,15 +29,14 @@ class ReflectTest(unittest.TestCase):
         
     def test_hierharchy_arraylist(self):
         d = identify_hierarchy_dict(find_javaclass("java.util.ArrayList"), 0, True)
-        self.assertContains(d, "java.util.ArrayList")#concrete
-        self.assertContains(d, "java.util.AbstractCollection")#superclass
-        self.assertContains(d, "java.util.Collection")#interface
-        self.assertContains(d, "java.lang.Iterable")#interface
-        self.assertContains(d, "java.lang.Object")#root
+        self.assertContains(d, "java.util.ArrayList")# concrete
+        self.assertContains(d, "java.util.AbstractCollection")# superclass
+        self.assertContains(d, "java.util.Collection")# interface
+        self.assertContains(d, "java.lang.Iterable")# interface
+        self.assertContains(d, "java.lang.Object")# root
         maxLevel = max(d.values())
         self.assertEqual(d["java.lang.Object"], maxLevel)
         self.assertEqual(d["java.util.ArrayList"], 0)
-        
 
     def test_stack(self):
         Stack = autoclass('java.util.Stack')
