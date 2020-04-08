@@ -126,6 +126,8 @@ cdef void create_jnienv() except *:
         raise SystemError("JVM failed to start: {0}".format(ret))
 
     jnius_config.vm_running = True
+    import traceback
+    jnius_config.vm_started_at = ''.join(traceback.format_stack())
 
 cdef JNIEnv *get_platform_jnienv() except NULL:
     if _platform_default_env == NULL:

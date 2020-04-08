@@ -9,6 +9,7 @@ else:
     split_char = ':'
 
 vm_running = False
+vm_started_at = None
 options = []
 classpath = None
 
@@ -16,7 +17,7 @@ classpath = None
 def set_options(*opts):
     "Sets the list of options to the JVM. Removes any previously set options."
     if vm_running:
-        raise ValueError("VM is already running, can't set options")
+        raise ValueError("VM is already running, can't set options; VM started at" + vm_started_at)
     global options
     options = list(opts)
 
@@ -24,7 +25,7 @@ def set_options(*opts):
 def add_options(*opts):
     "Appends options to the list of VM options."
     if vm_running:
-        raise ValueError("VM is already running, can't set options")
+        raise ValueError("VM is already running, can't set options; VM started at" + vm_started_at)
     global options
     options.extend(opts)
 
@@ -40,7 +41,7 @@ def set_classpath(*path):
     Sets the classpath for the JVM to use. Replaces any existing classpath, overriding the CLASSPATH environment variable.
     """
     if vm_running:
-        raise ValueError("VM is already running, can't set classpath")
+        raise ValueError("VM is already running, can't set classpath; VM started at" + vm_started_at)
     global classpath
     classpath = list(path)
 
@@ -51,7 +52,7 @@ def add_classpath(*path):
     Replaces any existing classpath, overriding the CLASSPATH environment variable.
     """
     if vm_running:
-        raise ValueError("VM is already running, can't set classpath")
+        raise ValueError("VM is already running, can't set classpath; VM started at" + vm_started_at)
     global classpath
     if classpath is None:
         classpath = list(path)
