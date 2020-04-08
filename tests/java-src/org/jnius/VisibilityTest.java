@@ -3,35 +3,35 @@ package org.jnius;
 import java.lang.String;
 
 public class VisibilityTest {
-    public String fieldPublic = "fieldPublic";
-    protected String fieldProtected = "fieldProtected";
-    private String fieldPrivate = "fieldPrivate";
+    public String fieldPublic = "Public";
+    protected String fieldProtected = "Protected";
+    private String fieldPrivate = "Private";
 
-    static public String fieldStaticPublic = "fieldStaticPublic";
-    static protected String fieldStaticProtected = "fieldStaticProtected";
-    static private String fieldStaticPrivate = "fieldStaticPrivate";
+    static public String fieldStaticPublic = "StaticPublic";
+    static protected String fieldStaticProtected = "StaticProtected";
+    static private String fieldStaticPrivate = "StaticPrivate";
 
     public String methodPublic() {
-        return "methodPublic";
+        return fieldPublic;
     }
 
     protected String methodProtected() {
-        return "methodProtected";
+        return fieldProtected;
     }
 
     private String methodPrivate() {
-        return "methodPrivate";
+        return fieldPrivate;
     }
 
     static public String methodStaticPublic() {
-        return "methodStaticPublic";
+        return fieldStaticPublic;
     }
 
     static protected String methodStaticProtected() {
-        return "methodStaticProtected";
+        return fieldStaticProtected;
     }
 
     static private String methodStaticPrivate() {
-        return "methodStaticPrivate";
+        return fieldStaticPrivate;
     }
 }
