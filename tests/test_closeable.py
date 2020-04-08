@@ -4,7 +4,7 @@ Test creating for java.io.Closeable dunder
 
 from __future__ import absolute_import
 import unittest
-from jnius import autoclass, JavaException, interface_map
+from jnius import autoclass, JavaException, protocol_map
 
 
 class TestConstructor(unittest.TestCase):
@@ -12,7 +12,7 @@ class TestConstructor(unittest.TestCase):
     TestCase for using java.io.Closeable dunder
     '''
 
-    #this checkes that java.lang.AutoCloseable instances gain the correct dunder methods
+    # this checkes that java.lang.AutoCloseable instances gain the correct dunder methods
     def test_stringreader_closeable(self):
         swCheck = autoclass("java.io.StringWriter")()
         self.assertTrue("__enter__" in dir(swCheck))
@@ -21,9 +21,9 @@ class TestConstructor(unittest.TestCase):
         with autoclass("java.io.StringWriter")() as sw:
             sw.write("Hello")
             
-    #this checkes that closeable dunder methods are actually called
-    #org.jnius.CloseableClass has java.io.Closeable, to differ from
-    #java.lang.AutoCloseable (which is what is in interface_map)
+    # this checkes that closeable dunder methods are actually called
+    # org.jnius.CloseableClass has java.io.Closeable, to differ from
+    # java.lang.AutoCloseable (which is what is in interface_map)
     def test_our_closeable(self):
         ourcloseableClz = autoclass("org.jnius.CloseableClass")
         self.assertTrue("__enter__" in dir(ourcloseableClz()))
@@ -35,4 +35,4 @@ class TestConstructor(unittest.TestCase):
         self.assertFalse(ourcloseableClz.open)
 
     def test_interface_map(self):
-       self.assertTrue("java.util.List" in interface_map)
+       self.assertTrue("java.util.List" in protocol_map)

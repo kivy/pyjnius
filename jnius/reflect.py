@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from __future__ import division
-__all__ = ('autoclass', 'ensureclass', 'interface_map')
+__all__ = ('autoclass', 'ensureclass', 'protocol_map')
 from six import with_metaclass
 import logging
 
@@ -304,16 +304,12 @@ def autoclass(clsname):
             log.debug("method selected %d multiple signatures of %s" % (len(signatures), str(signatures)))
             classDict[name] = JavaMultipleMethod(signatures)
 
-    for interfacename in interface_map.keys():
-        intf = find_javaclass(interfacename)
-        if intf is None:
-            raise Exception('Java interface {0} in interface_map not found'.format(intf))
-        #this equivalent to instanceof()
-        #we use this as c.getInterfaces() doesnt 
-        #contain interfaces implemented by superclasses
-        if intf.isAssignableFrom(c):
-            for pname, plambda in interface_map[interfacename].items():
-                classDict[pname] = plambda
+    # check whether any classes in the hierarchy appear in the protocol_map
+    for cls, _ in class_hierachy:
+        cls_name = cls.getName()
+        if cls_name in protocol_map:
+            for pname, plambda in protocol_map[cls_name].items():
+                classDict[pname] = plambda  
 
     for field in c.getFields():
         static = Modifier.isStatic(field.getModifiers())
@@ -343,13 +339,13 @@ def _getitem(self, index):
         else:
             raise
 
-# interface_map is a user-accessible API for patching class instances with additional methods 
-interface_map = {
+# protocol_map is a user-accessible API for patching class instances with additional methods 
+protocol_map = {
     'java.util.List' : {
         '__getitem__' : _getitem,
         '__len__' : lambda self: self.size()
     },
-    #this also addresses java.io.Closeable
+    # this also addresses java.io.Closeable
     'java.lang.AutoCloseable' : {
         '__enter__' : lambda self: self,
         '__exit__' : lambda self, type, value, traceback: self.close()
