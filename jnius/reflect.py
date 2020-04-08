@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from __future__ import division
-__all__ = ('autoclass', 'ensureclass', 'interface_map')
+__all__ = ('autoclass', 'ensureclass')
 from six import with_metaclass
 import logging
 
@@ -48,7 +48,7 @@ class Class(with_metaclass(MetaJavaClass, JavaClass)):
     getSigners = JavaMethod('()[Ljava/lang/Object;')
     getSuperclass = JavaMethod('()Ljava/lang/Class;')
     isArray = JavaMethod('()Z')
-    isAssignableFrom = JavaMethod('(Ljava/lang/Class;)Z')
+    isAssignableFrom = JavaMethod('(Ljava/lang/reflect/Class;)Z')
     isInstance = JavaMethod('(Ljava/lang/Object;)Z')
     isInterface = JavaMethod('()Z')
     isPrimitive = JavaMethod('()Z')
@@ -269,16 +269,24 @@ def autoclass(clsname):
         else:
             cls = _cls
 
-    for interfacename in interface_map.keys():
-        intf = find_javaclass(interfacename)
-        if intf is None:
-            raise Exception('Java interface {0} in interface_map not found'.format(intf))
-        #this equivalent to instanceof()
-        #we use this as c.getInterfaces() doesnt 
-        #contain interfaces implemented by superclasses
-        if intf.isAssignableFrom(c):
-            for pname, plambda in interface_map[interfacename].items():
-                classDict[pname] = plambda
+    def _getitem(self, index):
+        try:
+            return self.get(index)
+        except JavaException as e:
+            # initialize the subclass before getting the Class.forName
+            # otherwise isInstance does not know of the subclass
+            mock_exception_object = autoclass(e.classname)()
+            if find_javaclass("java.lang.IndexOutOfBoundsException").isInstance(mock_exception_object):
+                # python for...in iteration checks for end of list by waiting for IndexError
+                raise IndexError()
+            else:
+                raise
+
+    for iclass in c.getInterfaces():
+        if iclass.getName() == 'java.util.List':
+            classDict['__getitem__'] = _getitem
+            classDict['__len__'] = lambda self: self.size()
+            break
 
     for field in c.getFields():
         static = Modifier.isStatic(field.getModifiers())
@@ -296,35 +304,3 @@ def autoclass(clsname):
         clsname,  # .replace('.', '_'),
         (JavaClass, ),
         classDict)
-
-
-## dunder method for List
-def _getitem(self, index):
-    try:
-        return self.get(index)
-    except JavaException as e:
-        # initialize the subclass before getting the Class.forName
-        # otherwise isInstance does not know of the subclass
-        mock_exception_object = autoclass(e.classname)()
-        if find_javaclass("java.lang.IndexOutOfBoundsException").isInstance(mock_exception_object):
-            # python for...in iteration checks for end of list by waiting for IndexError
-            raise IndexError()
-        else:
-            raise
-
-
-interface_map = {
-    'java.util.List' : {
-        '__getitem__' : _getitem,
-        '__len__' : lambda self: self.size()
-    },
-    #we need both java.io.Closeable and java.lang.AutoCloseable. 
-    'java.io.Closeable' : {
-        '__enter__' : lambda self: self,
-        '__exit__' : lambda self, type, value, traceback: self.close()
-    },
-    'java.lang.AutoCloseable' : {
-        '__enter__' : lambda self: self,
-        '__exit__' : lambda self, type, value, traceback: self.close()
-    }
-}
