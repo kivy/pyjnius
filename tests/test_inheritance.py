@@ -21,8 +21,6 @@ def test_fields():
     
 
 def test_newinstance():
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
     Parent = autoclass('org.jnius.Parent')
     Child = autoclass('org.jnius.Child')
 
