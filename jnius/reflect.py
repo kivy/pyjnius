@@ -12,6 +12,7 @@ from .jnius import (
 )
 
 log = logging.getLogger(__name__)
+from collections import defaultdict
 
 
 class Class(with_metaclass(MetaJavaClass, JavaClass)):
@@ -195,6 +196,20 @@ def log_method(method, name, signature):
         Modifier.isStrict(mods)
     )
 
+def identify_hierarchy(cls, level, concrete=True):
+    supercls = cls.getSuperclass()
+    if supercls is not None:
+         for sup, lvl in identify_hierarchy(supercls, level + 1, concrete=concrete):
+             yield sup, lvl # we could use yield from when we drop python2
+    interfaces = cls.getInterfaces()
+    for interface in interfaces or []:
+        for sup, lvl in identify_hierarchy(interface, level + 1, concrete=concrete):
+            yield sup, lvl
+    # all object extends Object, so if this top interface in a hierarchy, yield Object
+    if not concrete and cls.isInterface() and not interfaces:
+        yield find_javaclass('java.lang.Object'), level +1
+    yield cls, level
+
 
 def autoclass(clsname):
     jniname = clsname.replace('.', '/')
@@ -217,57 +232,77 @@ def autoclass(clsname):
         constructors.append((sig, constructor.isVarArgs()))
     classDict['__javaconstructor__'] = constructors
 
-    cls = c
-    level = -1
-    while cls is not None:
-        level += 1
-        if cls is c:
-          methods = cls.getDeclaredMethods()
-        else:
-          methods = cls.getMethods()
-        methods_name = [x.getName() for x in methods]
+    class_hierachy = list(identify_hierarchy(c, 0, not c.isInterface()))
+    
+    log.debug("autoclass(%s) intf %r hierarchy is %s" % (clsname,c.isInterface(),str(class_hierachy)))
+    cls_done=set()
 
+    cls_methods=defaultdict(list)
+
+    # we now walk the hierarchy, from top of the tree, identifying methods
+    # hopefully we start at java.lang.Object 
+    for cls,level in class_hierachy:
+        # dont analyse a given class more than once.
+        # many interfaces can lead to java.lang.Object 
+        if cls in cls_done:
+            continue
+        cls_done.add(cls)
+        # as we are walking the entire hierarchy, we only need getDeclaredMethods()
+        # to get what is in this class; other parts of the hierarchy will be found
+        # in those respective classes.
+        methods = cls.getDeclaredMethods()
+        methods_name = [x.getName() for x in methods]
+        # collect all methods declared by this class of the hierarchy for later traversal
         for index, method in enumerate(methods):
             name = methods_name[index]
-            if name in classDict:
-                continue
-
-            # only one method available
-            if methods_name.count(name) == 1:
-                static = Modifier.isStatic(method.getModifiers())
-                varargs = method.isVarArgs()
-                sig = '({0}){1}'.format(
-                    ''.join([get_signature(x) for x in method.getParameterTypes()]),
-                    get_signature(method.getReturnType()))
-                if log.level <= logging.DEBUG:
-                    log_method(method, name, sig)
-                classDict[name] = (JavaStaticMethod if static else JavaMethod)(sig, varargs=varargs)
-                if name != 'getClass' and bean_getter(name) and len(method.getParameterTypes()) == 0:
-                    lowername = lower_name(name[2 if name.startswith('is') else 3:])
-                    classDict[lowername] = (lambda n: property(lambda self: getattr(self, n)()))(name)
-                continue
-
+            cls_methods[name].append((cls, method, level))
+    
+    # having collated the mthods, identify if there are any with the same name
+    for name in cls_methods:
+        if len(cls_methods[name]) == 1:
+            # uniquely named method
+            owningCls, method, level = cls_methods[name][0]
+            static = Modifier.isStatic(method.getModifiers())
+            varargs = method.isVarArgs()
+            sig = '({0}){1}'.format(
+                ''.join([get_signature(x) for x in method.getParameterTypes()]),
+                get_signature(method.getReturnType()))
+            if log.level <= logging.DEBUG:
+                log_method(method, name, sig)
+            classDict[name] = (JavaStaticMethod if static else JavaMethod)(sig, varargs=varargs)
+            if name != 'getClass' and bean_getter(name) and len(method.getParameterTypes()) == 0:
+                lowername = lower_name(name[2 if name.startswith('is') else 3:])
+                classDict[lowername] = (lambda n: property(lambda self: getattr(self, n)()))(name)
+        else:
             # multiple signatures
             signatures = []
-            for index, subname in enumerate(methods_name):
-                if subname != name:
-                    continue
-                method = methods[index]
-                sig = '({0}){1}'.format(
-                    ''.join([get_signature(x) for x in method.getParameterTypes()]),
-                    get_signature(method.getReturnType()))
+            log.debug("method %s has %d multiple signatures in hierarchy of cls %s" % (name, len(cls_methods[name]), c))
+            
+            paramsig_to_level=defaultdict(lambda: float('inf'))
+            # we now identify if any have the same signature, as we will call the _lowest_ in the hierarchy,
+            # as reflected in min level
+            for owningCls, method, level in cls_methods[name]:
+                param_sig = ''.join([get_signature(x) for x in method.getParameterTypes()])
+                log.debug("\t owner %s level %d param_sig %s" % (str(owningCls), level, param_sig))
+                if level < paramsig_to_level[param_sig]:
+                    paramsig_to_level[param_sig] = level
 
+            for owningCls, method, level in cls_methods[name]:
+                param_sig = ''.join([get_signature(x) for x in method.getParameterTypes()])
+                # only accept the parameter signature at the deepest level of hierarchy (i.e. min level)
+                if level > paramsig_to_level[param_sig]:
+                    log.debug("discarding %s name from %s at level %d" % (name, str(owningCls), level))
+                    continue
+
+                return_sig = get_signature(method.getReturnType())
+                sig = '({0}){1}'.format(param_sig, return_sig)
+                
                 if log.level <= logging.DEBUG:
                     log_method(method, name, sig)
                 signatures.append((sig, Modifier.isStatic(method.getModifiers()), method.isVarArgs()))
 
+            log.debug("method selected %d multiple signatures of %s" % (len(signatures), str(signatures)))
             classDict[name] = JavaMultipleMethod(signatures)
-
-        _cls = cls.getSuperclass()
-        if not _cls and cls.isInterface():
-            cls = find_javaclass('java.lang.Object')
-        else:
-            cls = _cls
 
     def _getitem(self, index):
         try:
@@ -295,12 +330,8 @@ def autoclass(clsname):
         classDict[field.getName()] = cls(sig)
 
     classDict['__javaclass__'] = clsname.replace('.', '/')
-    #print(classDict)
-    #if "newInstance" in classDict:
-    #    print("newInstncae returns " + str(classDict["newInstance"].signatures()))
-    #print(clsname)
     return MetaJavaClass.__new__(
         MetaJavaClass,
-        clsname,  # .replace('.', '_'),
+        clsname,
         (JavaClass, ),
         classDict)
