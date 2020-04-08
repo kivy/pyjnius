@@ -232,9 +232,9 @@ def autoclass(clsname):
         constructors.append((sig, constructor.isVarArgs()))
     classDict['__javaconstructor__'] = constructors
 
-    class_hierachy = identify_hierarchy(c, 0, not c.isInterface())
+    class_hierachy = list(identify_hierarchy(c, 0, not c.isInterface()))
     
-    log.debug("autoclass(%s) intf %r hierarchy is %s" % (clsname,c.isInterface(),class_hierachy))
+    log.debug("autoclass(%s) intf %r hierarchy is %s" % (clsname,c.isInterface(),str(class_hierachy)))
     cls_done=set()
 
     cls_methods=defaultdict(list)
@@ -276,10 +276,11 @@ def autoclass(clsname):
         else:
             # multiple signatures
             signatures = []
-            log.debug("method %s has %d multiple signatures in cls %s" % (name, len(cls_methods[name]), c))
+            log.debug("method %s has %d multiple signatures in hierarchy of cls %s" % (name, len(cls_methods[name]), c))
             
             paramsig_to_level=defaultdict(lambda: float('inf'))
-            #we now identify if any have the same signature, as we will call the _lowest_, ie min level
+            #we now identify if any have the same signature, as we will call the _lowest_ in the hierarchy,
+            # as reflected in min level
             for owningCls, method, level in cls_methods[name]:
                 param_sig = ''.join([get_signature(x) for x in method.getParameterTypes()])
                 #print("\t owner %s level %d param_sig %s" % (str(owningCls), level, param_sig))
