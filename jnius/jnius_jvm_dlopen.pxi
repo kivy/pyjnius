@@ -2,7 +2,7 @@ include "config.pxi"
 import os
 from shlex import split
 from subprocess import check_output
-from os.path import dirname, join
+from os.path import dirname, join, exists
 from os import readlink
 from sys import platform
 from .env import get_jnius_lib_location
@@ -56,6 +56,14 @@ cdef find_java_home():
             except OSError:
                 break
         return dirname(dirname(java)).decode('utf8')
+    
+    if platform in ('darwin'):
+        #its a mac
+        if not exists('/usr/libexec/java_home'):
+            return
+        java = check_output('/usr/libexec/java_home').strip().decode('utf8')
+        return java
+        
 
 
 cdef void create_jnienv() except *:
