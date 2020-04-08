@@ -24,12 +24,12 @@ class VisibilityAllTest(unittest.TestCase):
         Test = autoclass('org.jnius.VisibilityTest')
 
         self.assertTrue(hasattr(Test, 'fieldStaticPublic'))
-        # self.assertTrue(hasattr(Test, 'fieldStaticProtected'))
-        # self.assertTrue(hasattr(Test, 'fieldStaticPrivate'))
+        self.assertTrue(hasattr(Test, 'fieldStaticProtected'))
+        self.assertTrue(hasattr(Test, 'fieldStaticPrivate'))
 
         self.assertEqual(Test.fieldStaticPublic, py2_encode("StaticPublic"))
-        # self.assertEqual(Test.fieldStaticProtected, py2_encode("StaticProtected"))
-        # self.assertEqual(Test.fieldStaticPrivate, py2_encode("StaticPrivate"))
+        self.assertEqual(Test.fieldStaticProtected, py2_encode("StaticProtected"))
+        self.assertEqual(Test.fieldStaticPrivate, py2_encode("StaticPrivate"))
 
     def test_static_methods_all(self):
         Test = autoclass('org.jnius.VisibilityTest')
@@ -47,12 +47,12 @@ class VisibilityAllTest(unittest.TestCase):
         test = Test()
 
         self.assertTrue(hasattr(test, 'fieldPublic'))
-        # self.assertTrue(hasattr(test, 'fieldProtected'))
-        # self.assertTrue(hasattr(test, 'fieldPrivate'))
+        self.assertTrue(hasattr(test, 'fieldProtected'))
+        self.assertTrue(hasattr(test, 'fieldPrivate'))
 
         self.assertEqual(test.fieldPublic, py2_encode("Public"))
-        # self.assertEqual(test.fieldProtected, py2_encode("Protected"))
-        # self.assertEqual(test.fieldPrivate, py2_encode("Private"))
+        self.assertEqual(test.fieldProtected, py2_encode("Protected"))
+        self.assertEqual(test.fieldPrivate, py2_encode("Private"))
 
     def test_methods_all(self):
         Test = autoclass('org.jnius.VisibilityTest')
