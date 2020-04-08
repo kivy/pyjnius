@@ -23,6 +23,10 @@ public class VisibilityTest {
         return fieldPrivate;
     }
 
+    public String methodDummy() {
+        return this.methodPrivate();
+    }
+
     static public String methodStaticPublic() {
         return fieldStaticPublic;
     }
@@ -33,5 +37,9 @@ public class VisibilityTest {
 
     static private String methodStaticPrivate() {
         return fieldStaticPrivate;
+    }
+
+    static public String methodStaticDummy() {
+        return VisibilityTest.methodStaticPrivate();
     }
 }
