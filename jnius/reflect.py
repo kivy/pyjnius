@@ -294,7 +294,7 @@ def autoclass(clsname, public_only=False):
             classDict['__len__'] = lambda self: self.size()
             break
 
-    for field in c.getFields():
+    for field in c.getDeclaredFields():
         field_modifiers = field.getModifiers()
         static = Modifier.isStatic(field_modifiers)
         if public_only and not Modifier.isPublic(field_modifiers):
