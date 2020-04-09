@@ -1,7 +1,7 @@
 include "config.pxi"
 import os
 from shlex import split
-from subprocess import check_output
+from subprocess import check_output, CalledProcessError
 from os.path import dirname, join, exists
 from os import readlink
 from sys import platform
@@ -58,11 +58,16 @@ cdef find_java_home():
         return dirname(dirname(java)).decode('utf8')
     
     if platform in ('darwin'):
-        #its a mac
+        # its a mac
         if not exists('/usr/libexec/java_home'):
+            # I believe this always exists, but just in case
             return
-        java = check_output('/usr/libexec/java_home').strip().decode('utf8')
-        return java
+        try:
+            java = check_output('/usr/libexec/java_home').strip().decode('utf8')
+            return java
+        except CalledProcessError as exc:
+            # java_home return non-zero exit code if no Javas are installed
+            return
         
 
 
