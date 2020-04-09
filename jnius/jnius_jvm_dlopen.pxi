@@ -57,13 +57,14 @@ cdef find_java_home():
                 break
         return dirname(dirname(java)).decode('utf8')
     
-    if platform in ('darwin'):
+    if platform == 'darwin':
+        MAC_JAVA_HOME='/usr/libexec/java_home'
         # its a mac
-        if not exists('/usr/libexec/java_home'):
+        if not exists(MAC_JAVA_HOME):
             # I believe this always exists, but just in case
             return
         try:
-            java = check_output('/usr/libexec/java_home').strip().decode('utf8')
+            java = check_output(MAC_JAVA_HOME).strip().decode('utf8')
             return java
         except CalledProcessError as exc:
             # java_home return non-zero exit code if no Javas are installed
