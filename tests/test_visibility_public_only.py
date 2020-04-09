@@ -21,7 +21,7 @@ def py2_encode(uni):
 class VisibilityPublicOnlyTest(unittest.TestCase):
 
     def test_static_fields_public(self):
-        PublicOnlyTest = autoclass('org.jnius.VisibilityTest', public_only=True)
+        PublicOnlyTest = autoclass('org.jnius.VisibilityTest', include_protected=False, include_private=False)
 
         self.assertTrue(hasattr(PublicOnlyTest, 'fieldStaticPublic'))
         self.assertFalse(hasattr(PublicOnlyTest, 'fieldStaticProtected'))
@@ -30,7 +30,7 @@ class VisibilityPublicOnlyTest(unittest.TestCase):
         self.assertEqual(PublicOnlyTest.fieldStaticPublic, py2_encode("StaticPublic"))
 
     def test_static_methods_public(self):
-        PublicOnlyTest = autoclass('org.jnius.VisibilityTest', public_only=True)
+        PublicOnlyTest = autoclass('org.jnius.VisibilityTest', include_protected=False, include_private=False)
 
         self.assertTrue(hasattr(PublicOnlyTest, 'methodStaticPublic'))
         self.assertFalse(hasattr(PublicOnlyTest, 'methodStaticProtected'))
@@ -39,7 +39,7 @@ class VisibilityPublicOnlyTest(unittest.TestCase):
         self.assertEqual(PublicOnlyTest.methodStaticPublic(), py2_encode("StaticPublic"))
 
     def test_fields_public(self):
-        PublicOnlyTest = autoclass('org.jnius.VisibilityTest', public_only=True)
+        PublicOnlyTest = autoclass('org.jnius.VisibilityTest', include_protected=False, include_private=False)
         public_only_test = PublicOnlyTest()
 
         self.assertTrue(hasattr(public_only_test, 'fieldPublic'))
@@ -49,7 +49,7 @@ class VisibilityPublicOnlyTest(unittest.TestCase):
         self.assertEqual(public_only_test.fieldPublic, py2_encode("Public"))
 
     def test_methods_public(self):
-        PublicOnlyTest = autoclass('org.jnius.VisibilityTest', public_only=True)
+        PublicOnlyTest = autoclass('org.jnius.VisibilityTest', include_protected=False, include_private=False)
         public_only_test = PublicOnlyTest()
 
         self.assertTrue(hasattr(public_only_test, 'methodPublic'))

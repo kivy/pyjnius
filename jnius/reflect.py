@@ -211,7 +211,7 @@ def identify_hierarchy(cls, level, concrete=True):
     yield cls, level
 
 
-def autoclass(clsname, include_protected=True, include_private=True):
+def autoclass(clsname, include_protected=False, include_private=False):
     jniname = clsname.replace('.', '/')
     cls = MetaJavaClass.get_javaclass(jniname)
     if cls:
@@ -292,7 +292,7 @@ def autoclass(clsname, include_protected=True, include_private=True):
             # multiple signatures
             signatures = []
             log.debug("method %s has %d multiple signatures in hierarchy of cls %s" % (name, len(cls_methods[name]), c))
-            
+
             paramsig_to_level=defaultdict(lambda: float('inf'))
             # we now identify if any have the same signature, as we will call the _lowest_ in the hierarchy,
             # as reflected in min level
@@ -325,13 +325,6 @@ def autoclass(clsname, include_protected=True, include_private=True):
         if cls_name in protocol_map:
             for pname, plambda in protocol_map[cls_name].items():
                 classDict[pname] = plambda  
-
-    # for field in c.getFields():
-    #     print(f'adding field {field.getName()}')
-    #     static = Modifier.isStatic(field.getModifiers())
-    #     sig = get_signature(field.getType())
-    #     cls = JavaStaticField if static else JavaField
-    #     classDict[field.getName()] = cls(sig)
 
     for field_name, (field, _) in cls_fields.items():
         field_modifier = field.getModifiers()

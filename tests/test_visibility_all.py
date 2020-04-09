@@ -3,7 +3,9 @@ from __future__ import division
 from __future__ import absolute_import
 import sys
 import unittest
+import jnius_config
 from jnius.reflect import autoclass
+
 
 try:
     long
@@ -21,7 +23,8 @@ def py2_encode(uni):
 class VisibilityAllTest(unittest.TestCase):
 
     def test_static_fields_all(self):
-        Test = autoclass('org.jnius.VisibilityTest')
+
+        Test = autoclass('org.jnius.VisibilityTest', include_protected=True, include_private=True)
 
         self.assertTrue(hasattr(Test, 'fieldStaticPublic'))
         self.assertTrue(hasattr(Test, 'fieldStaticProtected'))
@@ -32,7 +35,8 @@ class VisibilityAllTest(unittest.TestCase):
         self.assertEqual(Test.fieldStaticPrivate, py2_encode("StaticPrivate"))
 
     def test_static_methods_all(self):
-        Test = autoclass('org.jnius.VisibilityTest')
+
+        Test = autoclass('org.jnius.VisibilityTest', include_protected=True, include_private=True)
 
         self.assertTrue(hasattr(Test, 'methodStaticPublic'))
         self.assertTrue(hasattr(Test, 'methodStaticProtected'))
@@ -43,7 +47,8 @@ class VisibilityAllTest(unittest.TestCase):
         self.assertEqual(Test.methodStaticPrivate(), py2_encode("StaticPrivate"))
 
     def test_fields_all(self):
-        Test = autoclass('org.jnius.VisibilityTest')
+
+        Test = autoclass('org.jnius.VisibilityTest', include_protected=True, include_private=True)
         test = Test()
 
         self.assertTrue(hasattr(test, 'fieldPublic'))
@@ -55,7 +60,8 @@ class VisibilityAllTest(unittest.TestCase):
         self.assertEqual(test.fieldPrivate, py2_encode("Private"))
 
     def test_methods_all(self):
-        Test = autoclass('org.jnius.VisibilityTest')
+
+        Test = autoclass('org.jnius.VisibilityTest', include_protected=True, include_private=True)
         test = Test()
 
         self.assertTrue(hasattr(test, 'methodPublic'))
