@@ -34,5 +34,5 @@ class TestConstructor(unittest.TestCase):
             self.assertTrue(ourcloseableClz.open)
         self.assertFalse(ourcloseableClz.open)
 
-    def test_interface_map(self):
+    def test_protocol_map(self):
        self.assertTrue("java.util.List" in protocol_map)
