@@ -1,8 +1,8 @@
 include "config.pxi"
 import os
 from shlex import split
-from subprocess import check_output
-from os.path import dirname, join
+from subprocess import check_output, CalledProcessError
+from os.path import dirname, join, exists
 from os import readlink
 from sys import platform
 from .env import get_jnius_lib_location
@@ -56,6 +56,20 @@ cdef find_java_home():
             except OSError:
                 break
         return dirname(dirname(java)).decode('utf8')
+    
+    if platform == 'darwin':
+        MAC_JAVA_HOME='/usr/libexec/java_home'
+        # its a mac
+        if not exists(MAC_JAVA_HOME):
+            # I believe this always exists, but just in case
+            return
+        try:
+            java = check_output(MAC_JAVA_HOME).strip().decode('utf8')
+            return java
+        except CalledProcessError as exc:
+            # java_home return non-zero exit code if no Javas are installed
+            return
+        
 
 
 cdef void create_jnienv() except *:
