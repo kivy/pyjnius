@@ -2,6 +2,8 @@ package org.jnius;
 
 public class Parent {
 
+	public static int STATIC_PARENT_FIELD = 1;
+
 	public int doCall(Object o) {
 		return 0;
 	}
