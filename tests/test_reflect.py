@@ -47,6 +47,16 @@ class ReflectTest(unittest.TestCase):
         self.assertEqual(stack.pop(), 'world')
         self.assertEqual(stack.pop(), 'hello')
     
+    def test_collection(self):
+        HashSet = autoclass('java.util.HashSet')
+        aset = HashSet()
+        aset.add('hello')
+        aset.add('world')
+        #check that the __len__ dunder is applied to a Collection not a List
+        self.assertEqual(2, len(aset))
+        #check that the __len__ dunder is applied to it cast as a Collection
+        self.assertEqual(2, len(cast("java.util.Collection", aset)))
+
     def test_list_interface(self):
         ArrayList = autoclass('java.util.ArrayList')
         words = ArrayList()
@@ -62,6 +72,7 @@ class ReflectTest(unittest.TestCase):
         words.add('world')
         q = cast('java.util.Queue', words)
         self.assertEqual(2, q.size())
+        self.assertEqual(2, len(q))
         self.assertIsNotNone(q.iterator())
 
     def test_super_object(self):

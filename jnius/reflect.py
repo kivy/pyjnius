@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from __future__ import division
-__all__ = ('autoclass', 'ensureclass')
+__all__ = ('autoclass', 'ensureclass', 'protocol_map')
 from six import with_metaclass
 import logging
 
@@ -49,7 +49,7 @@ class Class(with_metaclass(MetaJavaClass, JavaClass)):
     getSigners = JavaMethod('()[Ljava/lang/Object;')
     getSuperclass = JavaMethod('()Ljava/lang/Class;')
     isArray = JavaMethod('()Z')
-    isAssignableFrom = JavaMethod('(Ljava/lang/reflect/Class;)Z')
+    isAssignableFrom = JavaMethod('(Ljava/lang/Class;)Z')
     isInstance = JavaMethod('(Ljava/lang/Object;)Z')
     isInterface = JavaMethod('()Z')
     isPrimitive = JavaMethod('()Z')
@@ -304,24 +304,12 @@ def autoclass(clsname):
             log.debug("method selected %d multiple signatures of %s" % (len(signatures), str(signatures)))
             classDict[name] = JavaMultipleMethod(signatures)
 
-    def _getitem(self, index):
-        try:
-            return self.get(index)
-        except JavaException as e:
-            # initialize the subclass before getting the Class.forName
-            # otherwise isInstance does not know of the subclass
-            mock_exception_object = autoclass(e.classname)()
-            if find_javaclass("java.lang.IndexOutOfBoundsException").isInstance(mock_exception_object):
-                # python for...in iteration checks for end of list by waiting for IndexError
-                raise IndexError()
-            else:
-                raise
-
-    for iclass in c.getInterfaces():
-        if iclass.getName() == 'java.util.List':
-            classDict['__getitem__'] = _getitem
-            classDict['__len__'] = lambda self: self.size()
-            break
+    # check whether any classes in the hierarchy appear in the protocol_map
+    for cls, _ in class_hierachy:
+        cls_name = cls.getName()
+        if cls_name in protocol_map:
+            for pname, plambda in protocol_map[cls_name].items():
+                classDict[pname] = plambda  
 
     for field in c.getFields():
         static = Modifier.isStatic(field.getModifiers())
@@ -335,3 +323,33 @@ def autoclass(clsname):
         clsname,
         (JavaClass, ),
         classDict)
+
+
+## dunder method for List
+def _getitem(self, index):
+    try:
+        return self.get(index)
+    except JavaException as e:
+        # initialize the subclass before getting the Class.forName
+        # otherwise isInstance does not know of the subclass
+        mock_exception_object = autoclass(e.classname)()
+        if find_javaclass("java.lang.IndexOutOfBoundsException").isInstance(mock_exception_object):
+            # python for...in iteration checks for end of list by waiting for IndexError
+            raise IndexError()
+        else:
+            raise
+
+# protocol_map is a user-accessible API for patching class instances with additional methods 
+protocol_map = {
+    'java.util.Collection' : {
+        '__len__' : lambda self: self.size()
+    },
+    'java.util.List' : {
+        '__getitem__' : _getitem        
+    },
+    # this also addresses java.io.Closeable
+    'java.lang.AutoCloseable' : {
+        '__enter__' : lambda self: self,
+        '__exit__' : lambda self, type, value, traceback: self.close()
+    }
+}
