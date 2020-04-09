@@ -16,6 +16,7 @@ class ArrayListTest(unittest.TestCase):
                 self.assertEqual(str(alist[idx]), str(int(arg)))
             else:
                 self.assertEqual(str(alist[idx]), str(arg))
+        self.assertEqual(len(args), len(alist))
 
 
 if __name__ == '__main__':

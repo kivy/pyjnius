@@ -341,9 +341,11 @@ def _getitem(self, index):
 
 # protocol_map is a user-accessible API for patching class instances with additional methods 
 protocol_map = {
-    'java.util.List' : {
-        '__getitem__' : _getitem,
+    'java.util.Collection' : {
         '__len__' : lambda self: self.size()
+    },
+    'java.util.List' : {
+        '__getitem__' : _getitem        
     },
     # this also addresses java.io.Closeable
     'java.lang.AutoCloseable' : {
