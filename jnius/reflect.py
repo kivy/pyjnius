@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from __future__ import division
-__all__ = ('autoclass', 'ensureclass')
+__all__ = ('autoclass', 'ensureclass', 'protocol_map')
 from six import with_metaclass
 import logging
 
@@ -12,6 +12,7 @@ from .jnius import (
 )
 
 log = logging.getLogger(__name__)
+from collections import defaultdict
 
 
 class Class(with_metaclass(MetaJavaClass, JavaClass)):
@@ -48,7 +49,7 @@ class Class(with_metaclass(MetaJavaClass, JavaClass)):
     getSigners = JavaMethod('()[Ljava/lang/Object;')
     getSuperclass = JavaMethod('()Ljava/lang/Class;')
     isArray = JavaMethod('()Z')
-    isAssignableFrom = JavaMethod('(Ljava/lang/reflect/Class;)Z')
+    isAssignableFrom = JavaMethod('(Ljava/lang/Class;)Z')
     isInstance = JavaMethod('(Ljava/lang/Object;)Z')
     isInterface = JavaMethod('()Z')
     isPrimitive = JavaMethod('()Z')
@@ -195,8 +196,22 @@ def log_method(method, name, signature):
         Modifier.isStrict(mods)
     )
 
+def identify_hierarchy(cls, level, concrete=True):
+    supercls = cls.getSuperclass()
+    if supercls is not None:
+         for sup, lvl in identify_hierarchy(supercls, level + 1, concrete=concrete):
+             yield sup, lvl # we could use yield from when we drop python2
+    interfaces = cls.getInterfaces()
+    for interface in interfaces or []:
+        for sup, lvl in identify_hierarchy(interface, level + 1, concrete=concrete):
+            yield sup, lvl
+    # all object extends Object, so if this top interface in a hierarchy, yield Object
+    if not concrete and cls.isInterface() and not interfaces:
+        yield find_javaclass('java.lang.Object'), level +1
+    yield cls, level
 
-def autoclass(clsname, public_only=False):
+
+def autoclass(clsname, include_protected=True, include_private=True):
     jniname = clsname.replace('.', '/')
     cls = MetaJavaClass.get_javaclass(jniname)
     if cls:
@@ -217,99 +232,151 @@ def autoclass(clsname, public_only=False):
         constructors.append((sig, constructor.isVarArgs()))
     classDict['__javaconstructor__'] = constructors
 
-    cls = c
-    level = -1
-    while cls is not None:
-        level += 1
-        if cls is c:
-            methods = cls.getDeclaredMethods()
-        else:
-            methods = cls.getMethods()
+    class_hierachy = list(identify_hierarchy(c, 0, not c.isInterface()))
+
+    log.debug("autoclass(%s) intf %r hierarchy is %s" % (clsname,c.isInterface(),str(class_hierachy)))
+    cls_done=set()
+
+    cls_methods = defaultdict(list)
+    cls_fields = {}
+
+    # we now walk the hierarchy, from top of the tree, identifying methods
+    # hopefully we start at java.lang.Object 
+    for cls, level in class_hierachy:
+        # dont analyse a given class more than once.
+        # many interfaces can lead to java.lang.Object 
+        if cls in cls_done:
+            continue
+        cls_done.add(cls)
+        # as we are walking the entire hierarchy, we only need getDeclaredMethods()
+        # to get what is in this class; other parts of the hierarchy will be found
+        # in those respective classes.
+        methods = cls.getDeclaredMethods()
         methods_name = [x.getName() for x in methods]
-
+        # collect all methods declared by this class of the hierarchy for later traversal
         for index, method in enumerate(methods):
+            method_modifier = method.getModifiers()
+            if Modifier.isProtected(method_modifier) and not include_protected:
+                continue
+            if Modifier.isPrivate(method_modifier) and not include_private:
+                continue
             name = methods_name[index]
-            if name in classDict:
-                continue
+            cls_methods[name].append((cls, method, level))
+    
+        fields = cls.getDeclaredFields()
+        for field in fields:
+            field_name = field.getName()
+            if field_name in cls_fields:
+                if level < cls_fields[field_name][1]:
+                    cls_fields[field_name] = (field, level)
+            else:
+                cls_fields[field_name] = (field, level)
 
-            # only one method available
-            if methods_name.count(name) == 1:
-                method_modifiers = method.getModifiers()
-                static = Modifier.isStatic(method_modifiers)
-                if public_only and not Modifier.isPublic(method_modifiers):
-                    continue
-                varargs = method.isVarArgs()
-                sig = '({0}){1}'.format(
-                    ''.join([get_signature(x) for x in method.getParameterTypes()]),
-                    get_signature(method.getReturnType()))
-                if log.level <= logging.DEBUG:
-                    log_method(method, name, sig)
-                classDict[name] = (JavaStaticMethod if static else JavaMethod)(sig, varargs=varargs)
-                if name != 'getClass' and bean_getter(name) and len(method.getParameterTypes()) == 0:
-                    lowername = lower_name(name[2 if name.startswith('is') else 3:])
-                    classDict[lowername] = (lambda n: property(lambda self: getattr(self, n)()))(name)
-                continue
-
+    # having collated the methods, identify if there are any with the same name
+    for name in cls_methods:
+        if len(cls_methods[name]) == 1:
+            # uniquely named method
+            owningCls, method, level = cls_methods[name][0]
+            static = Modifier.isStatic(method.getModifiers())
+            varargs = method.isVarArgs()
+            sig = '({0}){1}'.format(
+                ''.join([get_signature(x) for x in method.getParameterTypes()]),
+                get_signature(method.getReturnType()))
+            if log.level <= logging.DEBUG:
+                log_method(method, name, sig)
+            classDict[name] = (JavaStaticMethod if static else JavaMethod)(sig, varargs=varargs)
+            if name != 'getClass' and bean_getter(name) and len(method.getParameterTypes()) == 0:
+                lowername = lower_name(name[2 if name.startswith('is') else 3:])
+                classDict[lowername] = (lambda n: property(lambda self: getattr(self, n)()))(name)
+        else:
             # multiple signatures
             signatures = []
-            for index, subname in enumerate(methods_name):
-                if subname != name:
-                    continue
-                method = methods[index]
-                method_modifiers = method.getModifiers()
-                if public_only and not Modifier.isPublic(method_modifiers):
-                    continue
-                sig = '({0}){1}'.format(
-                    ''.join([get_signature(x) for x in method.getParameterTypes()]),
-                    get_signature(method.getReturnType()))
+            log.debug("method %s has %d multiple signatures in hierarchy of cls %s" % (name, len(cls_methods[name]), c))
+            
+            paramsig_to_level=defaultdict(lambda: float('inf'))
+            # we now identify if any have the same signature, as we will call the _lowest_ in the hierarchy,
+            # as reflected in min level
+            for owningCls, method, level in cls_methods[name]:
+                param_sig = ''.join([get_signature(x) for x in method.getParameterTypes()])
+                log.debug("\t owner %s level %d param_sig %s" % (str(owningCls), level, param_sig))
+                if level < paramsig_to_level[param_sig]:
+                    paramsig_to_level[param_sig] = level
 
+            for owningCls, method, level in cls_methods[name]:
+                param_sig = ''.join([get_signature(x) for x in method.getParameterTypes()])
+                # only accept the parameter signature at the deepest level of hierarchy (i.e. min level)
+                if level > paramsig_to_level[param_sig]:
+                    log.debug("discarding %s name from %s at level %d" % (name, str(owningCls), level))
+                    continue
+
+                return_sig = get_signature(method.getReturnType())
+                sig = '({0}){1}'.format(param_sig, return_sig)
+                
                 if log.level <= logging.DEBUG:
                     log_method(method, name, sig)
-                signatures.append((sig, Modifier.isStatic(method_modifiers), method.isVarArgs()))
+                signatures.append((sig, Modifier.isStatic(method.getModifiers()), method.isVarArgs()))
 
+            log.debug("method selected %d multiple signatures of %s" % (len(signatures), str(signatures)))
             classDict[name] = JavaMultipleMethod(signatures)
 
-        _cls = cls.getSuperclass()
-        if not _cls and cls.isInterface():
-            cls = find_javaclass('java.lang.Object')
-        else:
-            cls = _cls
+    # check whether any classes in the hierarchy appear in the protocol_map
+    for cls, _ in class_hierachy:
+        cls_name = cls.getName()
+        if cls_name in protocol_map:
+            for pname, plambda in protocol_map[cls_name].items():
+                classDict[pname] = plambda  
 
-    def _getitem(self, index):
-        try:
-            return self.get(index)
-        except JavaException as e:
-            # initialize the subclass before getting the Class.forName
-            # otherwise isInstance does not know of the subclass
-            mock_exception_object = autoclass(e.classname)()
-            if find_javaclass("java.lang.IndexOutOfBoundsException").isInstance(mock_exception_object):
-                # python for...in iteration checks for end of list by waiting for IndexError
-                raise IndexError()
-            else:
-                raise
+    # for field in c.getFields():
+    #     print(f'adding field {field.getName()}')
+    #     static = Modifier.isStatic(field.getModifiers())
+    #     sig = get_signature(field.getType())
+    #     cls = JavaStaticField if static else JavaField
+    #     classDict[field.getName()] = cls(sig)
 
-    for iclass in c.getInterfaces():
-        if iclass.getName() == 'java.util.List':
-            classDict['__getitem__'] = _getitem
-            classDict['__len__'] = lambda self: self.size()
-            break
-
-    for field in c.getDeclaredFields():
-        field_modifiers = field.getModifiers()
-        static = Modifier.isStatic(field_modifiers)
-        if public_only and not Modifier.isPublic(field_modifiers):
-            continue
+    for field_name, (field, _) in cls_fields.items():
+        field_modifier = field.getModifiers()
+        static = Modifier.isStatic(field_modifier)
         sig = get_signature(field.getType())
+        if Modifier.isProtected(field_modifier) and not include_protected:
+            continue
+        if Modifier.isPrivate(field_modifier) and not include_private:
+            continue
         cls = JavaStaticField if static else JavaField
-        classDict[field.getName()] = cls(sig)
+        classDict[field_name] = cls(sig)
 
     classDict['__javaclass__'] = clsname.replace('.', '/')
-    #print(classDict)
-    #if "newInstance" in classDict:
-    #    print("newInstncae returns " + str(classDict["newInstance"].signatures()))
-    #print(clsname)
     return MetaJavaClass.__new__(
         MetaJavaClass,
-        clsname,  # .replace('.', '_'),
+        clsname,
         (JavaClass, ),
         classDict)
+
+
+## dunder method for List
+def _getitem(self, index):
+    try:
+        return self.get(index)
+    except JavaException as e:
+        # initialize the subclass before getting the Class.forName
+        # otherwise isInstance does not know of the subclass
+        mock_exception_object = autoclass(e.classname)()
+        if find_javaclass("java.lang.IndexOutOfBoundsException").isInstance(mock_exception_object):
+            # python for...in iteration checks for end of list by waiting for IndexError
+            raise IndexError()
+        else:
+            raise
+
+# protocol_map is a user-accessible API for patching class instances with additional methods 
+protocol_map = {
+    'java.util.Collection' : {
+        '__len__' : lambda self: self.size()
+    },
+    'java.util.List' : {
+        '__getitem__' : _getitem        
+    },
+    # this also addresses java.io.Closeable
+    'java.lang.AutoCloseable' : {
+        '__enter__' : lambda self: self,
+        '__exit__' : lambda self, type, value, traceback: self.close()
+    }
+}
