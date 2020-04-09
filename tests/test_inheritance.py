@@ -1,7 +1,7 @@
-from jnius import autoclass
 
 
 def test_methodcalls():
+    from jnius import autoclass
     Parent = autoclass('org.jnius.Parent')
     Child = autoclass('org.jnius.Child')
     child = Child.newInstance()
@@ -11,6 +11,7 @@ def test_methodcalls():
     assert child.doCall(child) == 0
 
 def test_fields():
+    from jnius import autoclass
     Parent = autoclass('org.jnius.Parent')
     Child = autoclass('org.jnius.Child')
     child = Child.newInstance()
@@ -18,9 +19,27 @@ def test_fields():
     assert parent.PARENT_FIELD == 0
     assert child.CHILD_FIELD == 1
     assert child.PARENT_FIELD == 0
-    
+
+def test_staticfields():
+    from jnius import autoclass
+    Parent = autoclass('org.jnius.Parent')
+    Child = autoclass('org.jnius.Child')
+    child = Child.newInstance()
+    parent = Parent.newInstance()
+    assert Parent.STATIC_PARENT_FIELD == 1
+    assert Child.STATIC_PARENT_FIELD == 1
+    assert parent.STATIC_PARENT_FIELD == 1
+    assert child.STATIC_PARENT_FIELD == 1
+    #now test setting
+    Parent.STATIC_PARENT_FIELD = 5
+    assert Parent.STATIC_PARENT_FIELD == 5
+    assert parent.STATIC_PARENT_FIELD == 5
+    #assert Child.STATIC_PARENT_FIELD == 5
+    #assert child.STATIC_PARENT_FIELD == 5
+
 
 def test_newinstance():
+    from jnius import autoclass
     Parent = autoclass('org.jnius.Parent')
     Child = autoclass('org.jnius.Child')
 
@@ -29,4 +48,7 @@ def test_newinstance():
     assert isinstance(child, Parent)
 
 if __name__ == "__main__":
+    import jnius_config
+    jnius_config.add_options('-Xcheck:jni')
     test_newinstance()
+

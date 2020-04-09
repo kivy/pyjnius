@@ -457,7 +457,7 @@ cdef class JavaField(object):
         cdef jobject j_self
 
         self.ensure_field()
-        if obj is None:
+        if self.is_static:
             return self.read_static_field()
 
         j_self = (<JavaClass?>obj).j_self.obj
@@ -467,9 +467,8 @@ cdef class JavaField(object):
         cdef jobject j_self
 
         self.ensure_field()
-        if obj is None:
-            # set not implemented for static fields
-            raise NotImplementedError()
+        if self.is_static:
+            self.write_static_field(value)
 
         j_self = (<JavaClass?>obj).j_self.obj
         self.write_field(j_self, value)
@@ -601,6 +600,57 @@ cdef class JavaField(object):
 
         check_exception(j_env)
         return ret
+
+    cdef write_static_field(self, value):
+        cdef jboolean j_boolean
+        cdef jbyte j_byte
+        cdef jchar j_char
+        cdef jshort j_short
+        cdef jint j_int
+        cdef jlong j_long
+        cdef jfloat j_float
+        cdef jdouble j_double
+        cdef jobject j_object
+        cdef JNIEnv *j_env = get_jnienv()
+
+        # type of the java field
+        r = self.definition[0]
+
+        # set the java field; implemented only for primitive types
+        if r == 'Z':
+            j_boolean = <jboolean>value
+            j_env[0].SetStaticBooleanField(j_env, self.j_cls, self.j_field, j_boolean)
+        elif r == 'B':
+            j_byte = <jbyte>value
+            j_env[0].SetStaticByteField(j_env, self.j_cls, self.j_field, j_byte)
+        elif r == 'C':
+            j_char = <jchar>value
+            j_env[0].SetStaticCharField(j_env, self.j_cls, self.j_field, j_char)
+        elif r == 'S':
+            j_short = <jshort>value
+            j_env[0].SetStaticShortField(j_env, self.j_cls, self.j_field, j_short)
+        elif r == 'I':
+            j_int = <jint>value
+            j_env[0].SetStaticIntField(j_env, self.j_cls, self.j_field, j_int)
+        elif r == 'J':
+            j_long = <jlong>value
+            j_env[0].SetStaticLongField(j_env, self.j_cls, self.j_field, j_long)
+        elif r == 'F':
+            j_float = <jfloat>value
+            j_env[0].SetStaticFloatField(j_env, self.j_cls, self.j_field, j_float)
+        elif r == 'D':
+            j_double = <jdouble>value
+            j_env[0].SetStaticDoubleField(j_env, self.j_cls, self.j_field, j_double)
+        elif r == 'L':
+            j_object = <jobject>convert_python_to_jobject(j_env, self.definition, value)
+            j_env[0].SetStaticObjectField(j_env, self.j_cls, self.j_field, j_object)
+            j_env[0].DeleteLocalRef(j_env, j_object)
+        else:
+            raise Exception(
+                "Invalid field definition '{}'".format(r)
+            )
+
+        check_exception(j_env)
 
     cdef read_static_field(self):
         cdef jboolean j_boolean
