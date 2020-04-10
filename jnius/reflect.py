@@ -211,9 +211,12 @@ def identify_hierarchy(cls, level, concrete=True):
     yield cls, level
 
 
+# NOTE: if you change the include_protected or include_private default values,
+# you also must change the classparams default value in MetaJavaClass.__new__
+# and MetaJavaClass.get_javaclass.
 def autoclass(clsname, include_protected=False, include_private=False):
     jniname = clsname.replace('.', '/')
-    cls = MetaJavaClass.get_javaclass(jniname)
+    cls = MetaJavaClass.get_javaclass(jniname, classparams=(include_protected, include_private))
     if cls:
         return cls
 
@@ -342,7 +345,8 @@ def autoclass(clsname, include_protected=False, include_private=False):
         MetaJavaClass,
         clsname,
         (JavaClass, ),
-        classDict)
+        classDict,
+        classparams=(include_protected, include_private))
 
 
 ## dunder method for List
