@@ -5,6 +5,7 @@ import org.jnius.Parent;
 public class Child extends Parent {
 
 	public int CHILD_FIELD = 1;
+	public int CLASH_FIELD = 1;
 
 	public int doCall(int child) {
 		return 1;

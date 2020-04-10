@@ -423,12 +423,21 @@ cdef class JavaField(object):
         super(JavaField, self).__init__()
         self.definition = definition
         self.is_static = kwargs.get('static', False)
+        if 'j_name' in kwargs:
+            self.name = kwargs.get('j_name', None)
+        if 'j_class_name' in kwargs:
+            self.classname = kwargs.get('j_class_name', None)
+
 
     cdef void set_resolve_info(self, JNIEnv *j_env, jclass j_cls,
             name, classname):
         j_env = get_jnienv()
-        self.name = name
-        self.classname = classname
+        # only accept the python name as the java one if it 
+        # is not preset by autoclass 
+        if self.name is None:
+            self.name = name
+        if self.classname is None:
+            self.classname = classname
         self.j_cls = j_cls
 
     cdef void ensure_field(self) except *:
@@ -437,8 +446,9 @@ cdef class JavaField(object):
             return
         if self.is_static:
             defstr = str_for_c(self.definition)
+            namestr = str_for_c(self.name)
             self.j_field = j_env[0].GetStaticFieldID(
-                j_env, self.j_cls, <char *>self.name,
+                j_env, self.j_cls, <char *>namestr,
                 <char *>defstr
             )
         else:

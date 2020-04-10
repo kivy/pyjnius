@@ -13,4 +13,5 @@ public class Parent {
 	}
 
 	public int PARENT_FIELD = 0;
+	public int CLASH_FIELD = 0;
 }
