@@ -211,7 +211,7 @@ def identify_hierarchy(cls, level, concrete=True):
     yield cls, level
 
 
-def autoclass(clsname):
+def autoclass(clsname, include_protected=False, include_private=False):
     jniname = clsname.replace('.', '/')
     cls = MetaJavaClass.get_javaclass(jniname)
     if cls:
@@ -233,15 +233,16 @@ def autoclass(clsname):
     classDict['__javaconstructor__'] = constructors
 
     class_hierachy = list(identify_hierarchy(c, 0, not c.isInterface()))
-    
+
     log.debug("autoclass(%s) intf %r hierarchy is %s" % (clsname,c.isInterface(),str(class_hierachy)))
     cls_done=set()
 
-    cls_methods=defaultdict(list)
+    cls_methods = defaultdict(list)
+    cls_fields = {}
 
     # we now walk the hierarchy, from top of the tree, identifying methods
     # hopefully we start at java.lang.Object 
-    for cls,level in class_hierachy:
+    for cls, level in class_hierachy:
         # dont analyse a given class more than once.
         # many interfaces can lead to java.lang.Object 
         if cls in cls_done:
@@ -254,10 +255,24 @@ def autoclass(clsname):
         methods_name = [x.getName() for x in methods]
         # collect all methods declared by this class of the hierarchy for later traversal
         for index, method in enumerate(methods):
+            method_modifier = method.getModifiers()
+            if Modifier.isProtected(method_modifier) and not include_protected:
+                continue
+            if Modifier.isPrivate(method_modifier) and not include_private:
+                continue
             name = methods_name[index]
             cls_methods[name].append((cls, method, level))
     
-    # having collated the mthods, identify if there are any with the same name
+        fields = cls.getDeclaredFields()
+        for field in fields:
+            field_name = field.getName()
+            if field_name in cls_fields:
+                if level < cls_fields[field_name][1]:
+                    cls_fields[field_name] = (field, level)
+            else:
+                cls_fields[field_name] = (field, level)
+
+    # having collated the methods, identify if there are any with the same name
     for name in cls_methods:
         if len(cls_methods[name]) == 1:
             # uniquely named method
@@ -277,7 +292,7 @@ def autoclass(clsname):
             # multiple signatures
             signatures = []
             log.debug("method %s has %d multiple signatures in hierarchy of cls %s" % (name, len(cls_methods[name]), c))
-            
+
             paramsig_to_level=defaultdict(lambda: float('inf'))
             # we now identify if any have the same signature, as we will call the _lowest_ in the hierarchy,
             # as reflected in min level
@@ -311,11 +326,16 @@ def autoclass(clsname):
             for pname, plambda in protocol_map[cls_name].items():
                 classDict[pname] = plambda  
 
-    for field in c.getFields():
-        static = Modifier.isStatic(field.getModifiers())
+    for field_name, (field, _) in cls_fields.items():
+        field_modifier = field.getModifiers()
+        static = Modifier.isStatic(field_modifier)
         sig = get_signature(field.getType())
+        if Modifier.isProtected(field_modifier) and not include_protected:
+            continue
+        if Modifier.isPrivate(field_modifier) and not include_private:
+            continue
         cls = JavaStaticField if static else JavaField
-        classDict[field.getName()] = cls(sig)
+        classDict[field_name] = cls(sig)
 
     classDict['__javaclass__'] = clsname.replace('.', '/')
     return MetaJavaClass.__new__(
