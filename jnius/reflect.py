@@ -238,7 +238,7 @@ def autoclass(clsname, include_protected=False, include_private=False):
     cls_done=set()
 
     cls_methods = defaultdict(list)
-    cls_fields = {}
+    cls_fields = defaultdict(list)
 
     # we now walk the hierarchy, from top of the tree, identifying methods
     # hopefully we start at java.lang.Object 
@@ -266,11 +266,7 @@ def autoclass(clsname, include_protected=False, include_private=False):
         fields = cls.getDeclaredFields()
         for field in fields:
             field_name = field.getName()
-            if field_name in cls_fields:
-                if level < cls_fields[field_name][1]:
-                    cls_fields[field_name] = (field, level)
-            else:
-                cls_fields[field_name] = (field, level)
+            cls_fields[field_name].append((cls, field, level))
 
     # having collated the methods, identify if there are any with the same name
     for name in cls_methods:
@@ -326,17 +322,45 @@ def autoclass(clsname, include_protected=False, include_private=False):
             for pname, plambda in protocol_map[cls_name].items():
                 classDict[pname] = plambda  
 
-    for field_name, (field, _) in cls_fields.items():
-        field_modifier = field.getModifiers()
-        static = Modifier.isStatic(field_modifier)
-        sig = get_signature(field.getType())
-        if Modifier.isProtected(field_modifier) and not include_protected:
-            continue
-        if Modifier.isPrivate(field_modifier) and not include_private:
-            continue
-        cls = JavaStaticField if static else JavaField
-        classDict[field_name] = cls(sig)
+    for field_name in cls_fields:
+        num_matches = len(cls_fields[field_name])
+        print("field %s has %d matches in hierarchy of %s" % (field_name, num_matches, clsname))
+        if num_matches == 1:
+            # only one with this name exists
+            owningCls, field, level = cls_fields[field_name][0]
 
+            field_modifier = field.getModifiers()
+            static = Modifier.isStatic(field_modifier)
+            sig = get_signature(field.getType())
+            if Modifier.isProtected(field_modifier) and not include_protected:
+                continue
+            if Modifier.isPrivate(field_modifier) and not include_private:
+                continue
+            cls = JavaStaticField if static else JavaField
+
+            #append _ for a field if a method of the same name already exists
+            py_field_name = field_name + "_" if field_name in classDict else field_name
+
+            classDict[py_field_name] = cls(sig, j_name= field_name, j_class_name = owningCls.getName())
+        else:
+            # num_matches fields with the same name exist.
+            for i, (owningCls, field, level) in enumerate(cls_fields[field_name]):
+                #last occurrences gets <field_name>, one before gets super_<field_name> etc 
+                py_field_name = ''.join(["super_"] * (num_matches-i-1)) + field_name
+                field_modifier = field.getModifiers()
+                static = Modifier.isStatic(field_modifier)
+                sig = get_signature(field.getType())
+                if Modifier.isProtected(field_modifier) and not include_protected:
+                    continue
+                if Modifier.isPrivate(field_modifier) and not include_private:
+                    continue
+                cls = JavaStaticField if static else JavaField
+
+                #append _ for a field if a method of the same name already exists
+                py_field_name = py_field_name + "_" if py_field_name in classDict else py_field_name
+                print("resolved %s to %s" % (field_name, py_field_name))
+                classDict[py_field_name] = cls(sig, j_name= field_name, j_class_name = owningCls.getName())
+    
     classDict['__javaclass__'] = clsname.replace('.', '/')
     return MetaJavaClass.__new__(
         MetaJavaClass,
