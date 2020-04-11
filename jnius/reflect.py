@@ -359,6 +359,9 @@ class Py2Iterator(object):
     def __init__(self, java_iterator):
         self.java_iterator = java_iterator
 
+    def __iter__(self):
+        return self
+
     def next(self):
         log.debug("monkey patched next() called")
         if not self.java_iterator.hasNext():
