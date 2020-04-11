@@ -23,6 +23,10 @@ public class VisibilityTest {
         return fieldPrivate;
     }
 
+    public boolean methodMultiArgs(boolean a) {
+        return a;
+    }
+
     // dummy method to avoid warning methodPrivate() isn't used
     public String methodDummy() {
         return this.methodPrivate();
@@ -38,6 +42,10 @@ public class VisibilityTest {
 
     static private String methodStaticPrivate() {
         return fieldStaticPrivate;
+    }
+
+    static public boolean methodStaticMultiArgs(boolean a) {
+        return a;
     }
 
     // dummy method to avoid warning methodStaticPrivate() isn't used

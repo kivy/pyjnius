@@ -3,7 +3,10 @@ from __future__ import division
 from __future__ import absolute_import
 import sys
 import unittest
+import jnius_config
+from jnius import JavaMultipleMethod, JavaException
 from jnius.reflect import autoclass
+
 
 try:
     long
@@ -22,12 +25,30 @@ class VisibilityPublicProtectedTest(unittest.TestCase):
 
     def test_static_fields_public_protected(self):
         Test = autoclass('org.jnius.VisibilityTest', include_protected=True, include_private=False)
+
         self.assertTrue(hasattr(Test, 'fieldStaticPublic'))
         self.assertTrue(hasattr(Test, 'fieldStaticProtected'))
         self.assertFalse(hasattr(Test, 'fieldStaticPrivate'))
 
         self.assertEqual(Test.fieldStaticPublic, py2_encode("StaticPublic"))
         self.assertEqual(Test.fieldStaticProtected, py2_encode("StaticProtected"))
+
+    def test_child_static_fields_public_protected(self):
+        Test = autoclass('org.jnius.ChildVisibilityTest', include_protected=True, include_private=False)
+
+        self.assertTrue(hasattr(Test, 'fieldStaticPublic'))
+        self.assertTrue(hasattr(Test, 'fieldStaticProtected'))
+        self.assertFalse(hasattr(Test, 'fieldStaticPrivate'))
+
+        self.assertEqual(Test.fieldStaticPublic, py2_encode("StaticPublic"))
+        self.assertEqual(Test.fieldStaticProtected, py2_encode("StaticProtected"))
+
+        self.assertTrue(hasattr(Test, 'fieldChildStaticPublic'))
+        self.assertTrue(hasattr(Test, 'fieldChildStaticProtected'))
+        self.assertFalse(hasattr(Test, 'fieldChildStaticPrivate'))
+
+        self.assertEqual(Test.fieldChildStaticPublic, py2_encode("ChildStaticPublic"))
+        self.assertEqual(Test.fieldChildStaticProtected, py2_encode("ChildStaticProtected"))
 
     def test_static_methods_public_protected(self):
         Test = autoclass('org.jnius.VisibilityTest', include_protected=True, include_private=False)
@@ -39,24 +60,97 @@ class VisibilityPublicProtectedTest(unittest.TestCase):
         self.assertEqual(Test.methodStaticPublic(), py2_encode("StaticPublic"))
         self.assertEqual(Test.methodStaticProtected(), py2_encode("StaticProtected"))
 
+    def test_child_static_methods_public_protected(self):
+        Test = autoclass('org.jnius.ChildVisibilityTest', include_protected=True, include_private=False)
+
+        self.assertTrue(hasattr(Test, 'methodStaticPublic'))
+        self.assertTrue(hasattr(Test, 'methodStaticProtected'))
+        self.assertFalse(hasattr(Test, 'methodStaticPrivate'))
+
+        self.assertEqual(Test.methodStaticPublic(), py2_encode("StaticPublic"))
+        self.assertEqual(Test.methodStaticProtected(), py2_encode("StaticProtected"))
+
+        self.assertTrue(hasattr(Test, 'methodChildStaticPublic'))
+        self.assertTrue(hasattr(Test, 'methodChildStaticProtected'))
+        self.assertFalse(hasattr(Test, 'methodChildStaticPrivate'))
+
+        self.assertEqual(Test.methodChildStaticPublic(), py2_encode("ChildStaticPublic"))
+        self.assertEqual(Test.methodChildStaticProtected(), py2_encode("ChildStaticProtected"))
+
     def test_fields_public_protected(self):
+
         Test = autoclass('org.jnius.VisibilityTest', include_protected=True, include_private=False)
-        public_only_test = Test()
+        test = Test()
 
-        self.assertTrue(hasattr(public_only_test, 'fieldPublic'))
-        self.assertTrue(hasattr(public_only_test, 'fieldProtected'))
-        self.assertFalse(hasattr(public_only_test, 'fieldPrivate'))
+        self.assertTrue(hasattr(test, 'fieldPublic'))
+        self.assertTrue(hasattr(test, 'fieldProtected'))
+        self.assertFalse(hasattr(test, 'fieldPrivate'))
 
-        self.assertEqual(public_only_test.fieldPublic, py2_encode("Public"))
-        self.assertEqual(public_only_test.fieldProtected, py2_encode("Protected"))
+        self.assertEqual(test.fieldPublic, py2_encode("Public"))
+        self.assertEqual(test.fieldProtected, py2_encode("Protected"))
+
+    def test_child_fields_public_protected(self):
+
+        Test = autoclass('org.jnius.ChildVisibilityTest', include_protected=True, include_private=False)
+        test = Test()
+
+        self.assertTrue(hasattr(test, 'fieldPublic'))
+        self.assertTrue(hasattr(test, 'fieldProtected'))
+        self.assertFalse(hasattr(test, 'fieldPrivate'))
+
+        self.assertEqual(test.fieldPublic, py2_encode("Public"))
+        self.assertEqual(test.fieldProtected, py2_encode("Protected"))
+
+        self.assertTrue(hasattr(test, 'fieldChildPublic'))
+        self.assertTrue(hasattr(test, 'fieldChildProtected'))
+        self.assertFalse(hasattr(test, 'fieldChildPrivate'))
+
+        self.assertEqual(test.fieldChildPublic, py2_encode("ChildPublic"))
+        self.assertEqual(test.fieldChildProtected, py2_encode("ChildProtected"))
 
     def test_methods_public_protected(self):
+
         Test = autoclass('org.jnius.VisibilityTest', include_protected=True, include_private=False)
-        public_only_test = Test()
+        test = Test()
 
-        self.assertTrue(hasattr(public_only_test, 'methodPublic'))
-        self.assertTrue(hasattr(public_only_test, 'methodProtected'))
-        self.assertFalse(hasattr(public_only_test, 'methodPrivate'))
+        self.assertTrue(hasattr(test, 'methodPublic'))
+        self.assertTrue(hasattr(test, 'methodProtected'))
+        self.assertFalse(hasattr(test, 'methodPrivate'))
 
-        self.assertEqual(public_only_test.methodPublic(), py2_encode("Public"))
-        self.assertEqual(public_only_test.methodProtected(), py2_encode("Protected"))
+        self.assertEqual(test.methodPublic(), py2_encode("Public"))
+        self.assertEqual(test.methodProtected(), py2_encode("Protected"))
+
+    def test_child_methods_public_protected(self):
+
+        Test = autoclass('org.jnius.ChildVisibilityTest', include_protected=True, include_private=False)
+        test = Test()
+
+        self.assertTrue(hasattr(test, 'methodChildPublic'))
+        self.assertTrue(hasattr(test, 'methodChildProtected'))
+        self.assertFalse(hasattr(test, 'methodChildPrivate'))
+
+        self.assertEqual(test.methodChildPublic(), py2_encode("ChildPublic"))
+        self.assertEqual(test.methodChildProtected(), py2_encode("ChildProtected"))
+
+    def test_static_multi_methods(self):
+        Test = autoclass('org.jnius.ChildVisibilityTest', include_protected=True, include_private=False)
+
+        self.assertTrue(hasattr(Test, 'methodStaticMultiArgs'))
+        self.assertTrue(isinstance(Test.methodStaticMultiArgs, JavaMultipleMethod))
+
+        self.assertTrue(Test.methodStaticMultiArgs(True))
+        self.assertTrue(Test.methodStaticMultiArgs(True, False))
+        with self.assertRaises(JavaException):
+            Test.methodStaticMultiArgs(True, False, True)
+
+    def test_multi_methods(self):
+        Test = autoclass('org.jnius.ChildVisibilityTest', include_protected=True, include_private=False)
+        test = Test()
+
+        self.assertTrue(hasattr(test, 'methodMultiArgs'))
+        self.assertTrue(isinstance(Test.methodMultiArgs, JavaMultipleMethod))
+
+        self.assertTrue(test.methodMultiArgs(True))
+        self.assertTrue(test.methodMultiArgs(True, False))
+        with self.assertRaises(JavaException):
+           test.methodMultiArgs(True, False, True)
