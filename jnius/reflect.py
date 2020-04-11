@@ -1,9 +1,10 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from __future__ import division
-__all__ = ('autoclass', 'ensureclass', 'protocol_map')
-from six import with_metaclass
+from collections import defaultdict
 import logging
+
+from six import with_metaclass, PY2
 
 from .jnius import (
     JavaClass, MetaJavaClass, JavaMethod, JavaStaticMethod,
@@ -11,8 +12,9 @@ from .jnius import (
     JavaException
 )
 
+__all__ = ('autoclass', 'ensureclass', 'protocol_map')
+
 log = logging.getLogger(__name__)
-from collections import defaultdict
 
 
 class Class(with_metaclass(MetaJavaClass, JavaClass)):
@@ -233,17 +235,17 @@ def autoclass(clsname):
     classDict['__javaconstructor__'] = constructors
 
     class_hierachy = list(identify_hierarchy(c, 0, not c.isInterface()))
-    
+
     log.debug("autoclass(%s) intf %r hierarchy is %s" % (clsname,c.isInterface(),str(class_hierachy)))
     cls_done=set()
 
     cls_methods=defaultdict(list)
 
     # we now walk the hierarchy, from top of the tree, identifying methods
-    # hopefully we start at java.lang.Object 
+    # hopefully we start at java.lang.Object
     for cls,level in class_hierachy:
         # dont analyse a given class more than once.
-        # many interfaces can lead to java.lang.Object 
+        # many interfaces can lead to java.lang.Object
         if cls in cls_done:
             continue
         cls_done.add(cls)
@@ -256,7 +258,7 @@ def autoclass(clsname):
         for index, method in enumerate(methods):
             name = methods_name[index]
             cls_methods[name].append((cls, method, level))
-    
+
     # having collated the mthods, identify if there are any with the same name
     for name in cls_methods:
         if len(cls_methods[name]) == 1:
@@ -267,7 +269,7 @@ def autoclass(clsname):
             sig = '({0}){1}'.format(
                 ''.join([get_signature(x) for x in method.getParameterTypes()]),
                 get_signature(method.getReturnType()))
-            if log.level <= logging.DEBUG:
+            if log.isEnabledFor('DEBUG'):
                 log_method(method, name, sig)
             classDict[name] = (JavaStaticMethod if static else JavaMethod)(sig, varargs=varargs)
             if name != 'getClass' and bean_getter(name) and len(method.getParameterTypes()) == 0:
@@ -277,7 +279,7 @@ def autoclass(clsname):
             # multiple signatures
             signatures = []
             log.debug("method %s has %d multiple signatures in hierarchy of cls %s" % (name, len(cls_methods[name]), c))
-            
+
             paramsig_to_level=defaultdict(lambda: float('inf'))
             # we now identify if any have the same signature, as we will call the _lowest_ in the hierarchy,
             # as reflected in min level
@@ -296,8 +298,8 @@ def autoclass(clsname):
 
                 return_sig = get_signature(method.getReturnType())
                 sig = '({0}){1}'.format(param_sig, return_sig)
-                
-                if log.level <= logging.DEBUG:
+
+                if log.isEnabledFor('DEBUG'):
                     log_method(method, name, sig)
                 signatures.append((sig, Modifier.isStatic(method.getModifiers()), method.isVarArgs()))
 
@@ -309,7 +311,7 @@ def autoclass(clsname):
         cls_name = cls.getName()
         if cls_name in protocol_map:
             for pname, plambda in protocol_map[cls_name].items():
-                classDict[pname] = plambda  
+                classDict[pname] = plambda
 
     for field in c.getFields():
         static = Modifier.isStatic(field.getModifiers())
@@ -322,7 +324,9 @@ def autoclass(clsname):
         MetaJavaClass,
         clsname,
         (JavaClass, ),
-        classDict)
+        classDict
+    )
+
 
 def _getitem(self, index):
     ''' dunder method for List '''
@@ -359,7 +363,7 @@ protocol_map = {
         '__delitem__' : lambda self, item: self.remove(item)
     },
     'java.util.List' : {
-        '__getitem__' : _getitem        
+        '__getitem__' : _getitem
     },
     'java.util.Map' : {
         '__setitem__' : lambda self, k, v : self.put(k,v),
