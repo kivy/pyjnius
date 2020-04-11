@@ -349,13 +349,38 @@ def _map_getitem(self, k):
         raise KeyError()
     return rtr
 
+
+class Py2Iterator(object):
+    '''
+    In py2 the next() is called on the iterator, not __next__
+    so we need to wrap the java call to check hasNext to conform to
+    python's api
+    '''
+    def __init__(self, java_iterator):
+        self.java_iterator = java_iterator
+
+    def next(self):
+        log.debug("monkey patched next() called")
+        if not self.java_iterator.hasNext():
+            raise StopIteration()
+        return self.java_iterator.next()
+
+
+def safe_iterator(iterator):
+    if PY2:
+        return Py2Iterator(iterator)
+    return iterator
+
+
 def _iterator_next(self):
     ''' dunder method for java.util.Iterator'''
     if not self.hasNext():
         raise StopIteration()
+
     return self.next()
 
-# protocol_map is a user-accessible API for patching class instances with additional methods 
+
+# protocol_map is a user-accessible API for patching class instances with additional methods
 protocol_map = {
     'java.util.Collection' : {
         '__len__' : lambda self: self.size(),
@@ -371,14 +396,14 @@ protocol_map = {
         '__delitem__' : lambda self, item: self.remove(item),
         '__len__' : lambda self: self.size(),
         '__contains__' : lambda self, item: self.containsKey(item),
-        '__iter__' : lambda self: self.keySet().iterator()
+        '__iter__' : lambda self: safe_iterator(self.keySet().iterator())
     },
     'java.util.Iterator' : {
-        '__iter__' : lambda self: self,
-        '__next__' : _iterator_next
+        '__iter__' : lambda self: safe_iterator(self),
+        '__next__' : _iterator_next,
     },
     'java.lang.Iterable' : {
-        '__iter__' : lambda self: self.iterator(),
+        '__iter__' : lambda self: safe_iterator(self.iterator()),
     },
     # this also addresses java.io.Closeable
     'java.lang.AutoCloseable' : {
