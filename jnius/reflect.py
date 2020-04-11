@@ -339,17 +339,58 @@ def _getitem(self, index):
         else:
             raise
 
+#dunder method for java.util.Map
+def _map_getitem(self, k):
+    rtr = self.get(k)
+    if rtr is None:
+        raise KeyError()
+    return rtr
+
+#dunder method for java.util.Iterator
+def _iterator_next(self):
+    if not self.hasNext():
+        raise StopIteration()
+    return self.next()
+
+
 # protocol_map is a user-accessible API for patching class instances with additional methods 
 protocol_map = {
     'java.util.Collection' : {
-        '__len__' : lambda self: self.size()
+        '__len__' : lambda self: self.size(),
+        '__contains__' : lambda self, item: self.contains(item),
+        '__delitem__' : lambda self, item: self.remove(item)
     },
     'java.util.List' : {
         '__getitem__' : _getitem        
+    },
+    'java.util.Map' : {
+        '__setitem__' : lambda self, k, v : self.put(k,v),
+        '__getitem__' : _map_getitem,
+        '__delitem__' : lambda self, item: self.remove(item),
+        '__len__' : lambda self: self.size(),
+        '__contains__' : lambda self, item: self.containsKey(item),
+        '__iter__' : lambda self: self.keySet().iterator()
+    },
+    'java.util.Iterator' : {
+        '__iter__' : lambda self: self,
+        '__next__' : _iterator_next
+    },
+    'java.lang.Iterable' : {
+        '__iter__' : lambda self: self.iterator(),
     },
     # this also addresses java.io.Closeable
     'java.lang.AutoCloseable' : {
         '__enter__' : lambda self: self,
         '__exit__' : lambda self, type, value, traceback: self.close()
+    },
+    'java.lang.Comparable' : {
+        #__cmp__ is for Python 2 support
+        '__cmp__' : lambda self, other: self.compareTo(other),
+        '__eq__' : lambda self, other: self.equals(other),
+        '__ne__' : lambda self, other: not self.equals(other),
+        '__lt__' : lambda self, other: self.compareTo(other) < 0,
+        '__gt__' : lambda self, other: self.compareTo(other) > 0,
+        '__le__' : lambda self, other: self.compareTo(other) <= 0,
+        '__ge__' : lambda self, other: self.compareTo(other) >= 0,
     }
 }
