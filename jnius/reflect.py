@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 from __future__ import division
 from collections import defaultdict
-import logging
+from logging import getLogger, DEBUG
 
 from six import with_metaclass, PY2
 
@@ -14,7 +14,7 @@ from .jnius import (
 
 __all__ = ('autoclass', 'ensureclass', 'protocol_map')
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 
 class Class(with_metaclass(MetaJavaClass, JavaClass)):
@@ -269,7 +269,7 @@ def autoclass(clsname):
             sig = '({0}){1}'.format(
                 ''.join([get_signature(x) for x in method.getParameterTypes()]),
                 get_signature(method.getReturnType()))
-            if log.isEnabledFor('DEBUG'):
+            if log.isEnabledFor(DEBUG):
                 log_method(method, name, sig)
             classDict[name] = (JavaStaticMethod if static else JavaMethod)(sig, varargs=varargs)
             if name != 'getClass' and bean_getter(name) and len(method.getParameterTypes()) == 0:
@@ -299,7 +299,7 @@ def autoclass(clsname):
                 return_sig = get_signature(method.getReturnType())
                 sig = '({0}){1}'.format(param_sig, return_sig)
 
-                if log.isEnabledFor('DEBUG'):
+                if log.isEnabledFor(DEBUG):
                     log_method(method, name, sig)
                 signatures.append((sig, Modifier.isStatic(method.getModifiers()), method.isVarArgs()))
 
