@@ -324,9 +324,8 @@ def autoclass(clsname):
         (JavaClass, ),
         classDict)
 
-
-## dunder method for List
 def _getitem(self, index):
+    ''' dunder method for List '''
     try:
         return self.get(index)
     except JavaException as e:
@@ -339,19 +338,18 @@ def _getitem(self, index):
         else:
             raise
 
-#dunder method for java.util.Map
 def _map_getitem(self, k):
+    ''' dunder method for java.util.Map '''
     rtr = self.get(k)
     if rtr is None:
         raise KeyError()
     return rtr
 
-#dunder method for java.util.Iterator
 def _iterator_next(self):
+    ''' dunder method for java.util.Iterator'''
     if not self.hasNext():
         raise StopIteration()
     return self.next()
-
 
 # protocol_map is a user-accessible API for patching class instances with additional methods 
 protocol_map = {

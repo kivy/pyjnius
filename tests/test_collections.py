@@ -5,9 +5,6 @@ from jnius import autoclass, protocol_map
 
 class TestCollections(unittest.TestCase):
 
-    def __init__(self, *args, **kwargs):
-        super(TestCollections, self).__init__(*args, **kwargs)
-
     def test_hashset(self):
         hset = autoclass('java.util.HashSet')()
         data = {1,2}
