@@ -23,6 +23,7 @@ public class VisibilityTest {
         return fieldPrivate;
     }
 
+    // dummy method to avoid warning methodPrivate() isn't used
     public String methodDummy() {
         return this.methodPrivate();
     }
@@ -39,6 +40,7 @@ public class VisibilityTest {
         return fieldStaticPrivate;
     }
 
+    // dummy method to avoid warning methodStaticPrivate() isn't used
     static public String methodStaticDummy() {
         return VisibilityTest.methodStaticPrivate();
     }
