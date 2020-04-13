@@ -1,9 +1,10 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from __future__ import division
-__all__ = ('autoclass', 'ensureclass', 'protocol_map')
-from six import with_metaclass
-import logging
+from collections import defaultdict
+from logging import getLogger, DEBUG
+
+from six import with_metaclass, PY2
 
 from .jnius import (
     JavaClass, MetaJavaClass, JavaMethod, JavaStaticMethod,
@@ -11,8 +12,9 @@ from .jnius import (
     JavaException
 )
 
-log = logging.getLogger(__name__)
-from collections import defaultdict
+__all__ = ('autoclass', 'ensureclass', 'protocol_map')
+
+log = getLogger(__name__)
 
 
 class Class(with_metaclass(MetaJavaClass, JavaClass)):
@@ -247,7 +249,7 @@ def autoclass(clsname, include_protected=False, include_private=False):
     # hopefully we start at java.lang.Object 
     for cls, level in class_hierachy:
         # dont analyse a given class more than once.
-        # many interfaces can lead to java.lang.Object 
+        # many interfaces can lead to java.lang.Object
         if cls in cls_done:
             continue
         cls_done.add(cls)
@@ -285,7 +287,7 @@ def autoclass(clsname, include_protected=False, include_private=False):
             sig = '({0}){1}'.format(
                 ''.join([get_signature(x) for x in method.getParameterTypes()]),
                 get_signature(method.getReturnType()))
-            if log.level <= logging.DEBUG:
+            if log.isEnabledFor(DEBUG):
                 log_method(method, name, sig)
             classDict[name] = (JavaStaticMethod if static else JavaMethod)(sig, varargs=varargs)
             if name != 'getClass' and bean_getter(name) and len(method.getParameterTypes()) == 0:
@@ -314,8 +316,8 @@ def autoclass(clsname, include_protected=False, include_private=False):
 
                 return_sig = get_signature(method.getReturnType())
                 sig = '({0}){1}'.format(param_sig, return_sig)
-                
-                if log.level <= logging.DEBUG:
+
+                if log.isEnabledFor(DEBUG):
                     log_method(method, name, sig)
                 signatures.append((sig, Modifier.isStatic(method.getModifiers()), method.isVarArgs()))
 
@@ -327,7 +329,7 @@ def autoclass(clsname, include_protected=False, include_private=False):
         cls_name = cls.getName()
         if cls_name in protocol_map:
             for pname, plambda in protocol_map[cls_name].items():
-                classDict[pname] = plambda  
+                classDict[pname] = plambda
 
     for field_name, (field, _) in cls_fields.items():
         field_modifier = field.getModifiers()
@@ -349,8 +351,8 @@ def autoclass(clsname, include_protected=False, include_private=False):
         classparams=(include_protected, include_private))
 
 
-## dunder method for List
 def _getitem(self, index):
+    ''' dunder method for List '''
     try:
         return self.get(index)
     except JavaException as e:
@@ -363,17 +365,85 @@ def _getitem(self, index):
         else:
             raise
 
-# protocol_map is a user-accessible API for patching class instances with additional methods 
+def _map_getitem(self, k):
+    ''' dunder method for java.util.Map '''
+    rtr = self.get(k)
+    if rtr is None:
+        raise KeyError()
+    return rtr
+
+
+class Py2Iterator(object):
+    '''
+    In py2 the next() is called on the iterator, not __next__
+    so we need to wrap the java call to check hasNext to conform to
+    python's api
+    '''
+    def __init__(self, java_iterator):
+        self.java_iterator = java_iterator
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        log.debug("monkey patched next() called")
+        if not self.java_iterator.hasNext():
+            raise StopIteration()
+        return self.java_iterator.next()
+
+
+def safe_iterator(iterator):
+    if PY2:
+        return Py2Iterator(iterator)
+    return iterator
+
+
+def _iterator_next(self):
+    ''' dunder method for java.util.Iterator'''
+    if not self.hasNext():
+        raise StopIteration()
+
+    return self.next()
+
+
+# protocol_map is a user-accessible API for patching class instances with additional methods
 protocol_map = {
     'java.util.Collection' : {
-        '__len__' : lambda self: self.size()
+        '__len__' : lambda self: self.size(),
+        '__contains__' : lambda self, item: self.contains(item),
+        '__delitem__' : lambda self, item: self.remove(item)
     },
     'java.util.List' : {
-        '__getitem__' : _getitem        
+        '__getitem__' : _getitem
+    },
+    'java.util.Map' : {
+        '__setitem__' : lambda self, k, v : self.put(k,v),
+        '__getitem__' : _map_getitem,
+        '__delitem__' : lambda self, item: self.remove(item),
+        '__len__' : lambda self: self.size(),
+        '__contains__' : lambda self, item: self.containsKey(item),
+        '__iter__' : lambda self: safe_iterator(self.keySet().iterator())
+    },
+    'java.util.Iterator' : {
+        '__iter__' : lambda self: safe_iterator(self),
+        '__next__' : _iterator_next,
+    },
+    'java.lang.Iterable' : {
+        '__iter__' : lambda self: safe_iterator(self.iterator()),
     },
     # this also addresses java.io.Closeable
     'java.lang.AutoCloseable' : {
         '__enter__' : lambda self: self,
         '__exit__' : lambda self, type, value, traceback: self.close()
+    },
+    'java.lang.Comparable' : {
+        #__cmp__ is for Python 2 support
+        '__cmp__' : lambda self, other: self.compareTo(other),
+        '__eq__' : lambda self, other: self.equals(other),
+        '__ne__' : lambda self, other: not self.equals(other),
+        '__lt__' : lambda self, other: self.compareTo(other) < 0,
+        '__gt__' : lambda self, other: self.compareTo(other) > 0,
+        '__le__' : lambda self, other: self.compareTo(other) <= 0,
+        '__ge__' : lambda self, other: self.compareTo(other) >= 0,
     }
 }
