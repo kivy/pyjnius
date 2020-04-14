@@ -52,6 +52,9 @@ FILES = [
     'jnius_jvm_desktop.pxi',
     'jnius_jvm_dlopen.pxi',
     'jnius_localref.pxi',
+    'jnius_nativetypes.pxi',
+    'jnius_nativetypes3.pxi',
+    'jnius_proxy.pxi',
     'jnius.pyx',
     'jnius_utils.pxi',
 ]
