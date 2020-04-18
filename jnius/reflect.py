@@ -349,7 +349,7 @@ def autoclass(clsname):
                 py_field_name = py_field_name + "_" if py_field_name in classDict else py_field_name
                 print("resolved %s to %s" % (field_name, py_field_name))
                 classDict[py_field_name] = cls(sig, j_name= field_name, j_class_name = owningCls.getName())
-    
+
     classDict['__javaclass__'] = clsname.replace('.', '/')
     return MetaJavaClass.__new__(
         MetaJavaClass,

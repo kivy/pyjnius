@@ -43,18 +43,19 @@ def test_staticfields():
     assert Child.STATIC_PARENT_FIELD == 1
     assert parent.STATIC_PARENT_FIELD == 1
     assert child.STATIC_PARENT_FIELD == 1
-    #now test setting
-    #Parent.STATIC_PARENT_FIELD = 5
-    #assert parent.STATIC_PARENT_FIELD == 5
-    ##assert Parent.STATIC_PARENT_FIELD == 5
-    #assert Child.STATIC_PARENT_FIELD == 5
-    #assert child.STATIC_PARENT_FIELD == 5
 
-    # Child.STATIC_PARENT_FIELD = 10
-    # assert Child.STATIC_PARENT_FIELD == 10
-    # assert child.STATIC_PARENT_FIELD == 10
-    # assert Parent.STATIC_PARENT_FIELD == 10
-    # assert parent.STATIC_PARENT_FIELD == 10
+    #now test setting
+    Parent.STATIC_PARENT_FIELD = 5
+    assert parent.STATIC_PARENT_FIELD == 5
+    assert Parent.STATIC_PARENT_FIELD == 5
+    assert Child.STATIC_PARENT_FIELD == 5
+    assert child.STATIC_PARENT_FIELD == 5
+
+    child.STATIC_PARENT_FIELD = 10
+    assert Child.STATIC_PARENT_FIELD == 10
+    assert child.STATIC_PARENT_FIELD == 10
+    assert Parent.STATIC_PARENT_FIELD == 10
+    assert parent.STATIC_PARENT_FIELD == 10
 
 def test_newinstance():
     from jnius import autoclass
