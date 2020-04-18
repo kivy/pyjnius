@@ -1,6 +1,7 @@
 from cpython cimport PyObject
 from warnings import warn
 
+
 class JavaException(Exception):
     '''Can be a real java exception, or just an exception from the wrapper.
     '''
@@ -116,6 +117,16 @@ class MetaJavaClass(MetaJavaBase):
         jclass_register[classDict['__javaclass__']] = tp
         return tp
 
+    def __setattr__(self, name, value):
+        '''Overrides the setting *class* attributes, by overriding
+        setattr on the metaclass (which classes are instance of), allows
+        us to make the setting of static fields on the java class work.
+        '''
+        if isinstance(self.__dict__.get(name), JavaStaticField):
+            self.__dict__[name].__set__(self, value)
+        else:
+            super(MetaJavaClass, self).__setattr__(name, value)
+
     def __subclasscheck__(cls, value):
         cdef JNIEnv *j_env = get_jnienv()
         cdef JavaClassStorage me = getattr(cls, '__cls_storage')
@@ -220,7 +231,6 @@ class MetaJavaClass(MetaJavaBase):
                 jmm = value
                 jmm.set_resolve_info(j_env, jcs.j_cls, None,
                     str_for_c(name), str_for_c(__javaclass__))
-
 
         # search all the static JavaField within our class, and resolve them
         cdef JavaField jf
@@ -469,9 +479,9 @@ cdef class JavaField(object):
         self.ensure_field()
         if self.is_static:
             self.write_static_field(value)
-
-        j_self = (<JavaClass?>obj).j_self.obj
-        self.write_field(j_self, value)
+        else:
+            j_self = (<JavaClass?>obj).j_self.obj
+            self.write_field(j_self, value)
 
     cdef write_field(self, jobject j_self, value):
         cdef jboolean j_boolean
