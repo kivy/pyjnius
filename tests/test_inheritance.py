@@ -74,5 +74,5 @@ def test_newinstance():
 if __name__ == "__main__":
     import jnius_config
     #jnius_config.add_options('-Xcheck:jni')
-    test_field_and_methods()
+    test_staticfields()
 
