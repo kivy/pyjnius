@@ -9,7 +9,7 @@ from six import with_metaclass, PY2
 from .jnius import (
     JavaClass, MetaJavaClass, JavaMethod, JavaStaticMethod,
     JavaField, JavaStaticField, JavaMultipleMethod, find_javaclass,
-    JavaException
+    JavaException, get_signature
 )
 
 __all__ = ('autoclass', 'ensureclass', 'protocol_map')
@@ -94,7 +94,7 @@ class Modifier(with_metaclass(MetaJavaClass, JavaClass)):
     isSynchronized = JavaStaticMethod('(I)Z')
     isTransient = JavaStaticMethod('(I)Z')
     isVolatile = JavaStaticMethod('(I)Z')
-
+    signature = JavaField("")
 
 class Method(with_metaclass(MetaJavaClass, JavaClass)):
     __javaclass__ = 'java/lang/reflect/Method'
@@ -105,6 +105,8 @@ class Method(with_metaclass(MetaJavaClass, JavaClass)):
     getReturnType = JavaMethod('()Ljava/lang/Class;')
     getModifiers = JavaMethod('()I')
     isVarArgs = JavaMethod('()Z')
+    isDefault = JavaMethod('()Z')
+    
 
 
 class Field(with_metaclass(MetaJavaClass, JavaClass)):
@@ -123,25 +125,6 @@ class Constructor(with_metaclass(MetaJavaClass, JavaClass)):
     getParameterTypes = JavaMethod('()[Ljava/lang/Class;')
     getModifiers = JavaMethod('()I')
     isVarArgs = JavaMethod('()Z')
-
-
-def get_signature(cls_tp):
-    tp = cls_tp.getName()
-    if tp[0] == '[':
-        return tp.replace('.', '/')
-    signatures = {
-        'void': 'V', 'boolean': 'Z', 'byte': 'B',
-        'char': 'C', 'short': 'S', 'int': 'I',
-        'long': 'J', 'float': 'F', 'double': 'D'}
-    ret = signatures.get(tp)
-    if ret:
-        return ret
-    # don't do it in recursive way for the moment,
-    # error on the JNI/android: JNI ERROR (app bug): local reference table
-    # overflow (max=512)
-
-    # ensureclass(tp)
-    return 'L{0};'.format(tp.replace('.', '/'))
 
 
 registers = []

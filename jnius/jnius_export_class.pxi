@@ -342,11 +342,15 @@ cdef class JavaClass(object):
 
         try:
             # convert python arguments to java arguments
+
+            # holds is a list of objects that need to be kept around for 
+            # the lifetime of the call
+            holds = None
             if len(args):
                 j_args = <jvalue *>malloc(sizeof(jvalue) * len(d_args))
                 if j_args == NULL:
                     raise MemoryError('Unable to allocate memory for java args')
-                populate_args(j_env, d_args, j_args, args_)
+                holds = populate_args(j_env, d_args, j_args, args_)
 
             # get the java constructor
             defstr = str_for_c(definition)
@@ -832,11 +836,15 @@ cdef class JavaMethod(object):
 
         try:
             # convert python argument if necessary
+
+            # holds is a list of objects that need to be kept around for 
+            # the lifetime of the call
+            holds = None
             if len(args):
                 j_args = <jvalue *>malloc(sizeof(jvalue) * d_args_len)
                 if j_args == NULL:
                     raise MemoryError('Unable to allocate memory for java args')
-                populate_args(j_env, self.definition_args, j_args, args)
+                holds = populate_args(j_env, self.definition_args, j_args, args)
 
             try:
                 # do the call
