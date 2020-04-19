@@ -118,6 +118,10 @@ cdef list populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                 # TODO: this line should not be needed to prevent py_arg from being GCd 
                 activeLambdaJavaProxies.add(py_arg)
                 
+                # next few lines is from "isinstance(py_arg, PythonJavaClass)" above
+                # except jc is None is removed, as we know it has been called by
+                # convert_python_callable_to_jobject()
+
                 # from python class, get the proxy/python class
                 pc = py_arg
                 # get the java class
