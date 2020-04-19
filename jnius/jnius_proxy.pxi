@@ -121,8 +121,6 @@ cdef jobject py_invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
 
     # really invoke the python method
     name = method.getName()
-    
-    # SEGFAULT HERE
     ret = py_obj.invoke(method, *py_args)
 
     # convert back to the return type
