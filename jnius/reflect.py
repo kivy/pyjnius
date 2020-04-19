@@ -94,7 +94,6 @@ class Modifier(with_metaclass(MetaJavaClass, JavaClass)):
     isSynchronized = JavaStaticMethod('(I)Z')
     isTransient = JavaStaticMethod('(I)Z')
     isVolatile = JavaStaticMethod('(I)Z')
-    signature = JavaField("")
 
 class Method(with_metaclass(MetaJavaClass, JavaClass)):
     __javaclass__ = 'java/lang/reflect/Method'
