@@ -8,6 +8,18 @@ public class Parent {
 		return 0;
 	}
 
+	public int getParentStaticField() {
+		return STATIC_PARENT_FIELD;
+	}
+
+	public static int StaticGetParentStaticField() {
+		return STATIC_PARENT_FIELD;
+	}
+
+	public int getParentField() {
+		return PARENT_FIELD;
+	}
+
 	static public Parent newInstance(){
 		return new Parent();
 	}
