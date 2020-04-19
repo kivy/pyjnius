@@ -13,9 +13,10 @@ Reflection classes
 
 .. class:: JavaClass
 
-    Base for reflecting a Java class. The idea is to subclass this JavaClass,
-    add few :class:`JavaMethod`, :class:`JavaStaticMethod`, :class:`JavaField`,
-    :class:`JavaStaticField`, and you're done.
+    Base for reflecting a Java class, allowing access to that Java class from Python. 
+    The idea is to subclass this JavaClass, add few :class:`JavaMethod`, 
+    :class:`JavaStaticMethod`, :class:`JavaField`, :class:`JavaStaticField`, and 
+    you're done.
 
     You need to define at minimum the :data:`__javaclass__` attribute, and set
     the :data:`__metaclass__` to :class:`MetaJavaClass`.
@@ -208,7 +209,8 @@ Java class implementation in Python
 .. class:: PythonJavaClass
 
     Base for creating a Java class from a Python class. This allows us to
-    implement java interfaces completely in Python.
+    implement java interfaces completely in Python, and pass such a Python 
+    object back to Java.
     
     In reality, you'll create a Python class that mimics the list of declared
     :data:`__javainterfaces__`. When you give an instance of this class to
@@ -221,9 +223,15 @@ Java class implementation in Python
     You need to define at minimum the :data:`__javainterfaces__` attribute, and
     declare java methods with the :func:`java_method` decorator.
 
-    .. note::
+    .. notes::
 
         Static methods and static fields are not supported.
+        
+        You can only implement Java interfaces. You cannot sub-class a java 
+        object.
+        
+        You must retain a reference to the Python object for the entire liftime
+        that your object is in-use within java.
 
     For example, you could implement the `java/util/ListIterator` interface in
     Python like this::
