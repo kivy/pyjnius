@@ -216,7 +216,7 @@ def identify_hierarchy(cls, level, concrete=True):
 # NOTE: if you change the include_protected or include_private default values,
 # you also must change the classparams default value in MetaJavaClass.__new__
 # and MetaJavaClass.get_javaclass.
-def autoclass(clsname, include_protected=False, include_private=False):
+def autoclass(clsname, include_protected=True, include_private=True):
     jniname = clsname.replace('.', '/')
     cls = MetaJavaClass.get_javaclass(jniname, classparams=(include_protected, include_private))
     if cls:
@@ -277,6 +277,19 @@ def autoclass(clsname, include_protected=False, include_private=False):
             else:
                 cls_fields[field_name] = (field, level)
 
+    # the fields are analyzed before methods so that if a method and a field
+    # have the same name, the field will take precidence in classDict.
+    for field_name, (field, _) in cls_fields.items():
+        field_modifier = field.getModifiers()
+        static = Modifier.isStatic(field_modifier)
+        sig = get_signature(field.getType())
+        if Modifier.isProtected(field_modifier) and not include_protected:
+            continue
+        if Modifier.isPrivate(field_modifier) and not include_private:
+            continue
+        cls = JavaStaticField if static else JavaField
+        classDict[field_name] = cls(sig)
+
     # having collated the methods, identify if there are any with the same name
     for name in cls_methods:
         if len(cls_methods[name]) == 1:
@@ -330,17 +343,6 @@ def autoclass(clsname, include_protected=False, include_private=False):
         if cls_name in protocol_map:
             for pname, plambda in protocol_map[cls_name].items():
                 classDict[pname] = plambda
-
-    for field_name, (field, _) in cls_fields.items():
-        field_modifier = field.getModifiers()
-        static = Modifier.isStatic(field_modifier)
-        sig = get_signature(field.getType())
-        if Modifier.isProtected(field_modifier) and not include_protected:
-            continue
-        if Modifier.isPrivate(field_modifier) and not include_private:
-            continue
-        cls = JavaStaticField if static else JavaField
-        classDict[field_name] = cls(sig)
 
     classDict['__javaclass__'] = clsname.replace('.', '/')
     return MetaJavaClass.__new__(
