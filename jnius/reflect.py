@@ -278,7 +278,7 @@ def autoclass(clsname, include_protected=True, include_private=True):
                 cls_fields[field_name] = (field, level)
 
     # the fields are analyzed before methods so that if a method and a field
-    # have the same name, the field will take precidence in classDict.
+    # have the same name, the field will take precedence in classDict.
     for field_name, (field, _) in cls_fields.items():
         field_modifier = field.getModifiers()
         static = Modifier.isStatic(field_modifier)
