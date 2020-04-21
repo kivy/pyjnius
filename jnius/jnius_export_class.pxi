@@ -850,14 +850,11 @@ cdef class JavaMethod(object):
         try:
             # convert python argument if necessary
 
-            # holds is a list of objects that need to be kept around for 
-            # the lifetime of the call
-            holds = None
             if len(args):
                 j_args = <jvalue *>malloc(sizeof(jvalue) * d_args_len)
                 if j_args == NULL:
                     raise MemoryError('Unable to allocate memory for java args')
-                holds = populate_args(j_env, self.definition_args, j_args, args)
+                populate_args(j_env, self.definition_args, j_args, args)
 
             try:
                 # do the call

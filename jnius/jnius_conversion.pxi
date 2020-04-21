@@ -29,14 +29,13 @@ cdef void release_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, arg
                 pass
             j_env[0].DeleteLocalRef(j_env, j_args[index].l)
 
-cdef list populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, args):
+cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, args):
     # do the conversion from a Python object to Java from a Java definition
     cdef JavaClassStorage jcs
     cdef JavaObject jo
     cdef JavaClass jc
     cdef PythonJavaClass pc
     cdef int index
-    holds=[]
 
     for index, argtype in enumerate(definition_args):
         py_arg = args[index]
@@ -108,13 +107,11 @@ cdef list populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                 j_args[index].l = convert_pyarray_to_java(j_env, argtype, py_arg)
 
             # lambda or function
-            elif callable(py_arg) and argtype == "Ljava/util/function/Function;":
+            elif callable(py_arg):
                 
                 # we need to make a java object in python
                 py_arg = convert_python_callable_to_jobject(argtype, py_arg)
 
-                # we need to keep that python object around
-                holds.append(py_arg)
                 # TODO: this line should not be needed to prevent py_arg from being GCd 
                 activeLambdaJavaProxies.add(py_arg)
                 
@@ -154,7 +151,6 @@ cdef list populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                         '{0!r}'.format(py_arg))
             j_args[index].l = convert_pyarray_to_java(
                     j_env, argtype[1:], py_arg)
-    return holds
 
 
 cdef convert_jobject_to_python(JNIEnv *j_env, definition, jobject j_object):

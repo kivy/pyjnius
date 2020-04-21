@@ -360,6 +360,11 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
                 score += 1
                 continue
 
+            # its a function or lambda, we can pass that as an object
+            if callable(arg):
+                score += 1
+                continue
+
             # native type? not accepted
             return -1
 
