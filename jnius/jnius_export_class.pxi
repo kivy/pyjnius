@@ -13,7 +13,17 @@ class JavaException(Exception):
         self.classname = classname
         self.innermessage = innermessage
         self.stacktrace = stacktrace
+        currentStack = traceback.extract_stack()
+        #remove last element, which is this __init__()
+        currentStack.pop()
         Exception.__init__(self, message)
+        if stacktrace is not None:
+            from traceback import FrameSummary
+            for elem in stacktrace:
+                frame = FrameSummary(elem.getFileName(), elem.getLineNumber(), elem.getClassName()+"." + elem.getMethodName(), lookup_line=False)
+                currentStack.insert(0, frame)
+            self.with_traceback(currentStack)
+
 
 
 cdef class JavaObject(object):
