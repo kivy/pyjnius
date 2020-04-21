@@ -792,7 +792,7 @@ cdef class JavaMethod(object):
 
         if self.j_method == NULL:
             raise JavaException('Unable to find the method'
-                    ' {0}({1})'.format(self.name, self.definition))
+                    ' {0}({1}) in {2}'.format(self.name, self.definition, self.classname))
 
     cdef void set_resolve_info(self, JNIEnv *j_env, jclass j_cls,
             LocalRef j_self, name, classname):
@@ -823,7 +823,9 @@ cdef class JavaMethod(object):
         if len(args) != d_args_len:
             raise JavaException(
                 'Invalid call, number of argument mismatch, '
-                'got {} need {}'.format(len(args), d_args_len)
+                'got {} need {}, found definitions {} in class {} method {}'.format(
+                    len(args), d_args_len, str(self.definition_args),
+                    self.classname, self.name) 
             )
 
         if not self.is_static and j_env == NULL:
@@ -1117,7 +1119,8 @@ cdef class JavaMultipleMethod(object):
 
         if not scores:
             raise JavaException(
-                'No methods matching your arguments, available: {}'.format(
+                'No methods matching your arguments, requested: {}, available: {}'.format(
+                    args,
                     found_signatures
                 )
             )
