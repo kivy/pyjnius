@@ -15,7 +15,7 @@ class TestExceptions(unittest.TestCase):
         except JavaException as je:
             self.assertTrue(True)
             import traceback
-            traceback.print_exc()
+            traceback.print_tb()
             #traceback.print_tb(je)
             #print(je)
 
