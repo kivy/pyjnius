@@ -120,11 +120,14 @@ class MetaJavaBase(type):
 cdef dict jclass_register = {}
 
 
+# NOTE: The classparams default value in MetaJavaClass.__new__ and
+# MetaJavaClass.get_javaclass need to be consistent with the include_protected
+# and include_private default values in reflect.autoclass.
 class MetaJavaClass(MetaJavaBase):
-    def __new__(meta, classname, bases, classDict):
+    def __new__(meta, classname, bases, classDict, classparams=(True, True)):
         meta.resolve_class(classDict)
         tp = type.__new__(meta, str(classname), bases, classDict)
-        jclass_register[classDict['__javaclass__']] = tp
+        jclass_register[(classDict['__javaclass__'], classparams)] = tp
         return tp
 
     def __setattr__(self, name, value):
@@ -166,8 +169,8 @@ class MetaJavaClass(MetaJavaBase):
         return super(MetaJavaClass, cls).__subclasscheck__(value)
 
     @staticmethod
-    def get_javaclass(name):
-        return jclass_register.get(name)
+    def get_javaclass(name, classparams=(False, False)):
+        return jclass_register.get((name, classparams))
 
     @classmethod
     def resolve_class(meta, classDict):
