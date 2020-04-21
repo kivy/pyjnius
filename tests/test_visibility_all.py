@@ -159,3 +159,25 @@ class VisibilityAllTest(unittest.TestCase):
         self.assertTrue(test.methodMultiArgs(True))
         self.assertTrue(test.methodMultiArgs(True, False))
         self.assertTrue(test.methodMultiArgs(True, False, True))
+
+    def test_check_method_vs_field(self):
+        """check that HashMap and ArrayList have a size method and not a size field.
+
+        Both the HashMap and ArrayList implementations have a `size()` method
+        that is a wrapper for an `int` field also named `size`. The `autoclass`
+        function must pick one of these two. If it were to pick the field, this
+        would cause an "'int' object is not callable" TypeError when attempting
+        to call the size method. This unit test is here to ensure that future
+        changes to `autoclass` continue to prefer methods over fields.    
+        """
+
+        def assert_is_method(obj, name):
+            multiple = "JavaMultipleMethod" in str(type(obj.__class__.__dict__[name]))
+            single = "JavaMethod" in str(type(obj.__class__.__dict__[name]))
+            self.assertTrue(multiple or single)
+
+        hm = autoclass("java.util.HashMap", include_protected=True, include_private=True)()
+        assert_is_method(hm, 'size')
+
+        al = autoclass("java.util.ArrayList", include_protected=True, include_private=True)()
+        assert_is_method(al, 'size')
