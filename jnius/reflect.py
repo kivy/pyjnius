@@ -303,6 +303,8 @@ def autoclass(clsname, include_protected=True, include_private=True):
             if log.isEnabledFor(DEBUG):
                 log_method(method, name, sig)
             classDict[name] = (JavaStaticMethod if static else JavaMethod)(sig, varargs=varargs)
+            # methods that fit the characteristics of a JavaBean's methods get turned into properties.
+            # these added properties should not supercede any other methods or fields.
             if name != 'getClass' and bean_getter(name) and len(method.getParameterTypes()) == 0:
                 lowername = lower_name(name[2 if name.startswith('is') else 3:])
                 if lowername in classDict:
