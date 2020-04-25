@@ -95,6 +95,12 @@ class Modifier(with_metaclass(MetaJavaClass, JavaClass)):
     isTransient = JavaStaticMethod('(I)Z')
     isVolatile = JavaStaticMethod('(I)Z')
 
+    @classmethod
+    def isPackageProtected(cls, modifier):
+        return not (Modifier.isPublic(modifier) or
+                    Modifier.isProtected(modifier) or
+                    Modifier.isPrivate(modifier))
+
 
 class Method(with_metaclass(MetaJavaClass, JavaClass)):
     __javaclass__ = 'java/lang/reflect/Method'
@@ -223,6 +229,7 @@ def autoclass(clsname, include_protected=True, include_private=True):
         return cls
 
     classDict = {}
+    cls_start_packagename = '.'.join(clsname.split('.')[:-1])
 
     # c = Class.forName(clsname)
     c = find_javaclass(clsname)
@@ -252,6 +259,7 @@ def autoclass(clsname, include_protected=True, include_private=True):
         # many interfaces can lead to java.lang.Object
         if cls in cls_done:
             continue
+        cls_packagename = '.'.join(cls.getName().split('.')[:-1])
         cls_done.add(cls)
         # as we are walking the entire hierarchy, we only need getDeclaredMethods()
         # to get what is in this class; other parts of the hierarchy will be found
@@ -265,6 +273,8 @@ def autoclass(clsname, include_protected=True, include_private=True):
                 continue
             if Modifier.isPrivate(method_modifier) and not include_private:
                 continue
+            if Modifier.isPackageProtected(method_modifier) and not include_protected and cls_start_packagename != cls_packagename:
+                continue
             name = methods_name[index]
             cls_methods[name].append((cls, method, level))
     
@@ -273,19 +283,21 @@ def autoclass(clsname, include_protected=True, include_private=True):
             field_name = field.getName()
             if field_name in cls_fields:
                 if level < cls_fields[field_name][1]:
-                    cls_fields[field_name] = (field, level)
+                    cls_fields[field_name] = (field, level, cls_packagename)
             else:
-                cls_fields[field_name] = (field, level)
+                cls_fields[field_name] = (field, level, cls_packagename)
 
     # the fields are analyzed before methods so that if a method and a field
     # have the same name, the field will take precedence in classDict.
-    for field_name, (field, _) in cls_fields.items():
+    for field_name, (field, _, cls_packagename) in cls_fields.items():
         field_modifier = field.getModifiers()
         static = Modifier.isStatic(field_modifier)
         sig = get_signature(field.getType())
         if Modifier.isProtected(field_modifier) and not include_protected:
             continue
         if Modifier.isPrivate(field_modifier) and not include_private:
+            continue
+        if Modifier.isPackageProtected(field_modifier) and not include_protected and cls_start_packagename != cls_packagename:
             continue
         cls = JavaStaticField if static else JavaField
         classDict[field_name] = cls(sig)

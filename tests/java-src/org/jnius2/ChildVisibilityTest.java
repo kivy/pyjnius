@@ -1,6 +1,8 @@
-package org.jnius;
+package org.jnius2;
 
 import java.lang.String;
+
+import org.jnius.VisibilityTest;
 
 public class ChildVisibilityTest extends VisibilityTest {
     public String fieldChildPublic = "ChildPublic";
