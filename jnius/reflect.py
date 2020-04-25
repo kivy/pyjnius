@@ -273,8 +273,11 @@ def autoclass(clsname, include_protected=True, include_private=True):
                 continue
             if Modifier.isPrivate(method_modifier) and not include_private:
                 continue
-            if Modifier.isPackageProtected(method_modifier) and not include_protected and cls_start_packagename != cls_packagename:
-                continue
+            if Modifier.isPackageProtected(method_modifier):
+                if cls_start_packagename == cls_packagename and not include_protected:
+                    continue
+                if cls_start_packagename != cls_packagename and not include_private:
+                    continue
             name = methods_name[index]
             cls_methods[name].append((cls, method, level))
     
@@ -297,8 +300,11 @@ def autoclass(clsname, include_protected=True, include_private=True):
             continue
         if Modifier.isPrivate(field_modifier) and not include_private:
             continue
-        if Modifier.isPackageProtected(field_modifier) and not include_protected and cls_start_packagename != cls_packagename:
-            continue
+        if Modifier.isPackageProtected(field_modifier):
+            if cls_start_packagename == cls_packagename and not include_protected:
+                continue
+            if cls_start_packagename != cls_packagename and not include_private:
+                continue
         cls = JavaStaticField if static else JavaField
         classDict[field_name] = cls(sig)
 
