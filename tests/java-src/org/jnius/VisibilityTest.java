@@ -4,15 +4,21 @@ import java.lang.String;
 
 public class VisibilityTest {
     public String fieldPublic = "Public";
+    String fieldPackageProtected = "PackageProtected";
     protected String fieldProtected = "Protected";
     private String fieldPrivate = "Private";
 
     static public String fieldStaticPublic = "StaticPublic";
+    static String fieldStaticPackageProtected = "StaticPackageProtected";
     static protected String fieldStaticProtected = "StaticProtected";
     static private String fieldStaticPrivate = "StaticPrivate";
 
     public String methodPublic() {
         return fieldPublic;
+    }
+
+    String methodPackageProtected() {
+        return fieldPackageProtected;
     }
 
     protected String methodProtected() {
@@ -34,6 +40,10 @@ public class VisibilityTest {
 
     static public String methodStaticPublic() {
         return fieldStaticPublic;
+    }
+
+    static String methodStaticPackageProtected() {
+        return fieldStaticPackageProtected;
     }
 
     static protected String methodStaticProtected() {
