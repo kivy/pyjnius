@@ -38,6 +38,15 @@ class ReflectTest(unittest.TestCase):
         self.assertEqual(d["java.lang.Object"], maxLevel)
         self.assertEqual(d["java.util.ArrayList"], 0)
 
+    def test_class(self):
+        lstClz = autoclass("java.util.List")
+        self.assertTrue("_class" in dir(lstClz))
+        self.assertEqual("java.util.List", lstClz._class.getName())
+        alstClz = autoclass("java.util.ArrayList")
+        self.assertTrue("_class" in dir(alstClz))
+        self.assertEqual("java.util.ArrayList", alstClz._class.getName())
+        self.assertEqual("java.util.ArrayList", alstClz().getClass().getName())
+
     def test_stack(self):
         Stack = autoclass('java.util.Stack')
         stack = Stack()

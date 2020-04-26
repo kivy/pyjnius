@@ -230,6 +230,8 @@ def autoclass(clsname, include_protected=True, include_private=True):
         raise Exception('Java class {0} not found'.format(c))
         return None
 
+    classDict['_class'] = c
+
     constructors = []
     for constructor in c.getConstructors():
         sig = '({0})V'.format(
