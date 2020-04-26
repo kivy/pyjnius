@@ -95,12 +95,6 @@ class Modifier(with_metaclass(MetaJavaClass, JavaClass)):
     isTransient = JavaStaticMethod('(I)Z')
     isVolatile = JavaStaticMethod('(I)Z')
 
-    @classmethod
-    def isPackageProtected(cls, modifier):
-        return not (Modifier.isPublic(modifier) or
-                    Modifier.isProtected(modifier) or
-                    Modifier.isPrivate(modifier))
-
 
 class Method(with_metaclass(MetaJavaClass, JavaClass)):
     __javaclass__ = 'java/lang/reflect/Method'
@@ -273,7 +267,9 @@ def autoclass(clsname, include_protected=True, include_private=True):
                 continue
             if Modifier.isPrivate(method_modifier) and not include_private:
                 continue
-            if Modifier.isPackageProtected(method_modifier):
+            if not (Modifier.isPublic(method_modifier) or
+                    Modifier.isProtected(method_modifier) or
+                    Modifier.isPrivate(method_modifier)):
                 if cls_start_packagename == cls_packagename and not include_protected:
                     continue
                 if cls_start_packagename != cls_packagename and not include_private:
@@ -300,7 +296,9 @@ def autoclass(clsname, include_protected=True, include_private=True):
             continue
         if Modifier.isPrivate(field_modifier) and not include_private:
             continue
-        if Modifier.isPackageProtected(field_modifier):
+        if not (Modifier.isPublic(field_modifier) or
+                Modifier.isProtected(field_modifier) or
+                Modifier.isPrivate(field_modifier)):
             if cls_start_packagename == cls_packagename and not include_protected:
                 continue
             if cls_start_packagename != cls_packagename and not include_private:
