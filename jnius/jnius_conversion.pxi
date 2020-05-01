@@ -286,7 +286,7 @@ cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
         j_chars = j_env[0].GetCharArrayElements(
                 j_env, j_object, &iscopy)
 
-        if sys.version_info < (3, 0):
+        if PY_MAJOR_VERSION < 3:
             ret = [chr(<char>j_chars[i]) for i in range(array_size)]
         else:
             ret = [chr(j_chars[i]) for i in range(array_size)]

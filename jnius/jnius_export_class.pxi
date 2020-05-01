@@ -1,6 +1,6 @@
 from cpython cimport PyObject
+from cpython.version cimport PY_MAJOR_VERSION
 from warnings import warn
-import sys
 
 
 class JavaException(Exception):
@@ -570,7 +570,7 @@ cdef class JavaField(object):
         elif r == 'C':
             j_char = j_env[0].GetCharField(
                     j_env, j_self, self.j_field)
-            if sys.version_info < (3, 0):
+            if PY_MAJOR_VERSION < 3:
                 ret = chr(<char>j_char)
             else:
                 ret = chr(j_char)
@@ -697,7 +697,7 @@ cdef class JavaField(object):
         elif r == 'C':
             j_char = j_env[0].GetStaticCharField(
                     j_env, self.j_cls, self.j_field)
-            if sys.version_info < (3, 0):
+            if PY_MAJOR_VERSION < 3:
                 ret = chr(<char>j_char)
             else:
                 ret = chr(j_char)
@@ -901,7 +901,7 @@ cdef class JavaMethod(object):
             with nogil:
                 j_char = j_env[0].CallCharMethodA(
                         j_env, j_self, self.j_method, j_args)
-            if sys.version_info < (3, 0):
+            if PY_MAJOR_VERSION < 3:
                 ret = chr(<char>j_char)
             else:
                 ret = chr(j_char)
@@ -992,7 +992,7 @@ cdef class JavaMethod(object):
             with nogil:
                 j_char = j_env[0].CallStaticCharMethodA(
                         j_env, self.j_cls, self.j_method, j_args)
-            if sys.version_info < (3, 0):
+            if PY_MAJOR_VERSION < 3:
                 ret = chr(<char>j_char)
             else:
                 ret = chr(j_char)
