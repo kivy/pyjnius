@@ -1,4 +1,5 @@
 from cpython cimport PyObject
+from cpython.version cimport PY_MAJOR_VERSION
 from warnings import warn
 
 
@@ -569,7 +570,10 @@ cdef class JavaField(object):
         elif r == 'C':
             j_char = j_env[0].GetCharField(
                     j_env, j_self, self.j_field)
-            ret = chr(<char>j_char)
+            if PY_MAJOR_VERSION < 3:
+                ret = chr(<char>j_char)
+            else:
+                ret = chr(j_char)
         elif r == 'S':
             j_short = j_env[0].GetShortField(
                     j_env, j_self, self.j_field)
@@ -693,7 +697,10 @@ cdef class JavaField(object):
         elif r == 'C':
             j_char = j_env[0].GetStaticCharField(
                     j_env, self.j_cls, self.j_field)
-            ret = chr(<char>j_char)
+            if PY_MAJOR_VERSION < 3:
+                ret = chr(<char>j_char)
+            else:
+                ret = chr(j_char)
         elif r == 'S':
             j_short = j_env[0].GetStaticShortField(
                     j_env, self.j_cls, self.j_field)
@@ -894,7 +901,10 @@ cdef class JavaMethod(object):
             with nogil:
                 j_char = j_env[0].CallCharMethodA(
                         j_env, j_self, self.j_method, j_args)
-            ret = chr(<char>j_char)
+            if PY_MAJOR_VERSION < 3:
+                ret = chr(<char>j_char)
+            else:
+                ret = chr(j_char)
         elif r == 'S':
             with nogil:
                 j_short = j_env[0].CallShortMethodA(
@@ -982,7 +992,10 @@ cdef class JavaMethod(object):
             with nogil:
                 j_char = j_env[0].CallStaticCharMethodA(
                         j_env, self.j_cls, self.j_method, j_args)
-            ret = chr(<char>j_char)
+            if PY_MAJOR_VERSION < 3:
+                ret = chr(<char>j_char)
+            else:
+                ret = chr(j_char)
         elif r == 'S':
             with nogil:
                 j_short = j_env[0].CallStaticShortMethodA(
