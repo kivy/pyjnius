@@ -18,6 +18,12 @@ public class CharsAndStrings {
   static public String testStaticString2 = "umlauts: äöü";
   static public String testStaticString3 = "happy face: ☺";
 
+  public char[] testCharArray1;
+  public char[] testCharArray2;
+  static public char[] testStaticCharArray1 = new char[]{'a', 'b', 'c'};
+  static public char[] testStaticCharArray2 = new char[]{'a', 'ä', '☺'};
+
+
   public CharsAndStrings() {
     this.testChar1 = 'a';
     this.testChar2 = 'ä';
@@ -26,6 +32,9 @@ public class CharsAndStrings {
     this.testString1 = "hello world";
     this.testString2 = "umlauts: äöü";
     this.testString3 = "happy face: ☺";
+
+    testCharArray1 = new char[]{'a', 'b', 'c'};
+    testCharArray2 = new char[]{'a', 'ä', '☺'};
   }
 
   public char testChar(int i, char testChar) {
@@ -77,6 +86,22 @@ public class CharsAndStrings {
     } else {
       assert CharsAndStrings.testStaticString3.equals(testString);
       return CharsAndStrings.testStaticString3;
+    }
+  }
+
+  public char[] testCharArray(int i) {
+    if (i == 1) {
+      return testCharArray1;
+    } else {
+      return testCharArray2;
+    }
+  }
+
+  static public char[] testStaticCharArray(int i) {
+    if (i == 1) {
+      return testStaticCharArray1;
+    } else {
+      return testStaticCharArray2;
     }
   }
 }

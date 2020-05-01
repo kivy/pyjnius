@@ -81,3 +81,50 @@ class CharsAndStringsTest(unittest.TestCase):
         if sys.version_info.major >= 3:
             self.assertEqual(Test.testStaticString(2, "umlauts: äöü"), "umlauts: äöü")
             self.assertEqual(Test.testStaticString(3, "happy face: ☺"), "happy face: ☺")
+
+    def test_char_array(self):
+        Test = autoclass('org.jnius.CharsAndStrings',
+                         include_protected=False, include_private=False)
+        test = Test()
+
+        charArray1 = ['a', 'b', 'c']
+        charArray2 = ['a', 'ä', '☺']
+
+        for c1, c2 in zip(charArray1, test.testCharArray1):
+            self.assertEqual(c1, c2)
+        for c1, c2 in zip(charArray1, test.testCharArray(1)):
+            self.assertEqual(c1, c2)
+        if sys.version_info.major >= 3:
+            for c1, c2 in zip(charArray2, test.testCharArray2):
+                self.assertEqual(c1, c2)
+            for c1, c2 in zip(charArray2, test.testCharArray(2)):
+                self.assertEqual(c1, c2)
+
+    def test_static_char_array(self):
+        Test = autoclass('org.jnius.CharsAndStrings',
+                         include_protected=False, include_private=False)
+
+        charArray1 = ['a', 'b', 'c']
+        charArray2 = ['a', 'ä', '☺']
+
+        for c1, c2 in zip(charArray1, Test.testStaticCharArray1):
+            self.assertEqual(c1, c2)
+        for c1, c2 in zip(charArray1, Test.testStaticCharArray(1)):
+            self.assertEqual(c1, c2)
+        if sys.version_info.major >= 3:
+            for c1, c2 in zip(charArray2, Test.testStaticCharArray2):
+                self.assertEqual(c1, c2)
+            for c1, c2 in zip(charArray2, Test.testStaticCharArray(2)):
+                self.assertEqual(c1, c2)
+
+
+    def test_java_string(self):
+        JString = autoclass('java.lang.String')
+
+        testString1 = JString('hello world')
+        self.assertTrue(testString1.equals('hello world'))
+        if sys.version_info.major >= 3:
+            testString2 = JString('umlauts: äöü')
+            self.assertTrue(testString2.equals('umlauts: äöü'))
+            testString3 = JString('happy face: ☺')
+            self.assertTrue(testString3.equals('happy face: ☺'))
