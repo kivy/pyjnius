@@ -9,7 +9,10 @@ from os import getenv
 from platform import machine
 from subprocess import Popen, check_output, PIPE
 from shlex import split
+from logging import getLogger
+from textwrap import dedent
 
+log = getLogger(__name__)
 
 PY2 = sys.version_info.major < 3
 
@@ -194,51 +197,78 @@ def get_libraries(platform):
 
 def get_jnius_lib_location(platform):
     cpu = get_cpu()
+    libjvm_override_path = getenv('JVM_PATH')
+
+    if libjvm_override_path:
+        log.info(
+            dedent("""
+                Using override env var JVM_PATH (%s) to load libjvm.
+                Please report your system information (os version, java
+                version, etc), and the path that works for you, to the
+                PyJNIus project, at https://github.com/kivy/pyjnius/issues.
+                so we can improve the automatic discovery.
+            """
+            ),
+            libjvm_override_path
+        )
+        return libjvm_override_path
+
+    log.debug(
+        "looing for libjvm to initiate pyjnius, cpu is %s, platform is %s",
+        cpu, platform
+    )
 
     if platform == 'darwin':
-        framework = get_osx_framework()
+        root = get_osx_framework()
 
-        if '1.6' in framework:
+        if '1.6' in root:
             return '../Libraries/libjvm.dylib'
 
         else:
-            lib_location = 'jre/lib/jli/libjli.dylib'
-
             # We want to favor Java installation declaring JAVA_HOME
             if JAVA_HOME:
-                framework = JAVA_HOME
+                root = JAVA_HOME
 
-            full_lib_location = join(framework, lib_location)
-
-            if not exists(full_lib_location):
-                # In that case, the Java version is very likely >=9.
-                # So we need to modify the `libjvm.so` path.
-                lib_location = 'lib/jli/libjli.dylib'
-                full_lib_location = join(framework, lib_location)
-
-            if not exists(full_lib_location):
+            lib_locations = (
+                'jre/lib/jli/libjli.dylib',
+                # In that case, the Java version >=9.
+                'lib/jli/libjli.dylib',
                 # adoptopenjdk12 doesn't have the jli subfolder either
-                return 'lib/libjli.dylib'
-
-            return lib_location
-
-    elif platform == 'sunos5':
-        return 'jre/lib/{}/server/libjvm.so'.format(cpu)
+                'lib/libjli.dylib',
+            )
 
     else:
-        if platform not in ('linux', 'linux2'):
-            print("warning: unknown platform assuming linux")
+        if platform not in ('linux', 'linux2', 'sunos5'):
+            log.warning("warning: unknown platform assuming linux or sunOS")
 
-        lib_location = 'jre/lib/{}/server/libjvm.so'.format(cpu)
+        root = dirname(get_jre_home(platform))
+        if root.endswith('jre'):
+            root = root[:-3]
 
-        jre_home = dirname(get_jre_home(platform))
-        if jre_home.endswith('jre'):
-            jre_home = jre_home[:-3]
+        lib_locations = (
+            'lib/server/libjvm.so',
+            'jre/lib/{}/default/libjvm.so'.format(cpu),
+            'jre/lib/{}/server/libjvm.so'.format(cpu),
+        )
 
-        full_lib_location = join(jre_home, lib_location)
+    for location in lib_locations:
+        full_lib_location = join(root, location)
 
-        if not exists(full_lib_location):
-            # In that case, the Java version is very likely >=9.
-            # So we need to modify the `libjvm.so` path.
-            lib_location = 'lib/server/libjvm.so'
-        return lib_location
+        if exists(full_lib_location):
+            log.debug("found libjvm.so at %s", full_lib_location)
+            return location
+
+    raise RuntimeError(
+        """
+        Unable to find libjvm.so, (tried %s)
+        you can use the JVM_PATH env variable with the relative path
+        from JAVA_HOME to libjvm.so to override this lookup, if you know
+        where pyjnius should look for it.
+
+        e.g:
+            export JAVA_HOME=/usr/lib/jvm/java-8-oracle/
+            export JVM_PATH=./jre/lib/amd64/server/libjvm.so
+            # run your program
+        """
+        % [join(root, loc) for loc in lib_locations]
+    )
