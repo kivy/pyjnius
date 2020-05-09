@@ -103,7 +103,7 @@ cdef void create_jnienv() except *:
     cdef void *jniCreateJVM = dlsym(handle, b"JNI_CreateJavaVM")
 
     if jniCreateJVM == NULL:
-       raise SystemError("Error calling dlfcn for JNI_CreateJavaVM: {0}".format(dlerror()))
+       raise SystemError("Error calling dlfcn for JNI_CreateJavaVM: {0})".format(dlerror()))
 
     optarr = jnius_config.options
     optarr.append("-Djava.class.path=" + jnius_config.expand_classpath())
