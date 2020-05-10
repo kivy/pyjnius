@@ -6,7 +6,6 @@ jobs:
     strategy:
       matrix:
         python:
-           - '2.7'
            - '3.6'
            - '3.7'
            - '3.8'
@@ -26,8 +25,8 @@ jobs:
 
         # exclude problematic combinations
         exclude:
-        - os: windows-latest
-          python: '2.7'
+        - os: ubuntu-latest
+          architecture: 'x86'
         - os: macOs-latest
           architecture: 'x86'
 
@@ -39,6 +38,7 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python }}
+        architecture: ${{ matrix.architecture }}
 
     - name: Setup java
       uses: actions/setup-java@v1
