@@ -208,8 +208,14 @@ cdef convert_jobject_to_python(JNIEnv *j_env, definition, jobject j_object):
             from .reflect import Object
             ret_jc = Object(noinstance=True)
         else:
-            from .reflect import autoclass
-            ret_jc = autoclass(r.replace('/', '.'))(noinstance=True)
+            from .reflect import autoclass, reflect_class
+            #ret_jc = autoclass(r.replace('/', '.'))(noinstance=True)
+            c = find_javaclass(r)
+            if c is None:
+                # The class may have come from another ClassLoader
+                # we need to get that ClassLoader
+                raise JavaException("could not find %s in default ClassLoader" % r)
+            ret_jc = reflect_class(c)(noinstance=True)
     else:
         ret_jc = jclass_register[r](noinstance=True)
     ret_jc.instanciate_from(create_local_ref(j_env, j_object))
