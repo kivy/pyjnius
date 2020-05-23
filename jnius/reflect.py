@@ -12,7 +12,7 @@ from .jnius import (
     JavaException
 )
 
-__all__ = ('autoclass', 'ensureclass', 'protocol_map')
+__all__ = ('autoclass', 'ensureclass', 'protocol_map', 'reflect_class')
 
 log = getLogger(__name__)
 
@@ -25,6 +25,7 @@ class Class(with_metaclass(MetaJavaClass, JavaClass)):
         ('(Ljava/lang/String,Z,Ljava/lang/ClassLoader;)Ljava/langClass;', True, False),
         ('(Ljava/lang/String;)Ljava/lang/Class;', True, False), ])
     getClassLoader = JavaMethod('()Ljava/lang/ClassLoader;')
+    getClass = JavaMethod('()Ljava/lang/Class;')
     getClasses = JavaMethod('()[Ljava/lang/Class;')
     getComponentType = JavaMethod('()Ljava/lang/Class;')
     getConstructor = JavaMethod('([Ljava/lang/Class;)Ljava/lang/reflect/Constructor;')
@@ -55,6 +56,7 @@ class Class(with_metaclass(MetaJavaClass, JavaClass)):
     isInstance = JavaMethod('(Ljava/lang/Object;)Z')
     isInterface = JavaMethod('()Z')
     isPrimitive = JavaMethod('()Z')
+    hashCode = JavaMethod('()I')
     newInstance = JavaMethod('()Ljava/lang/Object;')
     toString = JavaMethod('()Ljava/lang/String;')
 
@@ -222,14 +224,21 @@ def autoclass(clsname, include_protected=True, include_private=True):
     if cls:
         return cls
 
-    classDict = {}
-    cls_start_packagename = '.'.join(clsname.split('.')[:-1])
-
     # c = Class.forName(clsname)
     c = find_javaclass(clsname)
     if c is None:
         raise Exception('Java class {0} not found'.format(c))
         return None
+
+    return reflect_class(c, include_protected, include_private)
+
+
+# NOTE: See also comments on autoclass()
+def reflect_class(c, include_protected=True, include_private=True):
+
+    clsname = c.getName()
+    classDict = {}
+    cls_start_packagename = '.'.join(clsname.split('.')[:-1])
 
     classDict['_class'] = c
 
