@@ -1,4 +1,5 @@
 from cpython cimport PyObject
+from cpython.version cimport PY_MAJOR_VERSION
 from warnings import warn
 
 
@@ -573,7 +574,10 @@ cdef class JavaField(object):
         elif r == 'C':
             j_char = j_env[0].GetCharField(
                     j_env, j_self, self.j_field)
-            ret = chr(<char>j_char)
+            if PY_MAJOR_VERSION < 3:
+                ret = chr(<char>j_char)
+            else:
+                ret = chr(j_char)
         elif r == 'S':
             j_short = j_env[0].GetShortField(
                     j_env, j_self, self.j_field)
@@ -697,7 +701,10 @@ cdef class JavaField(object):
         elif r == 'C':
             j_char = j_env[0].GetStaticCharField(
                     j_env, self.j_cls, self.j_field)
-            ret = chr(<char>j_char)
+            if PY_MAJOR_VERSION < 3:
+                ret = chr(<char>j_char)
+            else:
+                ret = chr(j_char)
         elif r == 'S':
             j_short = j_env[0].GetStaticShortField(
                     j_env, self.j_cls, self.j_field)
@@ -796,7 +803,7 @@ cdef class JavaMethod(object):
 
         if self.j_method == NULL:
             raise JavaException('Unable to find the method'
-                    ' {0}({1})'.format(self.name, self.definition))
+                    ' {0}({1}) in {2}'.format(self.name, self.definition, self.classname))
 
     cdef void set_resolve_info(self, JNIEnv *j_env, jclass j_cls,
             LocalRef j_self, name, classname):
@@ -827,7 +834,9 @@ cdef class JavaMethod(object):
         if len(args) != d_args_len:
             raise JavaException(
                 'Invalid call, number of argument mismatch, '
-                'got {} need {}'.format(len(args), d_args_len)
+                'got {} need {}, found definitions {} in class {} method {}'.format(
+                    len(args), d_args_len, str(self.definition_args),
+                    self.classname, self.name) 
             )
 
         if not self.is_static and j_env == NULL:
@@ -897,7 +906,10 @@ cdef class JavaMethod(object):
             with nogil:
                 j_char = j_env[0].CallCharMethodA(
                         j_env, j_self, self.j_method, j_args)
-            ret = chr(<char>j_char)
+            if PY_MAJOR_VERSION < 3:
+                ret = chr(<char>j_char)
+            else:
+                ret = chr(j_char)
         elif r == 'S':
             with nogil:
                 j_short = j_env[0].CallShortMethodA(
@@ -985,7 +997,10 @@ cdef class JavaMethod(object):
             with nogil:
                 j_char = j_env[0].CallStaticCharMethodA(
                         j_env, self.j_cls, self.j_method, j_args)
-            ret = chr(<char>j_char)
+            if PY_MAJOR_VERSION < 3:
+                ret = chr(<char>j_char)
+            else:
+                ret = chr(j_char)
         elif r == 'S':
             with nogil:
                 j_short = j_env[0].CallStaticShortMethodA(
@@ -1122,7 +1137,8 @@ cdef class JavaMultipleMethod(object):
 
         if not scores:
             raise JavaException(
-                'No methods matching your arguments, available: {}'.format(
+                'No methods matching your arguments, requested: {}, available: {}'.format(
+                    args,
                     found_signatures
                 )
             )

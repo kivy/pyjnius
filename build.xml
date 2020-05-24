@@ -10,13 +10,15 @@
     <target name="compile">
         <mkdir dir="build/classes"/>
         <javac srcdir="jnius/src" destdir="build/classes"
-               includeantruntime='false' />
+               includeantruntime='false'
+               encoding="UTF-8"/>
     </target>
 
     <target name="test-compile">
         <mkdir dir="build/test-classes"/>
         <javac srcdir="tests/java-src" destdir="build/test-classes"
-               includeantruntime='false' />
+               includeantruntime='false'
+               encoding="UTF-8"/>
     </target>
 
     <target name="jar" depends="compile">

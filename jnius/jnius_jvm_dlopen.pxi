@@ -98,7 +98,7 @@ cdef void create_jnienv() except *:
     handle = dlopen(lib_path, RTLD_NOW | RTLD_GLOBAL)
 
     if handle == NULL:
-        raise SystemError("Error calling dlopen({0}: {1}".format(lib_path, dlerror()))
+        raise SystemError("Error calling dlopen({0}): {1}".format(lib_path, dlerror()))
 
     cdef void *jniCreateJVM = dlsym(handle, b"JNI_CreateJavaVM")
 
@@ -126,6 +126,8 @@ cdef void create_jnienv() except *:
         raise SystemError("JVM failed to start: {0}".format(ret))
 
     jnius_config.vm_running = True
+    import traceback
+    jnius_config.vm_started_at = ''.join(traceback.format_stack())
 
 cdef JNIEnv *get_platform_jnienv() except NULL:
     if _platform_default_env == NULL:

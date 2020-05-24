@@ -205,12 +205,15 @@ def autoclass(clsname, include_protected=True, include_private=True):
         return cls
 
     classDict = {}
+    cls_start_packagename = '.'.join(clsname.split('.')[:-1])
 
     # c = Class.forName(clsname)
     c = find_javaclass(clsname)
     if c is None:
         raise Exception('Java class {0} not found'.format(c))
         return None
+
+    classDict['_class'] = c
 
     constructors = []
     for constructor in c.getConstructors():
@@ -234,6 +237,7 @@ def autoclass(clsname, include_protected=True, include_private=True):
         # many interfaces can lead to java.lang.Object
         if cls in cls_done:
             continue
+        cls_packagename = '.'.join(cls.getName().split('.')[:-1])
         cls_done.add(cls)
         # as we are walking the entire hierarchy, we only need getDeclaredMethods()
         # to get what is in this class; other parts of the hierarchy will be found
@@ -247,6 +251,13 @@ def autoclass(clsname, include_protected=True, include_private=True):
                 continue
             if Modifier.isPrivate(method_modifier) and not include_private:
                 continue
+            if not (Modifier.isPublic(method_modifier) or
+                    Modifier.isProtected(method_modifier) or
+                    Modifier.isPrivate(method_modifier)):
+                if cls_start_packagename == cls_packagename and not include_protected:
+                    continue
+                if cls_start_packagename != cls_packagename and not include_private:
+                    continue
             name = methods_name[index]
             cls_methods[name].append((cls, method, level))
     
@@ -255,13 +266,13 @@ def autoclass(clsname, include_protected=True, include_private=True):
             field_name = field.getName()
             if field_name in cls_fields:
                 if level < cls_fields[field_name][1]:
-                    cls_fields[field_name] = (field, level)
+                    cls_fields[field_name] = (field, level, cls_packagename)
             else:
-                cls_fields[field_name] = (field, level)
+                cls_fields[field_name] = (field, level, cls_packagename)
 
     # the fields are analyzed before methods so that if a method and a field
     # have the same name, the field will take precedence in classDict.
-    for field_name, (field, _) in cls_fields.items():
+    for field_name, (field, _, cls_packagename) in cls_fields.items():
         field_modifier = field.getModifiers()
         static = Modifier.isStatic(field_modifier)
         sig = get_signature(field.getType())
@@ -269,6 +280,13 @@ def autoclass(clsname, include_protected=True, include_private=True):
             continue
         if Modifier.isPrivate(field_modifier) and not include_private:
             continue
+        if not (Modifier.isPublic(field_modifier) or
+                Modifier.isProtected(field_modifier) or
+                Modifier.isPrivate(field_modifier)):
+            if cls_start_packagename == cls_packagename and not include_protected:
+                continue
+            if cls_start_packagename != cls_packagename and not include_private:
+                continue
         cls = JavaStaticField if static else JavaField
         classDict[field_name] = cls(sig)
 
@@ -285,8 +303,13 @@ def autoclass(clsname, include_protected=True, include_private=True):
             if log.isEnabledFor(DEBUG):
                 log_method(method, name, sig)
             classDict[name] = (JavaStaticMethod if static else JavaMethod)(sig, varargs=varargs)
+            # methods that fit the characteristics of a JavaBean's methods get turned into properties.
+            # these added properties should not supercede any other methods or fields.
             if name != 'getClass' and bean_getter(name) and len(method.getParameterTypes()) == 0:
                 lowername = lower_name(name[2 if name.startswith('is') else 3:])
+                if lowername in classDict:
+                    # don't add this to classDict if the property will replace a method or field.
+                    continue
                 classDict[lowername] = (lambda n: property(lambda self: getattr(self, n)()))(name)
         else:
             # multiple signatures
