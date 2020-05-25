@@ -26,3 +26,25 @@ class ReflectTest(unittest.TestCase):
         # check we can instantiate it
         instance = pyclass()
         self.assertIsNotNone(instance)
+
+
+    def test_dynamic_jar(self):
+        # the idea behind this test is to:
+        # 1. load an external jar file using an additional ClassLoader
+        # 2. check we can instantate the Class instance
+        # 3. check we can reflect the Class instance
+        # 4. check we can call a method that returns an object that can only be accessed using the additional ClassLoader
+        jar_url = "https://repo1.maven.org/maven2/commons-io/commons-io/2.6/commons-io-2.6.jar"
+        url = autoclass("java.net.URL")(jar_url)
+        sys_cls_loader = autoclass("java.lang.ClassLoader").getSystemClassLoader()
+        new_cls_loader = autoclass("java.net.URLClassLoader").newInstance([url], sys_cls_loader)
+        cls_object = new_cls_loader.loadClass("org.apache.commons.io.IOUtils")
+        self.assertIsNotNone(cls_object)
+        io_utils = reflect_class(cls_object)
+        self.assertIsNotNone(io_utils)
+
+        stringreader = autoclass("java.io.StringReader")("test1\test2")
+        lineiter = io_utils.lineIterator(stringreader)
+        self.assertEqual("test1", lineiter.next())
+        self.assertEqual("test2", lineiter.next())
+
