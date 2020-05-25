@@ -219,6 +219,17 @@ def identify_hierarchy(cls, level, concrete=True):
 # you also must change the classparams default value in MetaJavaClass.__new__
 # and MetaJavaClass.get_javaclass.
 def autoclass(clsname, include_protected=True, include_private=True):
+    '''
+        Auto-reflects a class based on its name. 
+
+        Parameters:
+            clsname (str): string name of the class, e.g. "java.util.HashMap"
+            include_protected (boolean): whether protected methods and fields should be included
+            include_private (boolean): whether protected methods and fields should be included
+        
+        Returns:
+            Returns a Python object representing the static class.
+    '''
     jniname = clsname.replace('.', '/')
     cls = MetaJavaClass.get_javaclass(jniname, classparams=(include_protected, include_private))
     if cls:
@@ -233,25 +244,36 @@ def autoclass(clsname, include_protected=True, include_private=True):
     return reflect_class(c, include_protected, include_private)
 
 
-# NOTE: See also comments on autoclass()
-def reflect_class(c, include_protected=True, include_private=True):
+# NOTE: See also comments on autoclass() on include_protected or include_private default values
+def reflect_class(cls_object, include_protected=True, include_private=True):
+    '''
+        Auto-reflects a class based on an instance of its class.
 
-    clsname = c.getName()
+        Parameters:
+            cls_object (str): a Python instance of a java.lang.Class object.
+            include_protected (boolean): whether protected methods and fields should be included
+            include_private (boolean): whether protected methods and fields should be included
+        
+        Returns:
+            Returns a Python object representing the static class.
+    '''
+
+    clsname = cls_object.getName()
     classDict = {}
     cls_start_packagename = '.'.join(clsname.split('.')[:-1])
 
-    classDict['_class'] = c
+    classDict['_class'] = cls_object
 
     constructors = []
-    for constructor in c.getConstructors():
+    for constructor in cls_object.getConstructors():
         sig = '({0})V'.format(
             ''.join([get_signature(x) for x in constructor.getParameterTypes()]))
         constructors.append((sig, constructor.isVarArgs()))
     classDict['__javaconstructor__'] = constructors
 
-    class_hierachy = list(identify_hierarchy(c, 0, not c.isInterface()))
+    class_hierachy = list(identify_hierarchy(cls_object, 0, not cls_object.isInterface()))
 
-    log.debug("autoclass(%s) intf %r hierarchy is %s" % (clsname,c.isInterface(),str(class_hierachy)))
+    log.debug("autoclass(%s) intf %r hierarchy is %s" % (clsname,cls_object.isInterface(),str(class_hierachy)))
     cls_done=set()
 
     cls_methods = defaultdict(list)
@@ -341,7 +363,7 @@ def reflect_class(c, include_protected=True, include_private=True):
         else:
             # multiple signatures
             signatures = []
-            log.debug("method %s has %d multiple signatures in hierarchy of cls %s" % (name, len(cls_methods[name]), c))
+            log.debug("method %s has %d multiple signatures in hierarchy of cls %s" % (name, len(cls_methods[name]), clsname))
 
             paramsig_to_level=defaultdict(lambda: float('inf'))
             # we now identify if any have the same signature, as we will call the _lowest_ in the hierarchy,
