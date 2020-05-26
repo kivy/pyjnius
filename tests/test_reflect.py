@@ -104,7 +104,8 @@ class ReflectTest(unittest.TestCase):
 
     def test_autoclass_default_params(self):
         cls_name = 'javax.crypto.Cipher'
-        if MetaJavaClass.get_javaclass(cls_name.replace('.', '/')) is not None:
+        jni_name = cls_name.replace('.', '/')
+        if MetaJavaClass.get_javaclass(jni_name) is not None:
                     self.skipTest("%s already loaded - has this test run more than once?" % cls_name)
         self.assertIsNotNone(autoclass(cls_name))
-        self.assertIsNotNone(MetaJavaClass.get_javaclass(cls_name.replace('.', '/')))
+        self.assertIsNotNone(MetaJavaClass.get_javaclass(jni_name))
