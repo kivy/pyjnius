@@ -9,7 +9,7 @@ from six import with_metaclass, PY2
 from .jnius import (
     JavaClass, MetaJavaClass, JavaMethod, JavaStaticMethod,
     JavaField, JavaStaticField, JavaMultipleMethod, find_javaclass,
-    JavaException
+    JavaException, _DEFAULT_INCLUDE_PROTECTED, _DEFAULT_INCLUDE_PRIVATE
 )
 
 __all__ = ('autoclass', 'ensureclass', 'protocol_map', 'reflect_class')
@@ -215,10 +215,9 @@ def identify_hierarchy(cls, level, concrete=True):
     yield cls, level
 
 
-# NOTE: if you change the include_protected or include_private default values,
-# you also must change the classparams default value in MetaJavaClass.__new__
-# and MetaJavaClass.get_javaclass.
-def autoclass(clsname, include_protected=True, include_private=True):
+def autoclass(clsname,
+              include_protected=_DEFAULT_INCLUDE_PROTECTED,
+              include_private=_DEFAULT_INCLUDE_PRIVATE):
     '''
         Auto-reflects a class based on its name. 
 

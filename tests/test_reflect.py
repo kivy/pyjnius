@@ -5,7 +5,7 @@ import unittest
 from jnius.reflect import autoclass
 from jnius import cast
 from jnius.reflect import identify_hierarchy
-from jnius import find_javaclass
+from jnius import find_javaclass, MetaJavaClass
 
 def identify_hierarchy_dict(cls, level, concrete=True):
     return({ cls.getName() : level for cls,level in identify_hierarchy(cls, level, concrete) })
@@ -102,3 +102,10 @@ class ReflectTest(unittest.TestCase):
         words.add('world')
         self.assertEqual(['hello', 'world'], [word for word in words])
 
+    def test_autoclass_default_params(self):
+        cls_name = 'javax.crypto.Cipher'
+        jni_name = cls_name.replace('.', '/')
+        if MetaJavaClass.get_javaclass(jni_name) is not None:
+                    self.skipTest("%s already loaded - has this test run more than once?" % cls_name)
+        self.assertIsNotNone(autoclass(cls_name))
+        self.assertIsNotNone(MetaJavaClass.get_javaclass(jni_name))
