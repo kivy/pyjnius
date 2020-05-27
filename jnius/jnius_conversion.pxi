@@ -200,23 +200,30 @@ cdef convert_jobject_to_python(JNIEnv *j_env, definition, jobject j_object):
         retmeth = j_env[0].GetMethodID(j_env, retclass, 'charValue', '()C')
         return ord(j_env[0].CallCharMethod(j_env, j_object, retmeth))
 
-    if (r,(True,True)) not in jclass_register:
+    from .reflect import Object
+    if (r,(_DEFAULT_INCLUDE_PROTECTED, _DEFAULT_INCLUDE_PRIVATE)) not in jclass_register:
         if r.startswith('$Proxy'):
             # only for $Proxy on android, don't use autoclass. The dalvik vm is
             # not able to give us introspection on that one (FindClass return
-            # NULL).
-            from .reflect import Object
+            # NULL).            
             ret_jc = Object(noinstance=True)
         else:
             from .reflect import autoclass, reflect_class
-            c = find_javaclass(r)
+            # find_javaclass can raise an exception, but here that just means
+            # that we need to seek the Class instance from the instance, rather than JNI
+            try:
+                c = find_javaclass(r)
+            except:
+                c = None
             if c is None:
                 # The class may have come from another ClassLoader
-                # we need to get that ClassLoader
-                raise JavaException("could not find %s in default ClassLoader" % r)
-            ret_jc = reflect_class(c)(noinstance=True)
+                # we need to get the Class from the instance itself
+                ret_jc = Object(noinstance=True)
+                ret_jc.instanciate_from(create_local_ref(j_env, j_object))
+                c = ret_jc.getClass()
+            ret_jc = reflect_class(c, include_protected=_DEFAULT_INCLUDE_PROTECTED, include_private=_DEFAULT_INCLUDE_PRIVATE)(noinstance=True)
     else:
-        ret_jc = jclass_register[(r,(True,True))](noinstance=True)
+        ret_jc = jclass_register[(r,(_DEFAULT_INCLUDE_PROTECTED, _DEFAULT_INCLUDE_PRIVATE))](noinstance=True)
     ret_jc.instanciate_from(create_local_ref(j_env, j_object))
     return ret_jc
 
