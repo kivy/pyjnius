@@ -209,17 +209,29 @@ class MetaJavaClass(MetaJavaBase):
                 raise JavaException('Unable to create the class'
                         ' {0}'.format(__javaclass__))
         else:
-            class_name = str_for_c(__javaclass__)
-            jcs.j_cls = j_env[0].FindClass(j_env,
-                    <char *>class_name)
-            if jcs.j_cls == NULL:
-                raise JavaException('Unable to find the class'
+            
+            if '_class' in classDict:
+                 #we have a python copy of the class object, in classDict['_class']. lets use this instead of FindClass
+
+                # classDict['_class'] is a jnius.reflect.Class, which extends JavaClass
+                # The jobject for that JavaClass is the jclass that we need to instantiate this object
+                JavaClass.copy_storage(classDict['_class'], jcs)
+                if jcs.j_cls == NULL:
+                    raise JavaException('_class instance did not have a reference'
+                        ' {0}'.format(__javaclass__))
+            else:
+                class_name = str_for_c(__javaclass__)
+                jcs.j_cls = j_env[0].FindClass(j_env,
+                        <char *>class_name)
+                if jcs.j_cls == NULL:
+                    raise JavaException('Unable to find the class'
                         ' {0}'.format(__javaclass__))
 
-        # XXX do we need to grab a ref here?
-        # -> Yes, according to http://developer.android.com/training/articles/perf-jni.html
-        #    in the section Local and Global References
-        jcs.j_cls = j_env[0].NewGlobalRef(j_env, jcs.j_cls)
+                # XXX do we need to grab a ref here?
+                # -> Yes, according to http://developer.android.com/training/articles/perf-jni.html
+                #    in the section Local and Global References
+                jcs.j_cls = j_env[0].NewGlobalRef(j_env, jcs.j_cls)
+                # we only need this for a NEW FindClass call
 
         classDict['__cls_storage'] = jcs
 
@@ -272,6 +284,9 @@ cdef class JavaClass(object):
             self.call_constructor(args, kwargs)
             self.resolve_methods()
             self.resolve_fields()
+
+    cdef void copy_storage(self, JavaClassStorage jcs) except *:
+        jcs.j_cls = <jclass> self.j_self.obj
 
     cdef void instanciate_from(self, LocalRef j_self) except *:
         self.j_self = j_self
