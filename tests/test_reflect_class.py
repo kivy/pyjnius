@@ -43,8 +43,15 @@ class ReflectTest(unittest.TestCase):
         io_utils = reflect_class(cls_object)
         self.assertIsNotNone(io_utils)
 
-        stringreader = autoclass("java.io.StringReader")("test1\test2")
+        stringreader = autoclass("java.io.StringReader")("test1\ntest2")
+        #lineIterator returns an object of class LineIterator - here we check that jnius can reflect that, despite not being in the boot classpath
         lineiter = io_utils.lineIterator(stringreader)
         self.assertEqual("test1", lineiter.next())
         self.assertEqual("test2", lineiter.next())
 
+        # Equivalent Java code:  
+        # var new_cls_loader = java.net.URLClassLoader.newInstance(new java.net.URL[] {new java.net.URL("https://repo1.maven.org/maven2/commons-io/commons-io/2.6/commons-io-2.6.jar")}, ClassLoader.getSystemClassLoader())
+        # var cls = new_cls_loader.loadClass("org.apache.commons.io.IOUtils")
+        # var sr = new java.io.StringReader("test1\ntest2")
+        # var m = $2.getMethod("lineIterator", Reader.class)
+        # m.invoke(null, (Object) sr)
