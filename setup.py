@@ -22,12 +22,8 @@ from setup_sdist import SETUP_KWARGS
 syspath = sys.path[:]
 sys.path.insert(0, 'jnius')
 from env import (
-    get_possible_homes,
-    get_library_dirs,
-    get_include_dirs,
-    get_libraries,
-    find_javac,
-    PY2,
+    get_java_setup,
+    PY2
 )
 sys.path = syspath
 
@@ -76,10 +72,13 @@ if PLATFORM != 'android':
 else:
     FILES = [fn[:-3] + 'c' for fn in FILES if fn.endswith('pyx')]
 
+JAVA=get_java_setup(PLATFORM)
 
-def compile_native_invocation_handler(*possible_homes):
+assert JAVA.is_jdk(), "You need a JDK, we only found a JRE. Try setting JAVA_HOME"
+
+def compile_native_invocation_handler(java):
     '''Find javac and compile NativeInvocationHandler.java.'''
-    javac = find_javac(PLATFORM, possible_homes)
+    javac = java.get_javac()
     source_level = '1.7'
     try:
         subprocess.check_call([
@@ -92,7 +91,7 @@ def compile_native_invocation_handler(*possible_homes):
             join('jnius', 'src', 'org', 'jnius', 'NativeInvocationHandler.java')
         ])
 
-compile_native_invocation_handler(*get_possible_homes(PLATFORM))
+compile_native_invocation_handler(JAVA)
 
 
 # generate the config.pxi
@@ -106,9 +105,9 @@ SETUP_KWARGS['py_modules'].remove('setup')
 ext_modules = [
     Extension(
         'jnius', [join('jnius', x) for x in FILES],
-        libraries=get_libraries(PLATFORM),
-        library_dirs=get_library_dirs(PLATFORM),
-        include_dirs=get_include_dirs(PLATFORM),
+        libraries=JAVA.get_libraries(),
+        library_dirs=JAVA.get_library_dirs(),
+        include_dirs=JAVA.get_include_dirs(),
         extra_link_args=EXTRA_LINK_ARGS,
     )
 ]

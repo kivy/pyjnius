@@ -1,7 +1,7 @@
 import sys
 import os
 from os.path import join
-from jnius.env import get_jdk_home
+from jnius.env import get_java_setup
 from cpython.version cimport PY_MAJOR_VERSION
 
 # on desktop, we need to create an env :)
@@ -48,7 +48,8 @@ cdef void create_jnienv() except *:
 
     if sys.version_info >= (3, 8):
         # uh, let's see if this works and cleanup later
-        jdk_home = get_jdk_home('win32')
+        java = get_java_setup('win32')
+        jdk_home = java.get_javahome()
         for suffix in (
             ('bin', 'client'),
             ('bin', 'server'),
