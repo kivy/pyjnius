@@ -9,13 +9,14 @@ All the documentation is available at: http://pyjnius.readthedocs.org
 
 __version__ = '1.3.0'
 
-from .env import get_jnius_lib_location, get_jdk_home
+from .env import get_java_setup
 
 import os
 import sys
 if sys.platform == 'win32' and sys.version_info >= (3, 8):
     path = os.path.dirname(__file__)
-    jdk_home = get_jdk_home(sys.platform)
+    java = get_java_setup(sys.platform)
+    jdk_home = java.get_javahome()
     with os.add_dll_directory(path):
         for suffix in (
             ('bin', 'client'),

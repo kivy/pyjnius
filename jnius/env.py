@@ -30,24 +30,226 @@ MACHINE2CPU = {
     "sun4v": "sparcv9"
 }
 
-JAVA_HOME = getenv('JAVA_HOME')
+DEFAULT_PLATFORM = sys.platform
+
+def is_set(string):
+    return string is not None and len(string) > 0
+
+def get_java_setup(platform=DEFAULT_PLATFORM):
+    '''
+        Returns an instance of JavaLocation. 
+    '''
+    # prefer Env variables
+    JAVA_HOME = getenv('JAVA_HOME')
+    if not is_set(JAVA_HOME):
+        JAVA_HOME = getenv('JDK_HOME')
+    if not is_set(JAVA_HOME):
+        JAVA_HOME = getenv('JRE_HOME')
+    #TODO encodings
+
+    # Use java_home program on Mac
+    if not is_set(JAVA_HOME) and platform == 'darwin':
+        JAVA_HOME = get_osx_framework()
+        if not is_set(JAVA_HOME):
+            raise Exception('You must install Java for Mac OSX')
+    
+    # go hunting for Javac and Java programs, in that order
+    if not is_set(JAVA_HOME):
+        JAVA_HOME = get_jdk_home(platform)
+    
+    if not is_set(JAVA_HOME):
+        JAVA_HOME = get_jre_home(platform)
+
+    if JAVA_HOME is None:
+        raise RuntimeError("Could not find your Java installed. Please set the JAVA_HOME env var.")
+
+    if isinstance(JAVA_HOME, bytes):
+        JAVA_HOME = JAVA_HOME.decode('utf-8')
+
+    log.debug("Identified Java at %s" % JAVA_HOME)
+
+    # Remove /bin if it's appended to JAVA_HOME
+    if JAVA_HOME[-3:] == 'bin':
+        JAVA_HOME = JAVA_HOME[:-4]
+
+    if platform == "android":
+        return AndroidJavaLocation(platform, JAVA_HOME)
+    if platform == "win32": #only this?
+        return WindowsJavaLocation(platform, JAVA_HOME)
+    if platform == "darwin": #only this?
+        return MacOsXJavaLocation(platform, JAVA_HOME)    
+    if platform in ('linux', 'linux2', 'sunos5'): #only this?
+        return UnixJavaLocation(platform, JAVA_HOME)
+    log.warning("warning: unknown platform %s assuming linux or sunOS" % platform)
+    return UnixJavaLocation(platform, JAVA_HOME)
+
+class JavaLocation:
+
+    def __init__(self, platform, home):
+        self.platform = platform
+        self.home = home
+
+    def get_javahome(self):
+        '''
+            Returns the location of the identified JRE or JDK
+        '''
+        return self.home
 
 
-def find_javac(platform, possible_homes):
-    '''Find javac in all possible locations.'''
-    name = "javac.exe" if platform == "win32" else "javac"
-    for home in possible_homes:
-        for javac in [join(home, name), join(home, 'bin', name)]:
-            if exists(javac):
-                if platform == "win32" and not PY2:  # Avoid path space execution error
-                    return '"%s"' % javac
-                return javac
-    return name  # Fall back to "hope it's on the path"
+    def is_jdk(self):
+        '''
+            Returns true if the location is a JDK, based on existing of javac
+        '''
+        return exists(self.get_javac())
+
+    def get_javac(self): 
+        '''
+            Returns absolute path of the javac executable
+        '''
+        return join(self.home, "bin", "javac")
+
+    def get_include_dirs(self):
+        '''
+            Returns a list of absolute paths of JDK include directories, for compiling.
+            Calls _get_platform_include_dir() internally.
+        ''' 
+        return [
+            join(self.home, 'include'),
+            self._get_platform_include_dir()
+        ]
+
+    def _get_platform_include_dir(self):
+        '''
+            Returns the platform-specific include directory, for setup.py
+        '''
+        pass
+
+    def get_library_dirs(self): 
+        '''
+            Returns a list of absolute paths of JDK lib directories, for setup.py
+        '''
+        pass
+
+    def get_libraries(self): 
+        '''
+            Returns the names of the libraries for this platform, for setup.py
+        '''
+        pass
+
+    def get_jnius_lib_location(self): 
+        '''
+            Returns the full path of the Java library for runtime binding with.
+            Can be overridden by using JVM_PATH env var to set absolute path of the Java library
+        '''
+        libjvm_override_path = getenv('JVM_PATH')
+        if libjvm_override_path:
+            log.info(
+                dedent("""
+                    Using override env var JVM_PATH (%s) to load libjvm.
+                    Please report your system information (os version, java
+                    version, etc), and the path that works for you, to the
+                    PyJNIus project, at https://github.com/kivy/pyjnius/issues.
+                    so we can improve the automatic discovery.
+                """
+                ),
+                libjvm_override_path
+            )
+            return libjvm_override_path
+
+        cpu = get_cpu()
+        platform = self.platform
+        log.debug(
+            "looking for libjvm to initiate pyjnius, cpu is %s, platform is %s",
+            cpu, platform
+        )
+        lib_locations = self._possible_lib_locations(cpu)
+        for location in lib_locations:
+            full_lib_location = join(self.home, location)
+            if exists(full_lib_location):
+                log.debug("found libjvm.so at %s", full_lib_location)
+                return full_lib_location
+        
+        raise RuntimeError(
+        """
+        Unable to find libjvm.so, (tried %s)
+        you can use the JVM_PATH env variable with the absolute path
+        to libjvm.so to override this lookup, if you know
+        where pyjnius should look for it.
+
+        e.g:
+            export JAVA_HOME=/usr/lib/jvm/java-8-oracle/
+            export JVM_PATH=/usr/lib/jvm/java-8-oracle/jre/lib/amd64/server/libjvm.so
+            # run your program
+        """
+        % [join(self.home, loc) for loc in lib_locations]
+    )
+
+    def _possible_lib_locations(self, cpu):
+        '''
+            Returns a list of relative possible locations for the Java library.
+            Used by the default implementation of get_jnius_lib_location()
+        '''
+        pass
 
 
-def get_include_dirs(platform):
-    if platform == 'darwin':
-        framework = get_osx_framework()
+class WindowsJavaLocation(JavaLocation):
+
+    def get_javac(self):
+        super().get_javac() + ".exe"
+
+    def get_libraries(self):
+        return ['jvm']
+
+    def _get_platform_include_dir(self):
+        return join(self.home, 'include', 'win32')
+    
+
+class UnixJavaLocation(JavaLocation):
+
+    def _get_platform_include_dir(self):
+        if self.platform == 'sunos5':
+            return join(self.home, 'include', 'solaris')
+        else:
+            return join(self.home, 'include', 'linux')
+
+    def _possible_lib_locations(self, cpu):
+        
+        root = self.home
+        if root.endswith('jre'):
+            root = root[:-3]
+
+        return [
+            'lib/server/libjvm.so',
+            'jre/lib/{}/default/libjvm.so'.format(cpu),
+            'jre/lib/{}/server/libjvm.so'.format(cpu),
+        ]
+
+
+class MacOsXJavaLocation(UnixJavaLocation):
+    
+    def __init__():
+        self.platform = platform
+    
+    def _get_platform_include_dir(self):
+        return join(jdk_home, 'include', 'darwin')
+
+    def _possible_lib_locations(self, cpu):
+        if '1.6' in self.root:
+            return ['../Libraries/libjvm.dylib'] # TODO what should this be resolved to?
+
+        return [
+                'jre/lib/jli/libjli.dylib',
+                # In that case, the Java version >=9.
+                'lib/jli/libjli.dylib',
+                # adoptopenjdk12 doesn't have the jli subfolder either
+                'lib/libjli.dylib',
+        ]
+        
+
+
+    # this is overridden due to the specifalities of version 1.6
+    def get_include_dirs(self):
+        framework = self.home
         if '1.6' in framework:
             return [join(
                 framework, (
@@ -55,91 +257,41 @@ def get_include_dirs(platform):
                     'JavaVM.framework/Versions/Current/Headers'
                 )
             )]
-        else:
-            # We want to favor Java installation declaring JAVA_HOME
-            if JAVA_HOME:
-                framework = JAVA_HOME
+        return super().get_include_dirs()
 
-            return [
-                '{0}/include'.format(framework),
-                '{0}/include/darwin'.format(framework)
-            ]
+class AndroidJavaLocation(UnixJavaLocation):
+    
+    def get_libraries(platform):
+        #if platform == 'android':
+        # for android, we use SDL...
+        return ['sdl', 'log']
 
-    else:
-        jdk_home = get_jdk_home(platform)
-        if platform == 'win32':
-            incl_dir = join(jdk_home, 'include', 'win32')
-        elif platform == 'sunos5':
-            incl_dir = join(jdk_home, 'include', 'solaris')
-        else:
-            incl_dir = join(jdk_home, 'include', 'linux')
-
-        return [
-            join(jdk_home, 'include'),
-            incl_dir
-        ]
-
-def get_library_dirs(platform, arch=None):
-    if platform == 'win32':
-        jre_home = get_jre_home(platform)
-        jdk_home = JAVA_HOME
-
-        if isinstance(jre_home, bytes):
-            jre_home = jre_home.decode('utf-8')
-
-        return [
-            join(jdk_home, 'lib'),
-            join(jdk_home, 'bin', 'server')
-        ]
-    elif platform == 'android':
-        return ['libs/{}'.format(arch)]
-    return []
+    def get_library_dirs(self):
+        return [join(self.home, 'libs', arch)]
 
 
 def get_jre_home(platform):
     jre_home = None
-    if JAVA_HOME and exists(join(JAVA_HOME, 'jre')):
-        jre_home = join(JAVA_HOME, 'jre')
-
-    if platform != 'win32' and not jre_home:
+    
+    if platform != 'win32':
         jre_home = realpath(
             check_output(
                 split('which java')
             ).decode('utf-8').strip()
         ).replace('bin/java', '')
 
-    if platform == 'win32':
-        if isinstance(jre_home, bytes):
-            jre_home = jre_home.decode('utf-8')
-
     return jre_home
 
 
 def get_jdk_home(platform):
-    jdk_home = getenv('JDK_HOME')
-    if not jdk_home:
-        if platform == 'win32':
-            TMP_JDK_HOME = getenv('JAVA_HOME')
-            if not TMP_JDK_HOME:
-                raise Exception('Unable to find JAVA_HOME')
-
-            # Remove /bin if it's appended to JAVA_HOME
-            if TMP_JDK_HOME[-3:] == 'bin':
-                TMP_JDK_HOME = TMP_JDK_HOME[:-4]
-
-            # Check whether it's JDK
-            if exists(join(TMP_JDK_HOME, 'bin', 'javac.exe')):
-                jdk_home = TMP_JDK_HOME
-
-        else:
-            jdk_home = realpath(
+    jdk_home = realpath(
                 check_output(
                     ['which', 'javac']
                 ).decode('utf-8').strip()
             ).replace('bin/javac', '')
 
     if not jdk_home or not exists(jdk_home):
-        raise Exception('Unable to determine JDK_HOME')
+        return None
 
     return jdk_home
 
@@ -156,24 +308,6 @@ def get_osx_framework():
     return framework.strip()
 
 
-def get_possible_homes(platform):
-    if platform == 'darwin':
-        if JAVA_HOME:
-            return JAVA_HOME
-
-        FRAMEWORK = get_osx_framework()
-        if not FRAMEWORK:
-            raise Exception('You must install Java for Mac OSX')
-
-        return FRAMEWORK
-
-    else:
-        return (
-            get_jdk_home(platform),
-            get_jre_home(platform),
-        )
-
-
 def get_cpu():
     try:
         return MACHINE2CPU[machine]
@@ -185,90 +319,3 @@ def get_cpu():
         print("         Using cpu = 'i386' instead!")
         return 'i386'
 
-
-def get_libraries(platform):
-    if platform == 'android':
-        # for android, we use SDL...
-        return ['sdl', 'log']
-
-    elif platform == 'win32':
-        return ['jvm']
-
-
-def get_jnius_lib_location(platform):
-    cpu = get_cpu()
-    libjvm_override_path = getenv('JVM_PATH')
-
-    if libjvm_override_path:
-        log.info(
-            dedent("""
-                Using override env var JVM_PATH (%s) to load libjvm.
-                Please report your system information (os version, java
-                version, etc), and the path that works for you, to the
-                PyJNIus project, at https://github.com/kivy/pyjnius/issues.
-                so we can improve the automatic discovery.
-            """
-            ),
-            libjvm_override_path
-        )
-        return libjvm_override_path
-
-    log.debug(
-        "looing for libjvm to initiate pyjnius, cpu is %s, platform is %s",
-        cpu, platform
-    )
-
-    if platform == 'darwin':
-        root = get_osx_framework()
-
-        if '1.6' in root:
-            return '../Libraries/libjvm.dylib'
-
-        else:
-            # We want to favor Java installation declaring JAVA_HOME
-            if JAVA_HOME:
-                root = JAVA_HOME
-
-            lib_locations = (
-                'jre/lib/jli/libjli.dylib',
-                # In that case, the Java version >=9.
-                'lib/jli/libjli.dylib',
-                # adoptopenjdk12 doesn't have the jli subfolder either
-                'lib/libjli.dylib',
-            )
-
-    else:
-        if platform not in ('linux', 'linux2', 'sunos5'):
-            log.warning("warning: unknown platform assuming linux or sunOS")
-
-        root = dirname(get_jre_home(platform))
-        if root.endswith('jre'):
-            root = root[:-3]
-
-        lib_locations = (
-            'lib/server/libjvm.so',
-            'jre/lib/{}/default/libjvm.so'.format(cpu),
-            'jre/lib/{}/server/libjvm.so'.format(cpu),
-        )
-
-    for location in lib_locations:
-        full_lib_location = join(root, location)
-
-        if exists(full_lib_location):
-            log.debug("found libjvm.so at %s", full_lib_location)
-            return location
-
-    raise RuntimeError(
-        """
-        Unable to find libjvm.so, (tried %s)
-        you can use the JVM_PATH env variable with the relative path
-        from JAVA_HOME to libjvm.so to override this lookup, if you know
-        where pyjnius should look for it.
-
-        e.g:
-            export JAVA_HOME=/usr/lib/jvm/java-8-oracle/
-            export JVM_PATH=./jre/lib/amd64/server/libjvm.so
-            # run your program
-        """
-        % [join(root, loc) for loc in lib_locations]
-    )

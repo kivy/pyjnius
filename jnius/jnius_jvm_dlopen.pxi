@@ -5,7 +5,7 @@ from subprocess import check_output, CalledProcessError
 from os.path import dirname, join, exists
 from os import readlink
 from sys import platform
-from .env import get_jnius_lib_location
+from .env import get_java_setup
 
 
 cdef extern from 'dlfcn.h' nogil:
@@ -42,36 +42,6 @@ cdef extern from "jni.h":
 cdef JNIEnv *_platform_default_env = NULL
 
 
-cdef find_java_home():
-    if platform in ('linux2', 'linux'):
-        java = check_output(split('which javac')).strip()
-        if not java:
-            java = check_output(split('which java')).strip()
-            if not java:
-                return
-
-        while True:
-            try:
-                java = readlink(java)
-            except OSError:
-                break
-        return dirname(dirname(java)).decode('utf8')
-    
-    if platform == 'darwin':
-        MAC_JAVA_HOME='/usr/libexec/java_home'
-        # its a mac
-        if not exists(MAC_JAVA_HOME):
-            # I believe this always exists, but just in case
-            return
-        try:
-            java = check_output(MAC_JAVA_HOME).strip().decode('utf8')
-            return java
-        except CalledProcessError as exc:
-            # java_home return non-zero exit code if no Javas are installed
-            return
-        
-
-
 cdef void create_jnienv() except *:
     cdef JavaVM* jvm
     cdef JavaVMInitArgs args
@@ -81,19 +51,17 @@ cdef void create_jnienv() except *:
     cdef void *handle
     import jnius_config
 
-    JAVA_HOME = os.getenv('JAVA_HOME') or find_java_home()
-    if JAVA_HOME is None or JAVA_HOME == '':
-        raise SystemError("JAVA_HOME is not set, and unable to guess JAVA_HOME")
-    cdef str JNIUS_LIB_SUFFIX = get_jnius_lib_location(JNIUS_PLATFORM)
+    JAVA_LOCATION = get_java_setup()
+    cdef str java_lib = JAVA_LOCATION.get_jnius_lib_location()
 
     IF JNIUS_PYTHON3:
         try:
-            jnius_lib_suffix = JNIUS_LIB_SUFFIX.decode("utf-8")
+            java_lib = java_lib.decode("utf-8")
         except AttributeError:
-            jnius_lib_suffix = JNIUS_LIB_SUFFIX
-        lib_path = str_for_c(os.path.join(JAVA_HOME, jnius_lib_suffix))
+            java_lib = java_lib
+        lib_path = str_for_c(java_lib)
     ELSE:
-        lib_path = str_for_c(os.path.join(JAVA_HOME, JNIUS_LIB_SUFFIX))
+        lib_path = str_for_c(java_lib)
 
     handle = dlopen(lib_path, RTLD_NOW | RTLD_GLOBAL)
 
