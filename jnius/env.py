@@ -227,14 +227,11 @@ class UnixJavaLocation(JavaLocation):
 
 class MacOsXJavaLocation(UnixJavaLocation):
     
-    def __init__():
-        self.platform = platform
-    
     def _get_platform_include_dir(self):
-        return join(jdk_home, 'include', 'darwin')
+        return join(self.home, 'include', 'darwin')
 
     def _possible_lib_locations(self, cpu):
-        if '1.6' in self.root:
+        if '1.6' in self.home:
             return ['../Libraries/libjvm.dylib'] # TODO what should this be resolved to?
 
         return [
@@ -261,12 +258,14 @@ class MacOsXJavaLocation(UnixJavaLocation):
 
 class AndroidJavaLocation(UnixJavaLocation):
     
-    def get_libraries(platform):
+    def get_libraries(self):
         #if platform == 'android':
         # for android, we use SDL...
         return ['sdl', 'log']
 
     def get_library_dirs(self):
+        raise RuntimeError("TODO: who sets arch?")
+        arch = None
         return [join(self.home, 'libs', arch)]
 
 
