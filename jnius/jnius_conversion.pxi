@@ -21,11 +21,12 @@ cdef void release_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, arg
                     jstringy_arg(argtype):
                 j_env[0].DeleteLocalRef(j_env, j_args[index].l)
         elif argtype[0] == '[':
-            ret = convert_jarray_to_python(j_env, argtype[1:], j_args[index].l)
-            try:
-                args[index][:] = ret
-            except TypeError:
-                pass
+            if not getattr(py_arg, '_JNIUS_PASS_BY_VALUE', False):
+                ret = convert_jarray_to_python(j_env, argtype[1:], j_args[index].l)
+                try:
+                    args[index][:] = ret
+                except TypeError:
+                    pass
             j_env[0].DeleteLocalRef(j_env, j_args[index].l)
 
 cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, args) except *:

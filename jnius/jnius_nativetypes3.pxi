@@ -18,11 +18,13 @@ cdef class ByteArray:
     cdef long _size
     cdef unsigned char *_buf
     cdef unsigned char[:] _arr
+    cdef public bint _JNIUS_PASS_BY_VALUE
 
     def __cinit__(self):
         self._size = 0
         self._buf = NULL
         self._arr = None
+        self._JNIUS_PASS_BY_VALUE = False
 
     def __dealloc__(self):
         cdef JNIEnv *j_env
@@ -63,6 +65,26 @@ cdef class ByteArray:
         else:
             xx = index
             return self._arr[xx]
+
+    def __setitem__(self, index, val):
+        cdef long xx
+        cdef int x
+        # cdef long jj
+        cdef unsigned char *vals
+        cdef long start
+        cdef long stop
+        cdef long step
+        if isinstance(index, slice):
+            vals = val
+            if self._size:
+                (start, stop, step) = index.indices(self._size)
+                # the following is faster than `range(start, stop, step)`
+                for x in range(((step - 1) + stop - start) // step):
+                    xx = x
+                    self._arr[start + xx * step] = vals[xx]
+        else:
+            xx = index
+            self._arr[xx] = val
 
     def __richcmp__(self, other, op):
         cdef ByteArray b_other
