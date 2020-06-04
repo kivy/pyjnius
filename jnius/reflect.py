@@ -246,7 +246,7 @@ def autoclass(clsname,
 # NOTE: See also comments on autoclass() on include_protected or include_private default values
 def reflect_class(cls_object, include_protected=_DEFAULT_INCLUDE_PROTECTED, include_private=_DEFAULT_INCLUDE_PRIVATE):
     '''
-        Auto-reflects a class based on an instance of its class.
+        Create a python wrapping class with the attributes and methods of the corresponding java class, from a python instance of the desired reflected java class.
 
         Parameters:
             cls_object (str): a Python instance of a java.lang.Class object.
