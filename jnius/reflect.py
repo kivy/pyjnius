@@ -249,7 +249,7 @@ def reflect_class(cls_object, include_protected=_DEFAULT_INCLUDE_PROTECTED, incl
         Create a python wrapping class with the attributes and methods of the corresponding java class, from a python instance of the desired reflected java class.
 
         Parameters:
-            cls_object (str): a Python instance of a java.lang.Class object.
+            cls_object (Class): a Python instance of a java.lang.Class object.
             include_protected (boolean): whether protected methods and fields should be included
             include_private (boolean): whether protected methods and fields should be included
         
