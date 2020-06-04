@@ -138,6 +138,7 @@ cdef convert_jobject_to_python(JNIEnv *j_env, definition, jobject j_object):
     r = definition[1:-1]
     cdef JavaObject ret_jobject
     cdef JavaClass ret_jc
+    cdef JavaClass c    
     cdef jclass retclass
     cdef jmethodID retmeth
 
@@ -208,19 +209,20 @@ cdef convert_jobject_to_python(JNIEnv *j_env, definition, jobject j_object):
             # NULL).            
             ret_jc = Object(noinstance=True)
         else:
-            from .reflect import autoclass, reflect_class
+            from .reflect import reflect_class, Class
             # find_javaclass can raise an exception, but here that just means
             # that we need to seek the Class instance from the instance, rather than JNI
-            try:
-                c = find_javaclass(r)
-            except:
-                c = None
+            c = find_javaclass(r, raise_error=False)
             if c is None:
                 # The class may have come from another ClassLoader
                 # we need to get the Class from the instance itself
-                ret_jc = Object(noinstance=True)
-                ret_jc.instanciate_from(create_local_ref(j_env, j_object))
-                c = ret_jc.getClass()
+
+                #TODO: can we cache the following method id, or do we it already somewhere?
+                obj_class = j_env[0].FindClass(j_env, "java/lang/Object");
+                get_class_method_id = j_env[0].GetMethodID(j_env, obj_class, "getClass", "()Ljava/lang/Class;")
+                retclass = <jclass*> j_env[0].CallObjectMethod(j_env, j_object, get_class_method_id)
+                c = Class(noinstance=True)
+                c.instanciate_from(create_local_ref(j_env, retclass))
             ret_jc = reflect_class(c, include_protected=_DEFAULT_INCLUDE_PROTECTED, include_private=_DEFAULT_INCLUDE_PRIVATE)(noinstance=True)
     else:
         ret_jc = jclass_register[(r,(_DEFAULT_INCLUDE_PROTECTED, _DEFAULT_INCLUDE_PRIVATE))](noinstance=True)
