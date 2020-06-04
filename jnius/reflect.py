@@ -350,15 +350,7 @@ def reflect_class(cls_object, include_protected=_DEFAULT_INCLUDE_PROTECTED, incl
                 get_signature(method.getReturnType()))
             if log.isEnabledFor(DEBUG):
                 log_method(method, name, sig)
-            classDict[name] = (JavaStaticMethod if static else JavaMethod)(sig, varargs=varargs)
-            # methods that fit the characteristics of a JavaBean's methods get turned into properties.
-            # these added properties should not supercede any other methods or fields.
-            if name != 'getClass' and bean_getter(name) and len(method.getParameterTypes()) == 0:
-                lowername = lower_name(name[2 if name.startswith('is') else 3:])
-                if lowername in classDict:
-                    # don't add this to classDict if the property will replace a method or field.
-                    continue
-                classDict[lowername] = (lambda n: property(lambda self: getattr(self, n)()))(name)
+            _add_single_method(classDict, name, static, sig, varargs)
         else:
             # multiple signatures
             signatures = []
@@ -387,8 +379,14 @@ def reflect_class(cls_object, include_protected=_DEFAULT_INCLUDE_PROTECTED, incl
                     log_method(method, name, sig)
                 signatures.append((sig, Modifier.isStatic(method.getModifiers()), method.isVarArgs()))
 
-            log.debug("method selected %d multiple signatures of %s" % (len(signatures), str(signatures)))
-            classDict[name] = JavaMultipleMethod(signatures)
+            if len(signatures) > 1:
+                log.debug("method selected %d multiple signatures of %s" % (len(signatures), str(signatures)))
+                classDict[name] = JavaMultipleMethod(signatures)
+            elif len(signatures) == 1:
+                (sig, static, varargs) = signatures[0]
+                if log.isEnabledFor(DEBUG):
+                    log_method(method, name, sig)
+                _add_single_method(classDict, name, static, sig, varargs)
 
     # check whether any classes in the hierarchy appear in the protocol_map
     for cls, _ in class_hierachy:
@@ -405,6 +403,16 @@ def reflect_class(cls_object, include_protected=_DEFAULT_INCLUDE_PROTECTED, incl
         classDict,
         classparams=(include_protected, include_private))
 
+def _add_single_method(classDict, name, static, sig, varargs):
+    classDict[name] = (JavaStaticMethod if static else JavaMethod)(sig, varargs=varargs)
+    # methods that fit the characteristics of a JavaBean's methods get turned into properties.
+    # these added properties should not supercede any other methods or fields.
+    if name != 'getClass' and bean_getter(name) and sig.startswith("()"):
+        lowername = lower_name(name[2 if name.startswith('is') else 3:])
+        if lowername in classDict:
+            # don't add this to classDict if the property will replace a method or field.
+            return
+        classDict[lowername] = (lambda n: property(lambda self: getattr(self, n)()))(name)
 
 def _getitem(self, index):
     ''' dunder method for List '''

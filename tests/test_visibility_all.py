@@ -216,21 +216,21 @@ class VisibilityAllTest(unittest.TestCase):
     def test_check_method_vs_property(self):
         """check that "bean" properties don't replace methods.
 
-        The ExecutorService Interface has methods `shutdown()`,  `isShutdown()`,
-        `isTerminated()`. The `autoclass` function will create a Python
+        The ExecutorService Interface has methods `shutdown()`, `isShutdown()`,
+        `isTerminating()`. The `autoclass` function will create a Python
         `property` if a function name matches a JavaBean name pattern. Those
         properties are important but they should not take priority over a
         method.
 
         For this Interface it wants to create properties called `shutdown` and
-        `terminated` because of `isShutdown` and `isTerminated`. A `shutdown`
+        `terminating` because of `isShutdown` and `isTerminating`. A `shutdown`
         property would conflict with the `shutdown()` method so it should be
-        skipped. The `terminated` property is OK though.
+        skipped. The `terminating` property is OK though.
         """
         executor = autoclass("java.util.concurrent.Executors")
         pool = executor.newFixedThreadPool(1)
 
         self.assertTrue(isinstance(pool.__class__.__dict__['shutdown'], JavaMethod))
-        self.assertTrue(isinstance(pool.__class__.__dict__['terminated'], property))
+        self.assertTrue(isinstance(pool.__class__.__dict__['terminating'], property))
         self.assertTrue(isinstance(pool.__class__.__dict__['isShutdown'], JavaMethod))
         self.assertTrue(isinstance(pool.__class__.__dict__['isTerminated'], JavaMethod))
