@@ -287,6 +287,16 @@ def get_jre_home(platform):
         except TypeError:
             raise Exception('Unable to find java')
 
+        if is_set(jre_home):
+            return jre_home
+    
+        # didnt find java command on the path, we can
+        # fallback to hunting in some default unix locations
+        for loc in ["/usr/java/latest/", "/usr/java/default/", "/usr/lib/jvm/default-java/"]: 
+            if exists(loc + "bin/java"):
+                jre_home = loc
+                break
+
     return jre_home
 
 
