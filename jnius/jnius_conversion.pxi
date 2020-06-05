@@ -63,16 +63,18 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                 j_args[index].l = convert_python_to_jobject(
                     j_env, 'Ljava/lang/Integer;', py_arg
                 )
+                check_assignable_from_str(j_env, 'java/lang/Integer', argtype[1:-1])
             elif isinstance(py_arg, float):
                 j_args[index].l = convert_python_to_jobject(
                     j_env, 'Ljava/lang/Float;', py_arg
                 )
-
+                check_assignable_from_str(j_env, 'java/lang/Float', argtype[1:-1])
             # string types
             elif isinstance(py_arg, base_string) and jstringy_arg(argtype):
                 j_args[index].l = convert_pystr_to_java(
                     j_env, to_unicode(py_arg)
                 )
+                check_assignable_from_str(j_env, 'java/lang/String', argtype[1:-1])
             elif isinstance(py_arg, JavaClass):
                 jc = py_arg
                 check_assignable_from(j_env, jc, argtype[1:-1])

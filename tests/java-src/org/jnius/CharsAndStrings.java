@@ -22,7 +22,8 @@ public class CharsAndStrings {
   public char[] testCharArray2;
   static public char[] testStaticCharArray1 = new char[]{'a', 'b', 'c'};
   static public char[] testStaticCharArray2 = new char[]{'a', 'ä', '☺'};
-
+  static public String testStringDefNull = null;
+  static public int testInt = 0;
 
   public CharsAndStrings() {
     this.testChar1 = 'a';
@@ -104,4 +105,12 @@ public class CharsAndStrings {
       return testStaticCharArray2;
     }
   }
+
+  static public void setString(String ignore, String value) {
+    testStringDefNull  = value;
+  }
+  
+  static public void setInt(String ignore, int value) {
+    testInt  = value;
+  } 
 }

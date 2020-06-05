@@ -4,7 +4,7 @@ from __future__ import division
 from __future__ import absolute_import
 import sys
 import unittest
-from jnius.reflect import autoclass
+from jnius.reflect import autoclass, JavaException
 
 
 try:
@@ -128,3 +128,15 @@ class CharsAndStringsTest(unittest.TestCase):
             self.assertTrue(testString2.equals('umlauts: äöü'))
             testString3 = JString('happy face: ☺')
             self.assertTrue(testString3.equals('happy face: ☺'))
+
+    def test_pass_int_as_string(self):
+        CharsAndStrings = autoclass("org.jnius.CharsAndStrings")
+        self.assertIsNone(CharsAndStrings.testStringDefNull)
+        with self.assertRaises(JavaException):
+            CharsAndStrings.setString("a", 2)
+
+    def test_pass_string_as_int(self):
+        CharsAndStrings = autoclass("org.jnius.CharsAndStrings")
+        self.assertEqual(0, CharsAndStrings.testInt)
+        with self.assertRaises(TypeError):
+            CharsAndStrings.setInt("a", "2")
