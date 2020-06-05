@@ -129,16 +129,28 @@ class CharsAndStringsTest(unittest.TestCase):
             testString3 = JString('happy face: ☺')
             self.assertTrue(testString3.equals('happy face: ☺'))
 
+    # two methods below are concerned with type-checking of arguments
+
     def test_pass_intfloat_as_string(self):
         CharsAndStrings = autoclass("org.jnius.CharsAndStrings")
         self.assertIsNone(CharsAndStrings.testStringDefNull)
         with self.assertRaises(JavaException):
+            # we cannot provide an int to a String
             CharsAndStrings.setString("a", 2)
         with self.assertRaises(JavaException):
+            # we cannot provide an float to a String
             CharsAndStrings.setString("a", 2.2)
+        alist = autoclass("java.util.ArrayList")()
+        with self.assertRaises(JavaException):
+            # we cannot provide a list to a String
+            CharsAndStrings.setString("a", alist)
+        system = autoclass("java.lang.System")
+        with self.assertRaises(JavaException):
+            system.setErr("a string")
 
     def test_pass_string_as_int(self):
         CharsAndStrings = autoclass("org.jnius.CharsAndStrings")
         self.assertEqual(0, CharsAndStrings.testInt)
         with self.assertRaises(TypeError):
+            # we cannot provide a String to an int
             CharsAndStrings.setInt("a", "2")
