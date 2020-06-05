@@ -129,11 +129,13 @@ class CharsAndStringsTest(unittest.TestCase):
             testString3 = JString('happy face: ☺')
             self.assertTrue(testString3.equals('happy face: ☺'))
 
-    def test_pass_int_as_string(self):
+    def test_pass_intfloat_as_string(self):
         CharsAndStrings = autoclass("org.jnius.CharsAndStrings")
         self.assertIsNone(CharsAndStrings.testStringDefNull)
         with self.assertRaises(JavaException):
             CharsAndStrings.setString("a", 2)
+        with self.assertRaises(JavaException):
+            CharsAndStrings.setString("a", 2.2)
 
     def test_pass_string_as_int(self):
         CharsAndStrings = autoclass("org.jnius.CharsAndStrings")
