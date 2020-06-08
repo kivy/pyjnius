@@ -21,7 +21,7 @@ cdef void release_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, arg
                     jstringy_arg(argtype):
                 j_env[0].DeleteLocalRef(j_env, j_args[index].l)
         elif argtype[0] == '[':
-            if not getattr(py_arg, '_JNIUS_PASS_BY_VALUE', False):
+            if getattr(py_arg, '_JNIUS_PASS_BY_REFERENCE', True):
                 ret = convert_jarray_to_python(j_env, argtype[1:], j_args[index].l)
                 try:
                     args[index][:] = ret
@@ -547,7 +547,6 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
 
     cdef ByteArray a_bytes
 
-
     if definition == 'Ljava/lang/Object;' and len(pyarray) > 0:
         # then the method will accept any array type as param
         # let's be as precise as we can
@@ -586,6 +585,15 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
             a_bytes = pyarray
             j_env[0].SetByteArrayRegion(j_env,
                 ret, 0, array_size, <const_jbyte *>a_bytes._buf)
+            ## this makes ByteArrays slow
+            # for i in range(array_size):
+            #     c_tmp = pyarray[i]
+            #     j_byte = <signed char>c_tmp
+            #     j_env[0].SetByteArrayRegion(j_env,
+            #             ret, i, 1, &j_byte)
+        elif isinstance(pyarray, bytearray):
+            j_env[0].SetByteArrayRegion(j_env,
+                ret, 0, array_size, <signed char *>pyarray)
         else:
             for i in range(array_size):
                 c_tmp = pyarray[i]
