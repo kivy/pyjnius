@@ -365,7 +365,7 @@ cdef class JavaClass(object):
                     constructor, j_args)
 
             # release our arguments
-            release_args(j_env, d_args, j_args, args_)
+            release_args(j_env, d_args, True, j_args, args_)
 
             check_exception(j_env)
             if j_self == NULL:
@@ -759,6 +759,7 @@ cdef class JavaMethod(object):
     cdef bint is_varargs
     cdef object definition_return
     cdef object definition_args
+    cdef bint _pass_by_reference
 
     def __cinit__(self, definition, **kwargs):
         self.j_method = NULL
@@ -768,9 +769,13 @@ cdef class JavaMethod(object):
     def signatures(self):
         return list([readable_sig(self.definition, self.is_varargs)])
 
+    def pass_by_reference(self, val):
+        self._pass_by_reference = val
+
     def __init__(self, definition, **kwargs):
         super(JavaMethod, self).__init__()
         self.definition = definition
+        self._pass_by_reference = True
         self.definition_return, self.definition_args = parse_definition(
             definition
         )
@@ -856,7 +861,7 @@ cdef class JavaMethod(object):
                     return self.call_staticmethod(j_env, j_args)
                 return self.call_method(j_env, j_args)
             finally:
-                release_args(j_env, self.definition_args, j_args, args)
+                release_args(j_env, self.definition_args, self._pass_by_reference, j_args, args)
 
         finally:
             if j_args != NULL:
@@ -1054,9 +1059,13 @@ cdef class JavaMultipleMethod(object):
     cdef dict instance_methods
     cdef bytes name
     cdef bytes classname
+    cdef bint _pass_by_reference
 
     def signatures(self):
         return [readable_sig(args, is_varargs) for args, static, is_varargs in self.definitions]
+
+    def pass_by_reference(self, val):
+        self._pass_by_reference = val
 
     def __cinit__(self, definition, **kwargs):
         self.j_self = None
@@ -1067,6 +1076,7 @@ cdef class JavaMultipleMethod(object):
         self.static_methods = {}
         self.instance_methods = {}
         self.name = None
+        self._pass_by_reference = True
 
     def __get__(self, obj, objtype):
         if obj is None:
@@ -1141,6 +1151,7 @@ cdef class JavaMultipleMethod(object):
         score, signature = scores[-1]
 
         jm = methods[signature]
+        jm.pass_by_reference(self._pass_by_reference)
         jm.j_self = self.j_self
         return jm.__call__(*args)
 

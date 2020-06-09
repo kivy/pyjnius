@@ -7,7 +7,7 @@ cdef jstringy_arg(argtype):
                        'Ljava/lang/CharSequence;',
                        'Ljava/lang/Object;')
 
-cdef void release_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, args) except *:
+cdef void release_args(JNIEnv *j_env, tuple definition_args, bint pass_by_reference, jvalue *j_args, args) except *:
     # do the conversion from a Python object to Java from a Java definition
     cdef JavaObject jo
     cdef JavaClass jc
@@ -21,7 +21,8 @@ cdef void release_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, arg
                     jstringy_arg(argtype):
                 j_env[0].DeleteLocalRef(j_env, j_args[index].l)
         elif argtype[0] == '[':
-            if getattr(py_arg, '_JNIUS_PASS_BY_REFERENCE', True):
+            # if getattr(py_arg, '_JNIUS_PASS_BY_REFERENCE', True):
+            if pass_by_reference:
                 ret = convert_jarray_to_python(j_env, argtype[1:], j_args[index].l)
                 try:
                     args[index][:] = ret
@@ -534,6 +535,7 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
     cdef unsigned char c_tmp
     cdef jboolean j_boolean
     cdef jbyte j_byte
+    cdef const_jbyte* j_bytes
     cdef jchar j_char
     cdef jshort j_short
     cdef jint j_int
@@ -592,8 +594,9 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
             #     j_env[0].SetByteArrayRegion(j_env,
             #             ret, i, 1, &j_byte)
         elif isinstance(pyarray, bytearray):
+            j_bytes = <signed char *>pyarray
             j_env[0].SetByteArrayRegion(j_env,
-                ret, 0, array_size, <signed char *>pyarray)
+                ret, 0, array_size, j_bytes)
         else:
             for i in range(array_size):
                 c_tmp = pyarray[i]
