@@ -593,7 +593,7 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
             #     j_byte = <signed char>c_tmp
             #     j_env[0].SetByteArrayRegion(j_env,
             #             ret, i, 1, &j_byte)
-        elif isinstance(pyarray, bytearray):
+        elif isinstance(pyarray, (bytearray, bytes)):
             j_bytes = <signed char *>pyarray
             j_env[0].SetByteArrayRegion(j_env,
                 ret, 0, array_size, j_bytes)
