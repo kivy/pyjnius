@@ -21,7 +21,7 @@ cdef void release_args(JNIEnv *j_env, tuple definition_args, bint pass_by_refere
                     jstringy_arg(argtype):
                 j_env[0].DeleteLocalRef(j_env, j_args[index].l)
         elif argtype[0] == '[':
-            if pass_by_reference:
+            if pass_by_reference and hasattr(args[index], '__setitem__'):
                 ret = convert_jarray_to_python(j_env, argtype[1:], j_args[index].l)
                 try:
                     args[index][:] = ret
