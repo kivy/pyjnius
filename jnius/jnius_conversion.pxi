@@ -21,7 +21,6 @@ cdef void release_args(JNIEnv *j_env, tuple definition_args, bint pass_by_refere
                     jstringy_arg(argtype):
                 j_env[0].DeleteLocalRef(j_env, j_args[index].l)
         elif argtype[0] == '[':
-            # if getattr(py_arg, '_JNIUS_PASS_BY_REFERENCE', True):
             if pass_by_reference:
                 ret = convert_jarray_to_python(j_env, argtype[1:], j_args[index].l)
                 try:
@@ -587,12 +586,6 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
             a_bytes = pyarray
             j_env[0].SetByteArrayRegion(j_env,
                 ret, 0, array_size, <const_jbyte *>a_bytes._buf)
-            ## this makes ByteArrays slow
-            # for i in range(array_size):
-            #     c_tmp = pyarray[i]
-            #     j_byte = <signed char>c_tmp
-            #     j_env[0].SetByteArrayRegion(j_env,
-            #             ret, i, 1, &j_byte)
         elif isinstance(pyarray, (bytearray, bytes)):
             j_bytes = <signed char *>pyarray
             j_env[0].SetByteArrayRegion(j_env,
