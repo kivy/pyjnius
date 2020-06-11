@@ -360,12 +360,16 @@ cdef class JavaClass(object):
                 raise JavaException('Unable to found the constructor'
                         ' for {0}'.format(self.__javaclass__))
 
+            # determine pass by reference choices
+            pass_by_reference = kwargs.get('pass_by_reference', True)
+            pass_by_reference = pass_by_reference if isinstance(pass_by_reference, (tuple, list)) else [pass_by_reference]
+
             # create the object
             j_self = j_env[0].NewObjectA(j_env, self.j_cls,
                     constructor, j_args)
 
             # release our arguments
-            release_args(j_env, d_args, kwargs.get('pass_by_reference', True), j_args, args_)
+            release_args(j_env, d_args, pass_by_reference, j_args, args_)
 
             check_exception(j_env)
             if j_self == NULL:
@@ -835,6 +839,10 @@ cdef class JavaMethod(object):
                     self.classname, self.name) 
             )
 
+        # determine pass by reference choices
+        pass_by_reference = kwargs.get('pass_by_reference', True)
+        pass_by_reference = pass_by_reference if isinstance(pass_by_reference, (tuple, list)) else [pass_by_reference]
+
         if not self.is_static and j_env == NULL:
             raise JavaException(
                 'Cannot call instance method on a un-instanciated class'
@@ -856,7 +864,7 @@ cdef class JavaMethod(object):
                     return self.call_staticmethod(j_env, j_args)
                 return self.call_method(j_env, j_args)
             finally:
-                release_args(j_env, self.definition_args, kwargs.get('pass_by_reference', True), j_args, args)
+                release_args(j_env, self.definition_args, pass_by_reference, j_args, args)
 
         finally:
             if j_args != NULL:

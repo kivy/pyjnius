@@ -7,11 +7,15 @@ cdef jstringy_arg(argtype):
                        'Ljava/lang/CharSequence;',
                        'Ljava/lang/Object;')
 
-cdef void release_args(JNIEnv *j_env, tuple definition_args, bint pass_by_reference, jvalue *j_args, args) except *:
+cdef void release_args(JNIEnv *j_env, tuple definition_args, pass_by_reference, jvalue *j_args, args) except *:
     # do the conversion from a Python object to Java from a Java definition
     cdef JavaObject jo
     cdef JavaClass jc
     cdef int index
+    cdef int last_pass_by_ref_index
+
+    last_pass_by_ref_index = len(pass_by_reference) - 1
+
     for index, argtype in enumerate(definition_args):
         py_arg = args[index]
         if argtype[0] == 'L':
@@ -21,7 +25,7 @@ cdef void release_args(JNIEnv *j_env, tuple definition_args, bint pass_by_refere
                     jstringy_arg(argtype):
                 j_env[0].DeleteLocalRef(j_env, j_args[index].l)
         elif argtype[0] == '[':
-            if pass_by_reference and hasattr(args[index], '__setitem__'):
+            if pass_by_reference[min(index, last_pass_by_ref_index)] and hasattr(args[index], '__setitem__'):
                 ret = convert_jarray_to_python(j_env, argtype[1:], j_args[index].l)
                 try:
                     args[index][:] = ret
