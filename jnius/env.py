@@ -106,7 +106,6 @@ class JavaLocation:
             Returns true if the location is a JDK, based on existing of javac
         '''
         javac = self.get_javac()
-        print(javac)
         return exists(javac)
 
     def get_javac(self): 
