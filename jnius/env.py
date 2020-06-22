@@ -206,6 +206,10 @@ class WindowsJavaLocation(JavaLocation):
 
     def get_libraries(self):
         return ['jvm']
+    
+    def get_library_dirs(self):
+        suffices =  ['lib', join('bin', 'server')]
+        return [ join(self.home, suffix) for suffix in suffices ]
 
     def _get_platform_include_dir(self):
         return join(self.home, 'include', 'win32')
