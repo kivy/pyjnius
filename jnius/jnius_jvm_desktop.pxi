@@ -35,10 +35,9 @@ cdef void create_jnienv() except *:
     cp = jnius_config.expand_classpath()
     optarr.append("-Djava.class.path={0}".format(cp))
 
+    optarr = [str_for_c(x) for x in optarr]
     options = <JavaVMOption*>malloc(sizeof(JavaVMOption) * len(optarr))
     for i, opt in enumerate(optarr):
-        if PY_MAJOR_VERSION >= 3:
-           opt = opt.encode('utf-8')
         options[i].optionString = <bytes>(opt)
         options[i].extraInfo = NULL
 
