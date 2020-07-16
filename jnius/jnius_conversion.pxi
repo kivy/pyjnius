@@ -8,11 +8,15 @@ cdef jstringy_arg(argtype):
                        'Ljava/lang/CharSequence;',
                        'Ljava/lang/Object;')
 
-cdef void release_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, args) except *:
+cdef void release_args(JNIEnv *j_env, tuple definition_args, pass_by_reference, jvalue *j_args, args) except *:
     # do the conversion from a Python object to Java from a Java definition
     cdef JavaObject jo
     cdef JavaClass jc
     cdef int index
+    cdef int last_pass_by_ref_index
+
+    last_pass_by_ref_index = len(pass_by_reference) - 1
+
     for index, argtype in enumerate(definition_args):
         py_arg = args[index]
         if argtype[0] == 'L':
@@ -22,11 +26,12 @@ cdef void release_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, arg
                     jstringy_arg(argtype):
                 j_env[0].DeleteLocalRef(j_env, j_args[index].l)
         elif argtype[0] == '[':
-            ret = convert_jarray_to_python(j_env, argtype[1:], j_args[index].l)
-            try:
-                args[index][:] = ret
-            except TypeError:
-                pass
+            if pass_by_reference[min(index, last_pass_by_ref_index)] and hasattr(args[index], '__setitem__'):
+                ret = convert_jarray_to_python(j_env, argtype[1:], j_args[index].l)
+                try:
+                    args[index][:] = ret
+                except TypeError:
+                    pass
             j_env[0].DeleteLocalRef(j_env, j_args[index].l)
 
 cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, args):
@@ -641,6 +646,7 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
     cdef unsigned char c_tmp
     cdef jboolean j_boolean
     cdef jbyte j_byte
+    cdef const_jbyte* j_bytes
     cdef jchar j_char
     cdef jshort j_short
     cdef jint j_int
@@ -653,7 +659,6 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
     cdef JavaClass jc
 
     cdef ByteArray a_bytes
-
 
     if definition == 'Ljava/lang/Object;' and len(pyarray) > 0:
         # then the method will accept any array type as param
@@ -693,6 +698,10 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
             a_bytes = pyarray
             j_env[0].SetByteArrayRegion(j_env,
                 ret, 0, array_size, <const_jbyte *>a_bytes._buf)
+        elif isinstance(pyarray, (bytearray, bytes)):
+            j_bytes = <signed char *>pyarray
+            j_env[0].SetByteArrayRegion(j_env,
+                ret, 0, array_size, j_bytes)
         else:
             for i in range(array_size):
                 c_tmp = pyarray[i]
