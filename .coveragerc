@@ -1,0 +1,6 @@
+[run]
+plugins = Cython.Coverage
+source = jnius/
+omit =
+    tests
+    *__init__.py
