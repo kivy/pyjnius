@@ -39,7 +39,7 @@ hello
 Usage with python-for-android
 -----------------------------
 
-* Get [http://github.com/kivy/python-for-android]()
+* Get [python-for-android](http://github.com/kivy/python-for-android)
 * Compile a distribution with kivy (PyJNIus will be automatically added)
 
 Then, you can do this kind of things:
