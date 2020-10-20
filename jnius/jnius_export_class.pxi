@@ -1140,7 +1140,10 @@ cdef class JavaMultipleMethod(object):
 
         if not scores:
             raise JavaException(
-                'No methods matching your arguments, requested: {}, available: {}'.format(
+                'No {}methods called {} in {} matching your arguments, requested: {}, available: {}'.format(
+                    '' if self.j_self else 'static ',
+                    self.name.decode("utf-8"),
+                    self.classname.decode("utf-8"),
                     args,
                     found_signatures
                 )
