@@ -1,0 +1,58 @@
+on: push
+name: Continuous Integration (x86)
+jobs:
+  Tests:
+    name: base
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: [3.6, 3.7, 3.8, 3.9]
+    container:
+      image: i386/python:${{ matrix.python }}-buster
+    steps:
+    - name: info
+      run: |
+        linux32 sh -ec '
+          cat /etc/*release || true
+          uname -a
+          git version
+          python --version
+        '
+
+    - name: checkout
+      run: |
+        linux32 sh -ec '
+          git init .
+          git remote add origin https://github.com/$GITHUB_REPOSITORY
+          git config --local gc.auto 0
+          git fetch --no-tags --prune --progress --no-recurse-submodules \
+            --depth=1 origin +$GITHUB_SHA:refs/remotes/origin/${GITHUB_REF##*/}
+          git checkout --progress --force -B ${GITHUB_REF##*/} \
+            refs/remotes/origin/${GITHUB_REF##*/}
+          git log -1 --format=%H
+        '
+
+    - name: setup java
+      run: |
+        linux32 sh -ec '
+          apt update
+          apt install -y openjdk-11-jdk-headless ant
+          java -version
+        '
+      env:
+        DEBIAN_FRONTEND: noninteractive
+
+    - name: install
+      run: |
+        linux32 sh -ec '
+          pip install --timeout=120 -U setuptools cython
+          pip install --timeout=120 .[dev,ci]
+        '
+
+    - name: test
+      run: |
+        linux32 sh -ec '
+          ant all
+          cd tests
+          CLASSPATH=../build/test-classes:../build/classes pytest -v
+        '
