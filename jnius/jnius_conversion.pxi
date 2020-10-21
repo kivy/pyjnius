@@ -525,7 +525,7 @@ cdef jstring convert_pystr_to_java(JNIEnv *j_env, unicode py_uni) except NULL:
     py_bytes = py_uni.encode('utf-16')
     # skip byte-order mark
     buff = (<char *>py_bytes) + sizeof(jchar)
-    j_strlen = len(py_bytes) / sizeof(jchar) - 1
+    j_strlen = int(len(py_bytes) / sizeof(jchar) - 1)
     j_str = j_env[0].NewString(j_env, <jchar *>buff, j_strlen)
 
     if j_str == NULL:
