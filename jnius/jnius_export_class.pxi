@@ -1098,14 +1098,14 @@ cdef class JavaMultipleMethod(object):
                 if signature in self.static_methods:
                     continue
                 jm = JavaStaticMethod(signature, varargs=is_varargs)
-                jm.set_resolve_info(j_env, j_cls, j_self, name, classname)
+                jm.set_resolve_info(j_env, j_cls, None, name, classname)
                 self.static_methods[signature] = jm
 
             elif j_self is not None and not static:
                 if signature in self.instance_methods:
                     continue
                 jm = JavaMethod(signature, varargs=is_varargs)
-                jm.set_resolve_info(j_env, j_cls, None, name, classname)
+                jm.set_resolve_info(j_env, j_cls, j_self, name, classname)
                 self.instance_methods[signature] = jm
 
     def __call__(self, *args, **kwargs):
