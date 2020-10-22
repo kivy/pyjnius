@@ -316,10 +316,13 @@ cdef class JavaClass(object):
                 found_definitions.append(definition)
                 d_ret, d_args = parse_definition(definition)
                 if requestedDefn == definition:
-                    assert not is_varargs
                     scores=[]
                     score=1
-                    scores.append((score, definition, d_ret, d_args, args))
+                    if is_varargs:
+                        args_ = args[:len(d_args) - 1] + (args[len(d_args) - 1:],)
+                    else:
+                        args_ = args
+                    scores.append((score, definition, d_ret, d_args, args_))
                     break
 
                 if is_varargs:
@@ -327,7 +330,7 @@ cdef class JavaClass(object):
                 else:
                     args_ = args
 
-                score = calculate_score(d_args, args)
+                score = calculate_score(d_args, args_, is_varargs)
                 if score == -1:
                     continue
                 scores.append((score, definition, d_ret, d_args, args_))
@@ -338,8 +341,11 @@ cdef class JavaClass(object):
                 )
             if not scores:
                 raise JavaException(
-                    'No constructor matching your arguments, available: '
-                    '{}'.format(found_definitions)
+                    'No {} constructor matching your arguments, requested: {}, available: {}'.format(
+                        self.__javaclass__,
+                        args,
+                        found_definitions
+                    )
                 )
             scores.sort()
             score, definition, d_ret, d_args, args_ = scores[-1]
