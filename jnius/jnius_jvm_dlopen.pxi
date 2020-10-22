@@ -76,10 +76,10 @@ cdef void create_jnienv() except *:
     optarr = jnius_config.options
     optarr.append("-Djava.class.path=" + jnius_config.expand_classpath())
 
+    optarr = [str_for_c(x) for x in optarr]
     options = <JavaVMOption*>malloc(sizeof(JavaVMOption) * len(optarr))
     for i, opt in enumerate(optarr):
-        optbytes = str_for_c(opt)
-        options[i].optionString = <bytes>(optbytes)
+        options[i].optionString = <bytes>(opt)
         options[i].extraInfo = NULL
 
     args.version = JNI_VERSION_1_6

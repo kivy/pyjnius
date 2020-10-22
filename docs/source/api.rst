@@ -171,10 +171,14 @@ Reflection classes
 Reflection functions
 --------------------
 
-.. function:: autoclass(name)
+.. function:: autoclass(name, include_protected=True, include_private=True)
 
     Return a :class:`JavaClass` that represents the class passed from `name`.
     The name must be written in the format `a.b.c`, not `a/b/c`.
+
+    By default, autoclass will include all fields and methods at all levels of
+    the inheritance hierarchy. Use the `include_protected` and `include_private`
+    parameters to limit visibility.
 
     >>> from jnius import autoclass
     >>> autoclass('java.lang.System')
@@ -184,6 +188,10 @@ Reflection functions
 
     >>> autoclass('android.provider.Settings$Secure')
     <class 'jnius.reflect.android.provider.Settings$Secure'>
+
+    .. note::
+        If a field and a method have the same name, the field will take
+        precedence.
 
     .. note::
         There are sometimes cases when a Java class contains a member that is
@@ -223,7 +231,7 @@ Java class implementation in Python
     You need to define at minimum the :data:`__javainterfaces__` attribute, and
     declare java methods with the :func:`java_method` decorator.
 
-    .. notes::
+    .. note::
 
         Static methods and static fields are not supported.
         
@@ -371,6 +379,34 @@ steps::
     2. $ cd platforms/android-xx/  # Replace xx with your android version
     3. $ javap -s -classpath android.jar android.app.Activity  # Replace android.app.Activity with any android class whose methods' signature you want to see
 
+Passing Variables: By Reference or By Value
+-------------------------------------------
+
+When Python objects such as `lists` or `bytearrays` are passed to Java Functions, they are converted
+to Java arrays. Since Python does not share the same memory space as the JVM, a copy of the data
+needs to be made to pass the data.
+
+Consider that the Java method might change values in the Java array. If the Java method had been
+called from another Java method, the other Java method would see the value changes because the
+parameters are passed by reference. The two methods share the same memory space. Only one copy of
+the array data exists.
+
+In Pyjnius, Python calls to Java methods simulate pass by reference by copying the variable values
+from the JVM back to Python. This extra copying will have a performance impact for large data
+structures. To skip the extra copy and pass by value, use the named parameter `pass_by_reference`.
+
+    obj.method(param1, param2, param3, pass_by_reference=False)
+
+Since Java does not have function named parameters like Python does, they are interpreted by Pyjnius
+and are not passed to the Java method.
+
+In the above example, the `pass_by_reference` parameter will apply to all the parameters. For more
+control you can pass a `list` or `tuple` instead.
+
+    obj.method(param1, param2, param3, pass_by_reference=(False, True, False))
+
+If the passed `list` or `tuple` is too short, the final value in the series is used for the
+remaining parameters.
 
 JVM options and the class path
 ------------------------------

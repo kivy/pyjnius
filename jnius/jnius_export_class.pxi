@@ -360,12 +360,16 @@ cdef class JavaClass(object):
                 raise JavaException('Unable to found the constructor'
                         ' for {0}'.format(self.__javaclass__))
 
+            # determine pass by reference choices
+            pass_by_reference = kwargs.get('pass_by_reference', True)
+            pass_by_reference = pass_by_reference if isinstance(pass_by_reference, (tuple, list)) else [pass_by_reference]
+
             # create the object
             j_self = j_env[0].NewObjectA(j_env, self.j_cls,
                     constructor, j_args)
 
             # release our arguments
-            release_args(j_env, d_args, j_args, args_)
+            release_args(j_env, d_args, pass_by_reference, j_args, args_)
 
             check_exception(j_env)
             if j_self == NULL:
@@ -817,7 +821,7 @@ cdef class JavaMethod(object):
         self.j_self = jc.j_self
         return self
 
-    def __call__(self, *args):
+    def __call__(self, *args, **kwargs):
         # argument array to pass to the method
         cdef jvalue *j_args = NULL
         cdef tuple d_args = self.definition_args
@@ -834,6 +838,10 @@ cdef class JavaMethod(object):
                     len(args), d_args_len, str(self.definition_args),
                     self.classname, self.name) 
             )
+
+        # determine pass by reference choices
+        pass_by_reference = kwargs.get('pass_by_reference', True)
+        pass_by_reference = pass_by_reference if isinstance(pass_by_reference, (tuple, list)) else [pass_by_reference]
 
         if not self.is_static and j_env == NULL:
             raise JavaException(
@@ -856,7 +864,7 @@ cdef class JavaMethod(object):
                     return self.call_staticmethod(j_env, j_args)
                 return self.call_method(j_env, j_args)
             finally:
-                release_args(j_env, self.definition_args, j_args, args)
+                release_args(j_env, self.definition_args, pass_by_reference, j_args, args)
 
         finally:
             if j_args != NULL:
@@ -1100,7 +1108,7 @@ cdef class JavaMultipleMethod(object):
                 jm.set_resolve_info(j_env, j_cls, None, name, classname)
                 self.instance_methods[signature] = jm
 
-    def __call__(self, *args):
+    def __call__(self, *args, **kwargs):
         # try to match our args to a signature
         cdef JavaMethod jm
         cdef list scores = []
@@ -1132,7 +1140,10 @@ cdef class JavaMultipleMethod(object):
 
         if not scores:
             raise JavaException(
-                'No methods matching your arguments, requested: {}, available: {}'.format(
+                'No {}methods called {} in {} matching your arguments, requested: {}, available: {}'.format(
+                    '' if self.j_self else 'static ',
+                    self.name.decode("utf-8"),
+                    self.classname.decode("utf-8"),
                     args,
                     found_signatures
                 )
@@ -1142,7 +1153,7 @@ cdef class JavaMultipleMethod(object):
 
         jm = methods[signature]
         jm.j_self = self.j_self
-        return jm.__call__(*args)
+        return jm.__call__(*args, **kwargs)
 
 
 class JavaStaticMethod(JavaMethod):

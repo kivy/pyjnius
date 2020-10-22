@@ -139,6 +139,72 @@ cdef void _append_exception_trace_messages(
 
     j_env[0].DeleteLocalRef(j_env, frames)
 
+cdef void check_assignable_from_str(JNIEnv *env, source, target) except *:
+    global assignable_from_order
+    cdef jclass cls, clsA, clsB
+    cdef jthrowable exc
+    # first call, we need to get over the libart issue, which implemented
+    # IsAssignableFrom the wrong way.
+    # Ref: https://github.com/kivy/pyjnius/issues/92
+    # Google Bug: https://android.googlesource.com/platform/art/+/1268b74%5E!/
+    if assignable_from_order == 0:
+        clsA = env[0].FindClass(env, "java/lang/String")
+        clsB = env[0].FindClass(env, "java/lang/Object")
+        if env[0].IsAssignableFrom(env, clsB, clsA):
+            # Bug triggered, IsAssignableFrom said we can do things like:
+            # String a = Object()
+            assignable_from_order = -1
+        else:
+            assignable_from_order = 1
+    
+    result = assignable_from.get((source, target), None)
+    if result is None:
+        # if we have a JavaObject, it's always ok.
+        if source == 'java/lang/Object':
+            return
+
+        # FIXME Android/libART specific check
+        # check_jni.cc crash when calling the IsAssignableFrom with
+        # org/jnius/NativeInvocationHandler java/lang/reflect/InvocationHandler
+        # Because we know it's ok, just return here.
+        if target == 'java/lang/reflect/InvocationHandler' and \
+            source == 'org/jnius/NativeInvocationHandler':
+            return
+
+        # if the signature is a direct match, it's ok too :)
+        if source == target:
+            return
+
+        s_source = str_for_c(source)
+        cls_source = env[0].FindClass(env, s_source)
+
+        if cls_source == NULL:
+            raise JavaException('Unable to found the class for {0!r}'.format(
+                source))
+
+        s_target = str_for_c(target)
+        cls_target = env[0].FindClass(env, s_target)
+
+        if cls_target == NULL:
+            raise JavaException('Unable to found the class for {0!r}'.format(
+                target))   
+
+        if assignable_from_order == 1:
+            result = bool(env[0].IsAssignableFrom(env, cls_source, cls_target))
+        else:
+            result = bool(env[0].IsAssignableFrom(env, cls_target, cls_source))
+
+        exc = env[0].ExceptionOccurred(env)
+        if exc:
+            env[0].ExceptionDescribe(env)
+            env[0].ExceptionClear(env)
+
+        assignable_from[(source, target)] = bool(result)
+    
+    if result is False:
+        raise JavaException('Invalid instance of {0!r} passed for a {1!r}'.format(
+            source, target))
+
 
 cdef dict assignable_from = {}
 cdef int assignable_from_order = 0

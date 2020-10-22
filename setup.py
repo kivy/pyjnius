@@ -97,30 +97,31 @@ compile_native_invocation_handler(JAVA)
 # generate the config.pxi
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
     fd.write('DEF JNIUS_PLATFORM = {0!r}\n\n'.format(PLATFORM))
-    if not PY2:
-        fd.write('# cython: language_level=3\n\n')
-        fd.write('DEF JNIUS_PYTHON3 = True\n\n')
-    else:
-        fd.write('# cython: language_level=2\n\n')
-        fd.write('DEF JNIUS_PYTHON3 = False\n\n')
+    fd.write('DEF JNIUS_PYTHON3 = True\n\n')
 
 # pop setup.py from included files in the installed package
 SETUP_KWARGS['py_modules'].remove('setup')
+
+ext_modules = [
+    Extension(
+        'jnius', [join('jnius', x) for x in FILES],
+        libraries=JAVA.get_libraries(),
+        library_dirs=JAVA.get_library_dirs(),
+        include_dirs=JAVA.get_include_dirs(),
+        extra_link_args=EXTRA_LINK_ARGS,
+    )
+]
+
+for ext_mod in ext_modules:
+    ext_mod.cython_directives = {'language_level': 3}
+
 
 # create the extension
 setup(
     cmdclass={'build_ext': build_ext},
     install_requires=INSTALL_REQUIRES,
     setup_requires=SETUP_REQUIRES,
-    ext_modules=[
-        Extension(
-            'jnius', [join('jnius', x) for x in FILES],
-            libraries=JAVA.get_libraries(),
-            library_dirs=JAVA.get_library_dirs(),
-            include_dirs=JAVA.get_include_dirs(),
-            extra_link_args=EXTRA_LINK_ARGS,
-        )
-    ],
+    ext_modules=ext_modules,
     extras_require={
         'dev': ['pytest', 'wheel', 'pytest-cov', 'pycodestyle'],
         'ci': ['coveralls', 'pytest-rerunfailures', 'setuptools>=34.4.0'],
