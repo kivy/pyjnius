@@ -20,7 +20,8 @@ class TestConstructor(unittest.TestCase):
         ConstructorTest = autoclass('org.jnius.ConstructorTest')
         inst = ConstructorTest()
         self.assertEqual(inst.ret, 753)
-        self.assertTrue(ConstructorTest.getClass().isInstance(inst))
+        self.assertTrue(ConstructorTest._class.isInstance(inst))
+        self.assertTrue(inst.getClass().isInstance(inst))
 
     def test_constructor_int(self):
         '''
@@ -30,7 +31,8 @@ class TestConstructor(unittest.TestCase):
         ConstructorTest = autoclass('org.jnius.ConstructorTest')
         inst = ConstructorTest(123)
         self.assertEqual(inst.ret, 123)
-        self.assertTrue(ConstructorTest.getClass().isInstance(inst))
+        self.assertTrue(ConstructorTest._class.isInstance(inst))
+        self.assertTrue(inst.getClass().isInstance(inst))
 
     def test_constructor_string(self):
         '''
@@ -41,8 +43,8 @@ class TestConstructor(unittest.TestCase):
         ConstructorTest = autoclass('org.jnius.ConstructorTest')
         inst = ConstructorTest('a')
         self.assertEqual(inst.ret, ord('a'))
-        self.assertTrue(ConstructorTest.getClass().isInstance(inst))
-
+        self.assertTrue(ConstructorTest._class.isInstance(inst))
+        self.assertTrue(inst.getClass().isInstance(inst))
 
     def test_constructor_multiobj(self):
         '''
@@ -53,7 +55,8 @@ class TestConstructor(unittest.TestCase):
         ConstructorTest = autoclass('org.jnius.ConstructorTest')
         inst = ConstructorTest(outputStream, signature="(Ljava/io/OutputStream;)V")
         self.assertEqual(inst.ret, 42)
-        self.assertTrue(ConstructorTest.getClass().isInstance(inst))
+        self.assertTrue(ConstructorTest._class.isInstance(inst))
+        self.assertTrue(inst.getClass().isInstance(inst))
 
     def test_constructor_int_string(self):
         '''
@@ -64,7 +67,8 @@ class TestConstructor(unittest.TestCase):
         ConstructorTest = autoclass('org.jnius.ConstructorTest')
         inst = ConstructorTest(3, 'a')
         self.assertEqual(inst.ret, 3 + ord('a'))
-        self.assertTrue(ConstructorTest.getClass().isInstance(inst))
+        self.assertTrue(ConstructorTest._class.isInstance(inst))
+        self.assertTrue(inst.getClass().isInstance(inst))
 
     def test_constructor_exception(self):
         '''
