@@ -5,11 +5,12 @@ A Python module to access Java classes as Python classes using the Java Native
 Interface (JNI).
 Warning: the pypi name is now `pyjnius` instead of `jnius`.
 
-[![Tests](https://github.com/kivy/pyjnius/workflows/Continuous%20Integration/badge.svg)](https://github.com//kivy/pyjnius/actions)
-[![Builds](https://github.com/kivy/pyjnius/workflows/Continuous%20Delivery/badge.svg)](https://github.com//kivy/pyjnius/actions)
+[![Tests](https://github.com/kivy/pyjnius/workflows/Continuous%20Integration/badge.svg)](https://github.com/kivy/pyjnius/actions)
+[![Tests (x86)](https://github.com/kivy/pyjnius/workflows/Continuous%20Integration%20(x86)/badge.svg)](https://github.com/kivy/pyjnius/actions)
+[![Builds](https://github.com/kivy/pyjnius/workflows/Continuous%20Delivery/badge.svg)](https://github.com/kivy/pyjnius/actions)
 [![PyPI](https://img.shields.io/pypi/v/pyjnius.svg)]()
-[![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers) 
-[![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors) 
+[![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers)
+[![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors)
 
 Installation
 ------------
@@ -103,7 +104,7 @@ class Hardware(JavaClass):
     accelerometerEnable = JavaStaticMethod('(Z)V')
     accelerometerReading = JavaStaticMethod('()[F')
     getDPI = JavaStaticMethod('()I')
-    
+
 # use that new class!
 print 'DPI is', Hardware.getDPI()
 
