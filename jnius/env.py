@@ -100,7 +100,8 @@ class JavaLocation:
         '''
             Returns true if the location is a JDK, based on existing of javac
         '''
-        return exists(self.get_javac())
+        javac = self.get_javac()
+        return exists(javac)
 
     def get_javac(self): 
         '''
@@ -195,10 +196,14 @@ class JavaLocation:
 class WindowsJavaLocation(JavaLocation):
 
     def get_javac(self):
-        super().get_javac() + ".exe"
+        return super().get_javac() + ".exe"
 
     def get_libraries(self):
         return ['jvm']
+    
+    def get_library_dirs(self):
+        suffices =  ['lib', join('bin', 'server')]
+        return [ join(self.home, suffix) for suffix in suffices ]
 
     def _get_platform_include_dir(self):
         return join(self.home, 'include', 'win32')
