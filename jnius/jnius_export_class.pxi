@@ -338,8 +338,10 @@ cdef class JavaClass(object):
                 )
             if not scores:
                 raise JavaException(
-                    'No constructor matching your arguments, available: '
-                    '{}'.format(found_definitions)
+                    'No constructor matching your arguments, requested: {}, available: {}'.format(
+                        args,
+                        found_definitions
+                    )
                 )
             scores.sort()
             score, definition, d_ret, d_args, args_ = scores[-1]
