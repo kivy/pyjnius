@@ -316,10 +316,13 @@ cdef class JavaClass(object):
                 found_definitions.append(definition)
                 d_ret, d_args = parse_definition(definition)
                 if requestedDefn == definition:
-                    assert not is_varargs
                     scores=[]
                     score=1
-                    scores.append((score, definition, d_ret, d_args, args))
+                    if is_varargs:
+                        args_ = args[:len(d_args) - 1] + (args[len(d_args) - 1:],)
+                    else:
+                        args_ = args
+                    scores.append((score, definition, d_ret, d_args, args_))
                     break
 
                 if is_varargs:
