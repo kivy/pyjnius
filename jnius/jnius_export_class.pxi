@@ -327,7 +327,7 @@ cdef class JavaClass(object):
                 else:
                     args_ = args
 
-                score = calculate_score(d_args, args)
+                score = calculate_score(d_args, args_, is_varargs)
                 if score == -1:
                     continue
                 scores.append((score, definition, d_ret, d_args, args_))

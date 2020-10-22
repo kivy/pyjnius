@@ -29,6 +29,13 @@ class MultipleSignature(unittest.TestCase):
         self.assertEqual(s.indexOf(ord('e')), 1)
         self.assertEqual(s.indexOf(ord('e'), 2), -1)
 
+    def test_multiple_constructors_varargs(self):
+        VariableArgConstructors = autoclass('org.jnius.VariableArgConstructors')
+        c1 = VariableArgConstructors(1, 'var2', 42, None, 4)
+        self.assertEqual(c1.constructorUsed, 1)
+        c2 = VariableArgConstructors(1, 'var2', None, 4)
+        self.assertEqual(c2.constructorUsed, 2)
+
     def test_multiple_methods_no_args(self):
         MultipleMethods = autoclass('org.jnius.MultipleMethods')
         self.assertEqual(MultipleMethods.resolve(), 'resolved no args')
