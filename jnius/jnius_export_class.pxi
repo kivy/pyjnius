@@ -341,7 +341,8 @@ cdef class JavaClass(object):
                 )
             if not scores:
                 raise JavaException(
-                    'No constructor matching your arguments, requested: {}, available: {}'.format(
+                    'No {} constructor matching your arguments, requested: {}, available: {}'.format(
+                        self.__javaclass__,
                         args,
                         found_definitions
                     )
