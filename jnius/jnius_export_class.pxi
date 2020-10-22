@@ -321,7 +321,7 @@ cdef class JavaClass(object):
                     score=1
                     scores.append((score, definition, d_ret, d_args, args))
                     break
-                
+
                 if is_varargs:
                     args_ = args[:len(d_args) - 1] + (args[len(d_args) - 1:],)
                 else:
@@ -814,6 +814,7 @@ cdef class JavaMethod(object):
 
     def __get__(self, obj, objtype):
         if obj is None:
+            self.j_self = None
             return self
         # XXX FIXME we MUST not change our own j_self, but return a "bound"
         # method here, as python does!
@@ -828,6 +829,13 @@ cdef class JavaMethod(object):
         cdef int d_args_len = len(d_args)
         cdef JNIEnv *j_env = get_jnienv()
 
+        if not self.is_static and self.j_self is None:
+            raise JavaException(
+                'Cannot call instance method {} on class {}'.format(
+                    self.name, self.classname
+                )
+            )
+
         if self.is_varargs:
             args = args[:d_args_len - 1] + (args[d_args_len - 1:],)
 
@@ -836,7 +844,7 @@ cdef class JavaMethod(object):
                 'Invalid call, number of argument mismatch, '
                 'got {} need {}, found definitions {} in class {} method {}'.format(
                     len(args), d_args_len, str(self.definition_args),
-                    self.classname, self.name) 
+                    self.classname, self.name)
             )
 
         # determine pass by reference choices
