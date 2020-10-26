@@ -31,9 +31,9 @@ Hello world
 >>> stack = Stack()
 >>> stack.push('hello')
 >>> stack.push('world')
->>> print stack.pop()
+>>> print(stack.pop())
 world
->>> print stack.pop()
+>>> print(stack.pop())
 hello
 ```
 
@@ -50,11 +50,11 @@ from time import sleep
 from jnius import autoclass
 
 Hardware = autoclass('org.renpy.android.Hardware')
-print 'DPI is', Hardware.getDPI()
+print('DPI is', Hardware.getDPI())
 
 Hardware.accelerometerEnable(True)
 for x in xrange(20):
-    print Hardware.accelerometerReading()
+    print(Hardware.accelerometerReading())
     sleep(.1)
 ```
 
@@ -106,11 +106,11 @@ class Hardware(JavaClass):
     getDPI = JavaStaticMethod('()I')
 
 # use that new class!
-print 'DPI is', Hardware.getDPI()
+print('DPI is', Hardware.getDPI())
 
 Hardware.accelerometerEnable()
 for x in xrange(20):
-    print Hardware.accelerometerReading()
+    print(Hardware.accelerometerReading())
     sleep(.1)
 ```
 
