@@ -224,16 +224,17 @@ class MetaJavaClass(MetaJavaBase):
         # search all the static JavaMethod within our class, and resolve them
         cdef JavaMethod jm
         cdef JavaMultipleMethod jmm
+        cdef jboolean resolve_static = True
         for name, value in items_compat(classDict):
             if isinstance(value, JavaMethod):
                 jm = value
                 if not jm.is_static:
                     continue
-                jm.set_resolve_info(j_env, jcs.j_cls, None,
+                jm.set_resolve_info(j_env, jcs.j_cls,
                     str_for_c(name), str_for_c(__javaclass__))
             elif isinstance(value, JavaMultipleMethod):
                 jmm = value
-                jmm.set_resolve_info(j_env, jcs.j_cls, None,
+                jmm.set_resolve_info(j_env, jcs.j_cls, resolve_static,
                     str_for_c(name), str_for_c(__javaclass__))
 
         # search all the static JavaField within our class, and resolve them
@@ -397,16 +398,17 @@ cdef class JavaClass(object):
         cdef JavaMethod jm
         cdef JavaMultipleMethod jmm
         cdef JNIEnv *j_env = get_jnienv()
+        cdef jboolean resolve_static = False
         for name, value in items_compat(self.__class__.__dict__):
             if isinstance(value, JavaMethod):
                 jm = value
                 if jm.is_static:
                     continue
-                jm.set_resolve_info(j_env, self.j_cls, self.j_self,
+                jm.set_resolve_info(j_env, self.j_cls,
                     str_for_c(name), str_for_c(self.__javaclass__))
             elif isinstance(value, JavaMultipleMethod):
                 jmm = value
-                jmm.set_resolve_info(j_env, self.j_cls, self.j_self,
+                jmm.set_resolve_info(j_env, self.j_cls, resolve_static,
                     str_for_c(name), str_for_c(self.__javaclass__))
 
     cdef void resolve_fields(self) except *:
@@ -812,11 +814,10 @@ cdef class JavaMethod(object):
                     ' {0}({1}) in {2}'.format(self.name, self.definition, self.classname))
 
     cdef void set_resolve_info(self, JNIEnv *j_env, jclass j_cls,
-            LocalRef j_self, name, classname):
+            name, classname):
         self.name = name
         self.classname = classname
         self.j_cls = j_cls
-        self.j_self = j_self
 
     def __get__(self, obj, objtype):
         if obj is None:
@@ -1101,25 +1102,26 @@ cdef class JavaMultipleMethod(object):
         return self
 
     cdef void set_resolve_info(self, JNIEnv *j_env, jclass j_cls,
-            LocalRef j_self, bytes name, bytes classname):
+            jboolean resolve_static, bytes name, bytes classname):
         cdef JavaMethod jm
         self.name = name
         self.classname = classname
 
         for signature, static, is_varargs in self.definitions:
-            jm = None
-            if j_self is None and static:
+            # resolve static methods for MetaJavaClass.resolve_class
+            if resolve_static and static:
                 if signature in self.static_methods:
                     continue
                 jm = JavaStaticMethod(signature, varargs=is_varargs)
-                jm.set_resolve_info(j_env, j_cls, j_self, name, classname)
+                jm.set_resolve_info(j_env, j_cls, name, classname)
                 self.static_methods[signature] = jm
 
-            elif j_self is not None and not static:
+            # resolve non-static methods for JavaClass.resolve_methods
+            elif not resolve_static and not static:
                 if signature in self.instance_methods:
                     continue
                 jm = JavaMethod(signature, varargs=is_varargs)
-                jm.set_resolve_info(j_env, j_cls, None, name, classname)
+                jm.set_resolve_info(j_env, j_cls, name, classname)
                 self.instance_methods[signature] = jm
 
     def __call__(self, *args, **kwargs):
