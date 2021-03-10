@@ -25,7 +25,7 @@ screen::
     from jnius import autoclass
     DisplayMetrics = autoclass('android.util.DisplayMetrics')
     metrics = DisplayMetrics()
-    print 'DPI', metrics.getDeviceDensity()
+    print('DPI', metrics.getDeviceDensity())
 
 .. Note ::
   To access nested classes, use `$` e.g.
@@ -83,9 +83,9 @@ using the Android Media Player too::
     mPlayer.prepare()
 
     # play
-    print 'duration:', mPlayer.getDuration()
+    print('duration:', mPlayer.getDuration())
     mPlayer.start()
-    print 'current position:', mPlayer.getCurrentPosition()
+    print('current position:', mPlayer.getCurrentPosition())
     sleep(5)
 
     # then after the play:
@@ -209,7 +209,7 @@ Now you can use it in Pyjnius::
             continue
 
         # show the current values!
-        print lastEvent.values
+        print(lastEvent.values)
 
         sleep(.1)
 
