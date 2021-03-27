@@ -108,7 +108,7 @@ Using the Python-for-android project, you can access the default
     from jnius import autoclass
 
     # import the needed Java class
-    PythonActivity = autoclass('org.renpy.android.PythonActivity')
+    PythonActivity = autoclass('org.kivy.android.PythonActivity')
     Intent = autoclass('android.content.Intent')
     Uri = autoclass('android.net.Uri')
 
@@ -146,7 +146,7 @@ everything needed for accessing the accelerometer::
 
     package org.myapp;
 
-    import org.renpy.android.PythonActivity;
+    import org.kivy.android.PythonActivity;
     import android.content.Context;
     import android.hardware.Sensor;
     import android.hardware.SensorEvent;
@@ -230,7 +230,7 @@ Same as the audio capture, by looking at the `An introduction to Text-To-Speech 
 
     from jnius import autoclass
     Locale = autoclass('java.util.Locale')
-    PythonActivity = autoclass('org.renpy.android.PythonActivity')
+    PythonActivity = autoclass('org.kivy.android.PythonActivity')
     TextToSpeech = autoclass('android.speech.tts.TextToSpeech')
     tts = TextToSpeech(PythonActivity.mActivity, None)
 
