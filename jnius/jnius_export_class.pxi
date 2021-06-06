@@ -111,11 +111,13 @@ class MetaJavaBase(type):
 cdef dict jclass_register = {}
 
 
-# NOTE: The classparams default value in MetaJavaClass.__new__ and
-# MetaJavaClass.get_javaclass need to be consistent with the include_protected
-# and include_private default values in reflect.autoclass.
+# these default params are parameterized so that MetaJavaClass.__new__, 
+# MetaJavaClass.get_javaclass, and reflect.autoclass can be consistent.
+_DEFAULT_INCLUDE_PROTECTED=True
+_DEFAULT_INCLUDE_PRIVATE=True
+
 class MetaJavaClass(MetaJavaBase):
-    def __new__(meta, classname, bases, classDict, classparams=(True, True)):
+    def __new__(meta, classname, bases, classDict, classparams=(_DEFAULT_INCLUDE_PROTECTED, _DEFAULT_INCLUDE_PRIVATE)):
         meta.resolve_class(classDict)
         tp = type.__new__(meta, str(classname), bases, classDict)
         jclass_register[(classDict['__javaclass__'], classparams)] = tp
@@ -160,7 +162,7 @@ class MetaJavaClass(MetaJavaBase):
         return super(MetaJavaClass, cls).__subclasscheck__(value)
 
     @staticmethod
-    def get_javaclass(name, classparams=(False, False)):
+    def get_javaclass(name, classparams=(_DEFAULT_INCLUDE_PROTECTED, _DEFAULT_INCLUDE_PRIVATE)):
         return jclass_register.get((name, classparams))
 
     @classmethod
@@ -207,17 +209,29 @@ class MetaJavaClass(MetaJavaBase):
                 raise JavaException('Unable to create the class'
                         ' {0}'.format(__javaclass__))
         else:
-            class_name = str_for_c(__javaclass__)
-            jcs.j_cls = j_env[0].FindClass(j_env,
-                    <char *>class_name)
-            if jcs.j_cls == NULL:
-                raise JavaException('Unable to find the class'
+            
+            if '_class' in classDict:
+                 #we have a python copy of the class object, in classDict['_class']. lets use this instead of FindClass
+
+                # classDict['_class'] is a jnius.reflect.Class, which extends JavaClass
+                # The jobject for that JavaClass is the jclass that we need to instantiate this object
+                JavaClass.copy_storage(classDict['_class'], jcs)
+                if jcs.j_cls == NULL:
+                    raise JavaException('_class instance did not have a reference'
+                        ' {0}'.format(__javaclass__))
+            else:
+                class_name = str_for_c(__javaclass__)
+                jcs.j_cls = j_env[0].FindClass(j_env,
+                        <char *>class_name)
+                if jcs.j_cls == NULL:
+                    raise JavaException('Unable to find the class'
                         ' {0}'.format(__javaclass__))
 
-        # XXX do we need to grab a ref here?
-        # -> Yes, according to http://developer.android.com/training/articles/perf-jni.html
-        #    in the section Local and Global References
-        jcs.j_cls = j_env[0].NewGlobalRef(j_env, jcs.j_cls)
+                # XXX do we need to grab a ref here?
+                # -> Yes, according to http://developer.android.com/training/articles/perf-jni.html
+                #    in the section Local and Global References
+                jcs.j_cls = j_env[0].NewGlobalRef(j_env, jcs.j_cls)
+                # we only need this for a NEW FindClass call
 
         classDict['__cls_storage'] = jcs
 
@@ -271,6 +285,9 @@ cdef class JavaClass(object):
             self.call_constructor(args, kwargs)
             self.resolve_methods()
             self.resolve_fields()
+
+    cdef void copy_storage(self, JavaClassStorage jcs) except *:
+        jcs.j_cls = <jclass> self.j_self.obj
 
     cdef void instanciate_from(self, LocalRef j_self) except *:
         self.j_self = j_self

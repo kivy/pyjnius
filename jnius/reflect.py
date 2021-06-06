@@ -9,10 +9,10 @@ from six import with_metaclass, PY2
 from .jnius import (
     JavaClass, MetaJavaClass, JavaMethod, JavaStaticMethod,
     JavaField, JavaStaticField, JavaMultipleMethod, find_javaclass,
-    JavaException
+    JavaException, _DEFAULT_INCLUDE_PROTECTED, _DEFAULT_INCLUDE_PRIVATE
 )
 
-__all__ = ('autoclass', 'ensureclass', 'protocol_map')
+__all__ = ('autoclass', 'ensureclass', 'protocol_map', 'reflect_class')
 
 log = getLogger(__name__)
 
@@ -25,6 +25,7 @@ class Class(with_metaclass(MetaJavaClass, JavaClass)):
         ('(Ljava/lang/String,Z,Ljava/lang/ClassLoader;)Ljava/langClass;', True, False),
         ('(Ljava/lang/String;)Ljava/lang/Class;', True, False), ])
     getClassLoader = JavaMethod('()Ljava/lang/ClassLoader;')
+    getClass = JavaMethod('()Ljava/lang/Class;')
     getClasses = JavaMethod('()[Ljava/lang/Class;')
     getComponentType = JavaMethod('()Ljava/lang/Class;')
     getConstructor = JavaMethod('([Ljava/lang/Class;)Ljava/lang/reflect/Constructor;')
@@ -55,6 +56,7 @@ class Class(with_metaclass(MetaJavaClass, JavaClass)):
     isInstance = JavaMethod('(Ljava/lang/Object;)Z')
     isInterface = JavaMethod('()Z')
     isPrimitive = JavaMethod('()Z')
+    hashCode = JavaMethod('()I')
     newInstance = JavaMethod('()Ljava/lang/Object;')
     toString = JavaMethod('()Ljava/lang/String;')
 
@@ -213,17 +215,24 @@ def identify_hierarchy(cls, level, concrete=True):
     yield cls, level
 
 
-# NOTE: if you change the include_protected or include_private default values,
-# you also must change the classparams default value in MetaJavaClass.__new__
-# and MetaJavaClass.get_javaclass.
-def autoclass(clsname, include_protected=True, include_private=True):
+def autoclass(clsname,
+              include_protected=_DEFAULT_INCLUDE_PROTECTED,
+              include_private=_DEFAULT_INCLUDE_PRIVATE):
+    '''
+        Auto-reflects a class based on its name. 
+
+        Parameters:
+            clsname (str): string name of the class, e.g. "java.util.HashMap"
+            include_protected (boolean): whether protected methods and fields should be included
+            include_private (boolean): whether protected methods and fields should be included
+        
+        Returns:
+            Returns a Python object representing the static class.
+    '''
     jniname = clsname.replace('.', '/')
     cls = MetaJavaClass.get_javaclass(jniname, classparams=(include_protected, include_private))
     if cls:
         return cls
-
-    classDict = {}
-    cls_start_packagename = '.'.join(clsname.split('.')[:-1])
 
     # c = Class.forName(clsname)
     c = find_javaclass(clsname)
@@ -231,18 +240,39 @@ def autoclass(clsname, include_protected=True, include_private=True):
         raise Exception('Java class {0} not found'.format(c))
         return None
 
-    classDict['_class'] = c
+    return reflect_class(c, include_protected, include_private)
+
+
+# NOTE: See also comments on autoclass() on include_protected or include_private default values
+def reflect_class(cls_object, include_protected=_DEFAULT_INCLUDE_PROTECTED, include_private=_DEFAULT_INCLUDE_PRIVATE):
+    '''
+        Create a python wrapping class with the attributes and methods of the corresponding java class, from a python instance of the desired reflected java class.
+
+        Parameters:
+            cls_object (Class): a Python instance of a java.lang.Class object.
+            include_protected (boolean): whether protected methods and fields should be included
+            include_private (boolean): whether protected methods and fields should be included
+        
+        Returns:
+            Returns a Python object representing the static class.
+    '''
+
+    clsname = cls_object.getName()
+    classDict = {}
+    cls_start_packagename = '.'.join(clsname.split('.')[:-1])
+
+    classDict['_class'] = cls_object
 
     constructors = []
-    for constructor in c.getConstructors():
+    for constructor in cls_object.getConstructors():
         sig = '({0})V'.format(
             ''.join([get_signature(x) for x in constructor.getParameterTypes()]))
         constructors.append((sig, constructor.isVarArgs()))
     classDict['__javaconstructor__'] = constructors
 
-    class_hierachy = list(identify_hierarchy(c, 0, not c.isInterface()))
+    class_hierachy = list(identify_hierarchy(cls_object, 0, not cls_object.isInterface()))
 
-    log.debug("autoclass(%s) intf %r hierarchy is %s" % (clsname,c.isInterface(),str(class_hierachy)))
+    log.debug("autoclass(%s) intf %r hierarchy is %s" % (clsname,cls_object.isInterface(),str(class_hierachy)))
     cls_done=set()
 
     cls_methods = defaultdict(list)
@@ -320,19 +350,11 @@ def autoclass(clsname, include_protected=True, include_private=True):
                 get_signature(method.getReturnType()))
             if log.isEnabledFor(DEBUG):
                 log_method(method, name, sig)
-            classDict[name] = (JavaStaticMethod if static else JavaMethod)(sig, varargs=varargs)
-            # methods that fit the characteristics of a JavaBean's methods get turned into properties.
-            # these added properties should not supercede any other methods or fields.
-            if name != 'getClass' and bean_getter(name) and len(method.getParameterTypes()) == 0:
-                lowername = lower_name(name[2 if name.startswith('is') else 3:])
-                if lowername in classDict:
-                    # don't add this to classDict if the property will replace a method or field.
-                    continue
-                classDict[lowername] = (lambda n: property(lambda self: getattr(self, n)()))(name)
+            _add_single_method(classDict, name, static, sig, varargs)
         else:
             # multiple signatures
             signatures = []
-            log.debug("method %s has %d multiple signatures in hierarchy of cls %s" % (name, len(cls_methods[name]), c))
+            log.debug("method %s has %d multiple signatures in hierarchy of cls %s" % (name, len(cls_methods[name]), clsname))
 
             paramsig_to_level=defaultdict(lambda: float('inf'))
             # we now identify if any have the same signature, as we will call the _lowest_ in the hierarchy,
@@ -357,8 +379,14 @@ def autoclass(clsname, include_protected=True, include_private=True):
                     log_method(method, name, sig)
                 signatures.append((sig, Modifier.isStatic(method.getModifiers()), method.isVarArgs()))
 
-            log.debug("method selected %d multiple signatures of %s" % (len(signatures), str(signatures)))
-            classDict[name] = JavaMultipleMethod(signatures)
+            if len(signatures) > 1:
+                log.debug("method selected %d multiple signatures of %s" % (len(signatures), str(signatures)))
+                classDict[name] = JavaMultipleMethod(signatures)
+            elif len(signatures) == 1:
+                (sig, static, varargs) = signatures[0]
+                if log.isEnabledFor(DEBUG):
+                    log_method(method, name, sig)
+                _add_single_method(classDict, name, static, sig, varargs)
 
     # check whether any classes in the hierarchy appear in the protocol_map
     for cls, _ in class_hierachy:
@@ -375,6 +403,16 @@ def autoclass(clsname, include_protected=True, include_private=True):
         classDict,
         classparams=(include_protected, include_private))
 
+def _add_single_method(classDict, name, static, sig, varargs):
+    classDict[name] = (JavaStaticMethod if static else JavaMethod)(sig, varargs=varargs)
+    # methods that fit the characteristics of a JavaBean's methods get turned into properties.
+    # these added properties should not supercede any other methods or fields.
+    if name != 'getClass' and bean_getter(name) and sig.startswith("()"):
+        lowername = lower_name(name[2 if name.startswith('is') else 3:])
+        if lowername in classDict:
+            # don't add this to classDict if the property will replace a method or field.
+            return
+        classDict[lowername] = (lambda n: property(lambda self: getattr(self, n)()))(name)
 
 def _getitem(self, index):
     ''' dunder method for List '''

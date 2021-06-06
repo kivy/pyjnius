@@ -14,16 +14,23 @@ def cast(destclass, obj):
     return jc
 
 
-def find_javaclass(namestr):
+def find_javaclass(namestr, raise_error=True):
     namestr = namestr.replace('.', '/')
     cdef bytes name = str_for_c(namestr)
     from .reflect import Class
     cdef JavaClass cls
     cdef jclass jc
     cdef JNIEnv *j_env = get_jnienv()
+    cdef jthrowable
 
     jc = j_env[0].FindClass(j_env, name)
-    check_exception(j_env)
+    if raise_error:
+        check_exception(j_env)
+    else:
+        exc = j_env[0].ExceptionOccurred(j_env)
+        if exc:
+            j_env[0].ExceptionClear(j_env)
+        return None
 
     cls = Class(noinstance=True)
     cls.instanciate_from(create_local_ref(j_env, jc))
