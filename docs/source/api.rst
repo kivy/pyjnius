@@ -379,8 +379,24 @@ steps::
     2. $ cd platforms/android-xx/  # Replace xx with your android version
     3. $ javap -s -classpath android.jar android.app.Activity  # Replace android.app.Activity with any android class whose methods' signature you want to see
 
+
+Java Lambda implementation in Python using Lambdas and Function References
+--------------------------------------------------------------------------
+
+It is possible to use Python lambdas or function references to implement Java `functional interfaces <https://docs.oracle.com/javase/8/docs/api/java/util/function/package-summary.html#package.description>`. A functional interface has one (non-default) method. When implementing a functional interface in Python, your lambda must have the correct number of parameters and return the correct data type. You must hold a reference to the Python lambda for as long as it will be used by Java.
+
+For example, here we use a Python lambda to implement the `Comparator <https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html>` functional interface::
+
+    numbers = autoclass('java.util.ArrayList')()
+    Collections = autoclass('java.util.Collections')
+    numbers.add(1)
+    numbers.add(3)
+    revSort = lambda i, j: j - i
+    Collections.sort(numbers, revSort)
+
+The lambda is wrapped in a PythonJavaClass, which implements the Java interface of the parameter in the called Java method.
+
 Passing Variables: By Reference or By Value
--------------------------------------------
 
 When Python objects such as `lists` or `bytearrays` are passed to Java Functions, they are converted
 to Java arrays. Since Python does not share the same memory space as the JVM, a copy of the data
@@ -407,6 +423,7 @@ control you can pass a `list` or `tuple` instead.
 
 If the passed `list` or `tuple` is too short, the final value in the series is used for the
 remaining parameters.
+
 
 JVM options and the class path
 ------------------------------

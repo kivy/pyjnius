@@ -1,6 +1,7 @@
 from cpython.version cimport PY_MAJOR_VERSION
 from cpython cimport PyUnicode_DecodeUTF16
 
+activeLambdaJavaProxies = set()
 
 cdef jstringy_arg(argtype):
     return argtype in ('Ljava/lang/String;',
@@ -33,7 +34,7 @@ cdef void release_args(JNIEnv *j_env, tuple definition_args, pass_by_reference, 
                     pass
             j_env[0].DeleteLocalRef(j_env, j_args[index].l)
 
-cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, args) except *:
+cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, args):
     # do the conversion from a Python object to Java from a Java definition
     cdef JavaClassStorage jcs
     cdef JavaObject jo
@@ -111,6 +112,27 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
             # array
             elif isinstance(py_arg, (tuple, list)):
                 j_args[index].l = convert_pyarray_to_java(j_env, argtype, py_arg)
+
+            # lambda or function
+            elif callable(py_arg):
+                
+                # we need to make a java object in python
+                py_arg = convert_python_callable_to_jobject(argtype, py_arg)
+
+                # TODO: this line should not be needed to prevent py_arg from being GCd 
+                activeLambdaJavaProxies.add(py_arg)
+                
+                # next few lines is from "isinstance(py_arg, PythonJavaClass)" above
+                # except jc is None is removed, as we know it has been called by
+                # convert_python_callable_to_jobject()
+
+                # from python class, get the proxy/python class
+                pc = py_arg
+                # get the java class
+                jc = pc.j_self
+
+                # get the localref
+                j_args[index].l = jc.j_self.obj
 
             else:
                 raise JavaException('Invalid python object for this '
@@ -365,6 +387,92 @@ cdef convert_jarray_to_python(JNIEnv *j_env, definition, jobject j_object):
         raise JavaException('Invalid return definition for array')
 
     return ret
+
+# this has been moved from reflect.py
+def get_signature(cls_tp):
+    tp = cls_tp.getName()
+    if tp[0] == '[':
+        return tp.replace('.', '/')
+    signatures = {
+        'void': 'V', 'boolean': 'Z', 'byte': 'B',
+        'char': 'C', 'short': 'S', 'int': 'I',
+        'long': 'J', 'float': 'F', 'double': 'D'}
+    ret = signatures.get(tp)
+    if ret:
+        return ret
+    # don't do it in recursive way for the moment,
+    # error on the JNI/android: JNI ERROR (app bug): local reference table
+    # overflow (max=512)
+
+    # ensureclass(tp)
+    return 'L{0};'.format(tp.replace('.', '/'))
+
+def get_param_signature(m):
+    rtr = "("
+    for c in m.getParameterTypes():
+        rtr += get_signature(c)
+    rtr += ")"
+    rtr += get_signature(m.getReturnType())
+    return rtr
+
+def convert_python_callable_to_jobject(definition, pyarg):
+    
+    objmethods = set(["equals", "notify", "notifyAll", "toString", "wait", "getClass"])
+    # we assume that definition is java/util/function/Function
+    # definition = "Ljava/util/function/Function;"
+    classname = definition[1:-1]
+
+    clz = find_javaclass(classname)
+    if clz is None:
+        raise Exception('Java class {0} not found'.format(classname))
+
+    if not clz.isInterface():
+        raise JavaException('%s is not an interface that can be instantiated with a callable' % classname)
+    
+    # A functional interface is an interface that has just one
+    # abstract method (aside from the methods of Object)
+    # https://docs.oracle.com/javase/specs/jls/se8/html/jls-9.html#jls-9.8
+    methods = clz.getMethods()
+    candidateFunctionalMethods=[]
+    for m in methods:
+        # ignore static methods
+        #if Modifier.isStatic(method.getModifiers()):
+        if m.getModifiers() & 8 == 8:
+            continue
+        # ignore default methods
+        if m.isDefault():
+            continue
+        # ignore methods that are in Object
+        if m.getName() in objmethods:
+            continue        
+        candidateFunctionalMethods.append(m)
+    if len(candidateFunctionalMethods) != 1:
+        raise JavaException("%s is not a functional interface (%d methods) that can be instantiated with a callable: %s" 
+            % (classname, len(candidateFunctionalMethods), str(list(map(lambda m : m.getName(), candidateFunctionalMethods )))))
+    
+    # functional method has been identified
+    functionalMethod = candidateFunctionalMethods[0]
+    functionalMethodName = functionalMethod.getName()
+    
+    # we need a new Python class that will implement the correct interface
+    class PythonLambdaArg(PythonJavaClass):
+        __javainterfaces__ = [classname]
+
+    intfInstance = PythonLambdaArg()
+
+    # decoreate the method with the @java_method attribute
+    setattr( pyarg,  '__javasignature__',  get_param_signature( functionalMethod ) )
+    setattr( pyarg,  '__javaname__', functionalMethodName)
+
+    # finally add the method to the instance. we use the same name
+    setattr(intfInstance, functionalMethodName, pyarg)
+    
+    # we have added a method after __init__ () was called
+    # so we need to re-run introspection
+    intfInstance._init_j_self_ptr()
+
+    return intfInstance
+
 
 cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
     cdef jobject retobject, retsubobject
