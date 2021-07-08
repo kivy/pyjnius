@@ -16,6 +16,11 @@ log = getLogger(__name__)
 
 PY2 = sys.version_info.major < 3
 
+if PY2:
+    from distutils.spawn import find_executable as which
+else:
+    from shutil import which
+
 machine = machine()  # not expected to change at runtime
 
 # This dictionary converts values from platform.machine()
@@ -102,11 +107,12 @@ def get_jre_home(platform):
         jre_home = join(JAVA_HOME, 'jre')
 
     if platform != 'win32' and not jre_home:
-        jre_home = realpath(
-            check_output(
-                split('which java')
-            ).decode('utf-8').strip()
-        ).replace('bin/java', '')
+        try:
+            jre_home = realpath(
+                which('java')
+            ).replace('bin/java', '')
+        except TypeError:
+            raise Exception('Unable to find java')
 
     if platform == 'win32':
         if isinstance(jre_home, bytes):
@@ -132,11 +138,12 @@ def get_jdk_home(platform):
                 jdk_home = TMP_JDK_HOME
 
         else:
-            jdk_home = realpath(
-                check_output(
-                    ['which', 'javac']
-                ).decode('utf-8').strip()
-            ).replace('bin/javac', '')
+            try:
+                jdk_home = realpath(
+                    which('javac')
+                ).replace('bin/javac', '')
+            except TypeError:
+                raise Exception('Unable to find javac')
 
     if not jdk_home or not exists(jdk_home):
         raise Exception('Unable to determine JDK_HOME')
