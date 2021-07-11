@@ -35,7 +35,7 @@ cdef class ByteArray:
             self._buf = NULL
         self._jobject = None
 
-    cdef void set_buffer(self, JNIEnv *env, jobject obj, long size, jbyte *buf):
+    cdef void set_buffer(self, JNIEnv *env, jobject obj, long size, jbyte *buf) except *:
         if self._buf != NULL:
             raise Exception('Cannot call set_buffer() twice.')
         self._jobject = LocalRef()

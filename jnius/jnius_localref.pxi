@@ -11,7 +11,7 @@ cdef class LocalRef:
             j_env[0].DeleteGlobalRef(j_env, self.obj)
         self.obj = NULL
 
-    cdef void create(self, JNIEnv *env, jobject obj):
+    cdef void create(self, JNIEnv *env, jobject obj) except *:
         self.obj = env[0].NewGlobalRef(env, obj)
 
     def __repr__(self):
