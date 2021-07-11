@@ -179,14 +179,14 @@ cdef void check_assignable_from_str(JNIEnv *env, source, target) except *:
         cls_source = env[0].FindClass(env, s_source)
 
         if cls_source == NULL:
-            raise JavaException('Unable to found the class for {0!r}'.format(
+            raise JavaException('Unable to find the class for {0!r}'.format(
                 source))
 
         s_target = str_for_c(target)
         cls_target = env[0].FindClass(env, s_target)
 
         if cls_target == NULL:
-            raise JavaException('Unable to found the class for {0!r}'.format(
+            raise JavaException('Unable to find the class for {0!r}'.format(
                 target))   
 
         if assignable_from_order == 1:
