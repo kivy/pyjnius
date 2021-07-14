@@ -202,7 +202,7 @@ cdef void check_assignable_from_str(JNIEnv *env, source, target) except *:
         assignable_from[(source, target)] = bool(result)
     
     if result is False:
-        raise JavaException('Invalid instance of {0!r} passed for a {1!r}'.format(
+        raise TypeError('Invalid instance of {0!r} passed for a {1!r}'.format(
             source, target))
 
 
@@ -268,7 +268,7 @@ cdef void check_assignable_from(JNIEnv *env, JavaClass jc, signature) except *:
         assignable_from[(jc.__javaclass__, signature)] = bool(result)
 
     if result is False:
-        raise JavaException('Invalid instance of {0!r} passed for a {1!r}'.format(
+        raise TypeError('Invalid instance of {0!r} passed for a {1!r}'.format(
             jc.__javaclass__, signature))
 
 
