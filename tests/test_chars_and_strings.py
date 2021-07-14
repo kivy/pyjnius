@@ -134,14 +134,14 @@ class CharsAndStringsTest(unittest.TestCase):
     def test_pass_intfloat_as_string(self):
         CharsAndStrings = autoclass("org.jnius.CharsAndStrings")
         self.assertIsNone(CharsAndStrings.testStringDefNull)
-        with self.assertRaises(JavaException):
+        with self.assertRaisesRegex(TypeError, "Invalid instance of 'java/lang/Integer' passed for a 'java/lang/String'"):
             # we cannot provide an int to a String
             CharsAndStrings.setString("a", 2)
-        with self.assertRaises(JavaException):
+        with self.assertRaisesRegex(TypeError, "Invalid instance of 'java/lang/Float' passed for a 'java/lang/String'"):
             # we cannot provide an float to a String
             CharsAndStrings.setString("a", 2.2)
         alist = autoclass("java.util.ArrayList")()
-        with self.assertRaises(JavaException):
+        with self.assertRaisesRegex(TypeError, "Invalid instance of 'java/util/ArrayList' passed for a 'java/lang/String'"):
             # we cannot provide a list to a String
             CharsAndStrings.setString("a", alist)
         system = autoclass("java.lang.System")
@@ -151,6 +151,6 @@ class CharsAndStringsTest(unittest.TestCase):
     def test_pass_string_as_int(self):
         CharsAndStrings = autoclass("org.jnius.CharsAndStrings")
         self.assertEqual(0, CharsAndStrings.testInt)
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(TypeError, "an integer is required"):
             # we cannot provide a String to an int
             CharsAndStrings.setInt("a", "2")
