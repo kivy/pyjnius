@@ -269,14 +269,10 @@ class MacOsXJavaLocation(UnixJavaLocation):
 class AndroidJavaLocation(UnixJavaLocation):
     
     def get_libraries(self):
-        #if platform == 'android':
-        # for android, we use SDL...
-        return ['sdl', 'log']
+        return ['SDL2', 'log']
 
     def get_library_dirs(self):
-        raise RuntimeError("TODO: who sets arch?")
-        arch = None
-        return [join(self.home, 'libs', arch)]
+        return []
 
 
 def get_jre_home(platform):
