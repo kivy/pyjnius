@@ -37,8 +37,10 @@ MACHINE2CPU = {
 
 DEFAULT_PLATFORM = sys.platform
 
+
 def is_set(string):
     return string is not None and len(string) > 0
+
 
 def get_java_setup(platform=DEFAULT_PLATFORM):
     '''
@@ -57,11 +59,11 @@ def get_java_setup(platform=DEFAULT_PLATFORM):
         JAVA_HOME = get_osx_framework()
         if not is_set(JAVA_HOME):
             raise Exception('You must install Java for Mac OSX')
-    
+
     # go hunting for Javac and Java programs, in that order
     if not is_set(JAVA_HOME):
         JAVA_HOME = get_jdk_home(platform)
-    
+
     if not is_set(JAVA_HOME):
         JAVA_HOME = get_jre_home(platform)
 
@@ -88,8 +90,8 @@ def get_java_setup(platform=DEFAULT_PLATFORM):
     log.warning("warning: unknown platform %s assuming linux or sunOS" % platform)
     return UnixJavaLocation(platform, JAVA_HOME)
 
-class JavaLocation:
 
+class JavaLocation:
     def __init__(self, platform, home):
         self.platform = platform
         self.home = home
@@ -174,7 +176,7 @@ class JavaLocation:
             if exists(full_lib_location):
                 log.debug("found libjvm.so at %s", full_lib_location)
                 return full_lib_location
-        
+
         raise RuntimeError(
         """
         Unable to find libjvm.so, (tried %s)
@@ -199,23 +201,21 @@ class JavaLocation:
 
 
 class WindowsJavaLocation(JavaLocation):
-
     def get_javac(self):
         return super().get_javac() + ".exe"
 
     def get_libraries(self):
         return ['jvm']
-    
+
     def get_library_dirs(self):
         suffices =  ['lib', join('bin', 'server')]
-        return [ join(self.home, suffix) for suffix in suffices ]
+        return [join(self.home, suffix) for suffix in suffices]
 
     def _get_platform_include_dir(self):
         return join(self.home, 'include', 'win32')
-    
+
 
 class UnixJavaLocation(JavaLocation):
-
     def _get_platform_include_dir(self):
         if self.platform == 'sunos5':
             return join(self.home, 'include', 'solaris')
@@ -223,7 +223,6 @@ class UnixJavaLocation(JavaLocation):
             return join(self.home, 'include', 'linux')
 
     def _possible_lib_locations(self, cpu):
-        
         root = self.home
         if root.endswith('jre'):
             root = root[:-3]
@@ -236,7 +235,6 @@ class UnixJavaLocation(JavaLocation):
 
 
 class MacOsXJavaLocation(UnixJavaLocation):
-    
     def _get_platform_include_dir(self):
         return join(self.home, 'include', 'darwin')
 
@@ -251,7 +249,7 @@ class MacOsXJavaLocation(UnixJavaLocation):
                 # adoptopenjdk12 doesn't have the jli subfolder either
                 'lib/libjli.dylib',
         ]
-        
+
 
 
     # this is overridden due to the specifalities of version 1.6
@@ -266,8 +264,8 @@ class MacOsXJavaLocation(UnixJavaLocation):
             )]
         return super().get_include_dirs()
 
+
 class AndroidJavaLocation(UnixJavaLocation):
-    
     def get_libraries(self):
         return ['SDL2', 'log']
 
@@ -290,7 +288,7 @@ def get_jre_home(platform):
 
         if is_set(jre_home):
             return jre_home
-    
+
         # didnt find java command on the path, we can
         # fallback to hunting in some default unix locations
         for loc in ["/usr/java/latest/", "/usr/java/default/", "/usr/lib/jvm/default-java/"]: 
@@ -353,4 +351,3 @@ def get_cpu():
         )
         print("         Using cpu = 'i386' instead!")
         return 'i386'
-
