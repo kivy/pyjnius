@@ -68,7 +68,6 @@ if NDKPLATFORM is not None and getenv('LIBLINK'):
 # detect cython
 if PLATFORM != 'android':
     SETUP_REQUIRES.append('cython')
-    INSTALL_REQUIRES.append('cython')
 else:
     FILES = [fn[:-3] + 'c' for fn in FILES if fn.endswith('pyx')]
 
