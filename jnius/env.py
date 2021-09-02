@@ -349,5 +349,5 @@ def get_cpu():
             "WARNING: Not able to assign machine()"
             " = %s to a cpu value!" % machine
         )
-        print("         Using cpu = 'i386' instead!")
-        return 'i386'
+        print(f"         Using cpu = '{machine}' instead!")
+        return machine
