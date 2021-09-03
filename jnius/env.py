@@ -31,6 +31,7 @@ MACHINE2CPU = {
     "x86_64": "amd64",
     "AMD64": "amd64",
     "armv7l": "arm",
+    "aarch64": "aarch64",
     "sun4u": "sparcv9",
     "sun4v": "sparcv9"
 }
