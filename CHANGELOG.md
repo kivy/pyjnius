@@ -1,5 +1,15 @@
 # Change Log
 
+## [1.4.1](https://github.com/kivy/pyjnius/tree/1.4.0) (2021-10-30)
+[Full Changelog](https://github.com/kivy/pyjnius/compare/1.4.0...1.4.1)
+
+**CI**
+- [\#607](https://github.com/kivy/pyjnius/pull/607) Add python3.10 build/release
+
+**Packaging**
+- [\#603](https://github.com/kivy/pyjnius/pull/603) Use platform.machine() as default get_cpu() return value, explicitely support AARCH64
+
+
 ## [1.4.0](https://github.com/kivy/pyjnius/tree/1.4.0) (2021-08-24)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.3.0...1.4.0)
 
