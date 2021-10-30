@@ -10,6 +10,7 @@ jobs:
            - '3.7'
            - '3.8'
            - '3.9'
+           - '3.10'
         java:
           - '8'
           # - '9' # commented out just for faster CI
