@@ -56,9 +56,9 @@ Reflection classes
         look like::
 
             class String(JavaClass):
-                __javaclass__ == 'java/lang/String'
+                __javaclass__ = 'java/lang/String'
                 __metaclass__ = MetaJavaClass
-                __javaconstructor__ == (
+                __javaconstructor__ = (
                     '()V',
                     '(Ljava/lang/String;)V',
                     '([C)V',
