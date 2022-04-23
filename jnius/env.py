@@ -270,6 +270,12 @@ class AndroidJavaLocation(UnixJavaLocation):
     def get_libraries(self):
         return ['SDL2', 'log']
 
+    def get_include_dirs(self):
+        # When cross-compiling for Android, we should not use the include dirs
+        # exposed by the JDK. Instead, we should use the one exposed by the
+        # Android NDK (which are already handled via python-for-android).
+        return []
+
     def get_library_dirs(self):
         return []
 
