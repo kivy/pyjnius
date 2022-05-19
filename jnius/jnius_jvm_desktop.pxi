@@ -53,8 +53,10 @@ cdef void create_jnienv() except *:
         for suffix in (
             ('bin', 'client'),
             ('bin', 'server'),
+            ('bin', 'default'),
             ('jre', 'bin', 'client'),
             ('jre', 'bin', 'server'),
+            ('jre', 'bin', 'default'),
         ):
             path = join(jdk_home, *suffix)
             if not os.path.isdir(path):
