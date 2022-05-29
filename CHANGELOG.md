@@ -1,6 +1,19 @@
 # Change Log
 
-## [1.4.1](https://github.com/kivy/pyjnius/tree/1.4.0) (2021-10-30)
+## [1.4.2](https://github.com/kivy/pyjnius/tree/1.4.2) (2022-05-29)
+[Full Changelog](https://github.com/kivy/pyjnius/compare/1.4.1...1.4.2)
+
+**Packaging**
+- [\#620](https://github.com/kivy/pyjnius/pull/620) When cross-compiling for Android, we should not use the include dirs exposed by the JDK
+
+**Docs**
+- [\#616](https://github.com/kivy/pyjnius/pull/616) Update api.rst, remove extra equals signs
+
+**Implemented enhancements:**
+- [\#622](https://github.com/kivy/pyjnius/pull/622) Add suffix to support IBM jre on Windows
+
+
+## [1.4.1](https://github.com/kivy/pyjnius/tree/1.4.1) (2021-10-30)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.4.0...1.4.1)
 
 **CI**
