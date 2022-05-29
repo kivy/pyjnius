@@ -21,8 +21,10 @@ if sys.platform == 'win32' and sys.version_info >= (3, 8):
         for suffix in (
             ('bin', 'client'),
             ('bin', 'server'),
+            ('bin', 'default'),
             ('jre', 'bin', 'client'),
             ('jre', 'bin', 'server'),
+            ('jre', 'bin', 'default'),
         ):
             path = os.path.join(jdk_home, *suffix)
             if not os.path.isdir(path):
