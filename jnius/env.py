@@ -165,13 +165,9 @@ class JavaLocation:
             )
             return libjvm_override_path
 
-        cpu = get_cpu()
         platform = self.platform
-        log.debug(
-            "looking for libjvm to initiate pyjnius, cpu is %s, platform is %s",
-            cpu, platform
-        )
-        lib_locations = self._possible_lib_locations(cpu)
+        log.debug("looking for libjvm to initiate pyjnius, platform is %s", platform)
+        lib_locations = self._possible_lib_locations()
         for location in lib_locations:
             full_lib_location = join(self.home, location)
             if exists(full_lib_location):
@@ -193,7 +189,7 @@ class JavaLocation:
         % [join(self.home, loc) for loc in lib_locations]
     )
 
-    def _possible_lib_locations(self, cpu):
+    def _possible_lib_locations(self):
         '''
             Returns a list of relative possible locations for the Java library.
             Used by the default implementation of get_jnius_lib_location()
@@ -223,10 +219,15 @@ class UnixJavaLocation(JavaLocation):
         else:
             return join(self.home, 'include', 'linux')
 
-    def _possible_lib_locations(self, cpu):
+    def _possible_lib_locations(self):
         root = self.home
         if root.endswith('jre'):
             root = root[:-3]
+
+        cpu = get_cpu()
+        log.debug(
+            f"Platform {self.platform} may need cpu in path to find libjvm, which is: {cpu}"
+        )
 
         return [
             'lib/server/libjvm.so',
@@ -239,7 +240,7 @@ class MacOsXJavaLocation(UnixJavaLocation):
     def _get_platform_include_dir(self):
         return join(self.home, 'include', 'darwin')
 
-    def _possible_lib_locations(self, cpu):
+    def _possible_lib_locations(self):
         if '1.6' in self.home:
             return ['../Libraries/libjvm.dylib'] # TODO what should this be resolved to?
 
