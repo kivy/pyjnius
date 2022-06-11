@@ -1,5 +1,4 @@
 from cpython.version cimport PY_MAJOR_VERSION
-from cpython cimport PyUnicode_DecodeUTF16
 
 activeLambdaJavaProxies = set()
 
@@ -257,10 +256,7 @@ cdef convert_jstring_to_python(JNIEnv *j_env, jstring j_string):
         j_strlen = j_env[0].GetStringLength(j_env, j_string);
 
         buffsize = j_strlen * sizeof(jchar)
-        # py_uni = (<char *>j_chars)[:buffsize].decode('utf-16')
-        # Calling directly into c-api for utf-16 decoding due to Cython code gen
-        # bug for utf-16: https://github.com/cython/cython/issues/1696
-        py_uni = PyUnicode_DecodeUTF16(<char *>j_chars, buffsize, NULL, NULL)
+        py_uni = (<char *>j_chars)[:buffsize].decode('utf-16')
     finally:
         j_env[0].ReleaseStringChars(j_env, j_string, j_chars)
 
