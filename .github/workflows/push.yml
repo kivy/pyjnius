@@ -22,7 +22,7 @@ jobs:
         os:
           - 'ubuntu-latest'
           - 'windows-latest'
-          - 'macOs-latest'
+          - 'macos-latest'
         architecture:
           - 'x64'
           - 'x86'
@@ -31,7 +31,7 @@ jobs:
         exclude:
         - os: ubuntu-latest
           architecture: 'x86'
-        - os: macOs-latest
+        - os: macos-latest
           architecture: 'x86'
         - os: windows-latest
           architecture: 'x86'
@@ -60,51 +60,30 @@ jobs:
         distribution: 'temurin'
         architecture: ${{ matrix.architecture }}
 
-    - name: install-windows
-      if: matrix.os == 'windows-latest'
-      run: |
-        "%VS140COMNTOOLS%../../VC/vcvarsall.bat"
-        echo "$INCLUDE"
-        set INCLUDE "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/ucrt"
-        pip install --timeout=120 -U setuptools cython
-        pip install --timeout=120 -vv .[dev,ci]
+    - name: (macOS) Setup test dependencies
+      if: matrix.os == 'macos-latest'
+      run: brew install ant
 
-    - name: install
-      if: matrix.os == 'ubuntu-latest'
+    - name: Build test classes via ant
+      run: ant all
+
+    - name: Install pyjnius with [dev, ci] extras
       run: |
-        pip install --timeout=120 -U setuptools cython
         pip install --timeout=120 .[dev,ci]
-
-    - name: install-osx
-      if: matrix.os == 'macOs-latest'
-      run: |
-        brew install ant
-        pip install --timeout=120 --user -U setuptools cython
-        pip install --timeout=120 --user .[dev,ci]
-
-    - name: test-windows
+  
+    - name: (Windows) Test pyjnius via pytest
       if: matrix.os == 'windows-latest'
       run: |
         $env:PATH +=";$env:JAVA_HOME\jre\bin\server\;$env:JAVA_HOME\jre\bin\client\;$env:JAVA_HOME\bin\server\"
         $env:CLASSPATH ="../build/test-classes;../build/classes"
-
-        ant all
         cd tests
         pytest -v
 
-    - name: test
-      if: matrix.os == 'ubuntu-latest'
+    - name: (Linux, macOS) Test pyjnius via pytest
+      if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'macos-latest')
       run: |
-        ant all
         cd tests
-        CLASSPATH=../build/test-classes:../build/classes pytest -v
-
-    - name: test
-      if: matrix.os == 'macOs-latest'
-      run: |
-        ant all
-        cd tests
-          CLASSPATH=../build/test-classes:../build/classes python -m pytest -v
+        CLASSPATH=../build/test-classes:../build/classes python -m pytest -v
 
 #     - name: coveralls
 #       run: python -m coveralls

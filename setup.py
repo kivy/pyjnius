@@ -11,10 +11,8 @@ except ImportError:
     import subprocess
 
 from os import environ
-from os.path import dirname, join, exists
-import re
+from os.path import dirname, join
 import sys
-from platform import machine
 from setup_sdist import SETUP_KWARGS
 
 # XXX hack to be able to import jnius.env withough having build
@@ -56,8 +54,6 @@ FILES = [
 ]
 
 EXTRA_LINK_ARGS = []
-INSTALL_REQUIRES = ['six>=1.7.0']
-SETUP_REQUIRES = []
 
 # detect Python for android
 PLATFORM = sys.platform
@@ -65,10 +61,8 @@ NDKPLATFORM = getenv('NDKPLATFORM')
 if NDKPLATFORM is not None and getenv('LIBLINK'):
     PLATFORM = 'android'
 
-# detect cython
-if PLATFORM != 'android':
-    SETUP_REQUIRES.append('cython')
-else:
+# detect platform
+if PLATFORM == 'android':
     FILES = [fn[:-3] + 'c' for fn in FILES if fn.endswith('pyx')]
 
 JAVA=get_java_setup(PLATFORM)
@@ -118,12 +112,6 @@ for ext_mod in ext_modules:
 # create the extension
 setup(
     cmdclass={'build_ext': build_ext},
-    install_requires=INSTALL_REQUIRES,
-    setup_requires=SETUP_REQUIRES,
     ext_modules=ext_modules,
-    extras_require={
-        'dev': ['pytest', 'wheel', 'pytest-cov', 'pycodestyle'],
-        'ci': ['coveralls', 'pytest-rerunfailures', 'setuptools>=34.4.0'],
-    },
     **SETUP_KWARGS
 )
