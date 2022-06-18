@@ -3,6 +3,7 @@ name: Continuous Integration
 jobs:
   Tests:
     name: base
+    continue-on-error: true
     strategy:
       matrix:
         python:
@@ -11,6 +12,9 @@ jobs:
            - '3.8'
            - '3.9'
            - '3.10'
+           - 'pypy-3.7'
+           - 'pypy-3.8'
+           - 'pypy-3.9'
         java:
           - '8'
           # - '9' # commented out just for faster CI
@@ -31,6 +35,15 @@ jobs:
           architecture: 'x86'
         - os: macOs-latest
           architecture: 'x86'
+        - os: windows-latest
+          architecture: 'x86'
+          python: 'pypy-3.7'
+        - os: windows-latest
+          architecture: 'x86'
+          python: 'pypy-3.8'
+        - os: windows-latest
+          architecture: 'x86'
+          python: 'pypy-3.9'
 
     runs-on: ${{ matrix.os }}
     steps:

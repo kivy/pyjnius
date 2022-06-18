@@ -15,7 +15,7 @@ class TestJVMOptions:
     )
     def test_jvm_options(self):
         options = ['-Dtest.var{}=value'.format(i) for i in range(40)]
-        process = subprocess.Popen(['python', '-c', textwrap.dedent(
+        process = subprocess.Popen([sys.executable, '-c', textwrap.dedent(
             '''\
             import jnius_config
             import json
