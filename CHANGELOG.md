@@ -1,17 +1,23 @@
 # Change Log
 
-## [1.4.2](https://github.com/kivy/pyjnius/tree/1.4.2) (2022-05-29)
+## [1.4.2](https://github.com/kivy/pyjnius/tree/1.4.2) (2022-07-02)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.4.1...1.4.2)
+
+**CI**
+- [\#628](https://github.com/kivy/pyjnius/pull/628) Updated java-setup to v3, include all the LTS versions from adoptium during CI tests.
 
 **Packaging**
 - [\#620](https://github.com/kivy/pyjnius/pull/620) When cross-compiling for Android, we should not use the include dirs exposed by the JDK
+- [\#629](https://github.com/kivy/pyjnius/pull/629) Cython now requires a minimum version. Introduces setup.cfg. Cleans up the CI workflow
+- [\#625](https://github.com/kivy/pyjnius/pull/625) Use cibuildwheel for releases
 
 **Docs**
 - [\#616](https://github.com/kivy/pyjnius/pull/616) Update api.rst, remove extra equals signs
 
 **Implemented enhancements:**
 - [\#622](https://github.com/kivy/pyjnius/pull/622) Add suffix to support IBM jre on Windows
-
+- [\#626](https://github.com/kivy/pyjnius/pull/626) Move get_cpu guessing into _possible_lib_location
+- [\#627](https://github.com/kivy/pyjnius/pull/627) PyPy: Fixes a segfault + add tests
 
 ## [1.4.1](https://github.com/kivy/pyjnius/tree/1.4.1) (2021-10-30)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.4.0...1.4.1)
