@@ -86,6 +86,8 @@ def get_java_setup(platform=DEFAULT_PLATFORM):
         return WindowsJavaLocation(platform, JAVA_HOME)
     if platform == "darwin": #only this?
         return MacOsXJavaLocation(platform, JAVA_HOME)    
+    if 'bsd' in platform:
+        return BSDJavaLocation(platform, JAVA_HOME)
     if platform in ('linux', 'linux2', 'sunos5'): #only this?
         return UnixJavaLocation(platform, JAVA_HOME)
     log.warning("warning: unknown platform %s assuming linux or sunOS" % platform)
@@ -218,6 +220,29 @@ class UnixJavaLocation(JavaLocation):
             return join(self.home, 'include', 'solaris')
         else:
             return join(self.home, 'include', 'linux')
+
+    def _possible_lib_locations(self):
+        root = self.home
+        if root.endswith('jre'):
+            root = root[:-3]
+
+        cpu = get_cpu()
+        log.debug(
+            f"Platform {self.platform} may need cpu in path to find libjvm, which is: {cpu}"
+        )
+
+        return [
+            'lib/server/libjvm.so',
+            'jre/lib/{}/default/libjvm.so'.format(cpu),
+            'jre/lib/{}/server/libjvm.so'.format(cpu),
+        ]
+
+
+# NOTE: Build works on FreeBSD. Other BSD flavors may need tuning!
+class BSDJavaLocation(JavaLocation):
+    def _get_platform_include_dir(self):
+        os = self.platform.translate({ord(n): None for n in '0123456789'})
+        return join(self.home, 'include', os)
 
     def _possible_lib_locations(self):
         root = self.home
