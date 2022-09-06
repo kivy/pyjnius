@@ -19,16 +19,13 @@ from setup_sdist import SETUP_KWARGS
 # jnius.jnius yet, better solution welcome
 syspath = sys.path[:]
 sys.path.insert(0, 'jnius')
-from env import (
-    get_java_setup,
-    PY2
-)
+from env import get_java_setup
 sys.path = syspath
 
 def getenv(key):
     '''Get value from environment and decode it.'''
     val = environ.get(key)
-    if val is not None and not PY2:
+    if val is not None:
         try:
             return val.decode()
         except AttributeError:

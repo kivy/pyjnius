@@ -11,15 +11,9 @@ from subprocess import Popen, check_output, PIPE
 from shlex import split
 from logging import getLogger
 from textwrap import dedent
+from shutil import which
 
 log = getLogger(__name__)
-
-PY2 = sys.version_info.major < 3
-
-if PY2:
-    from distutils.spawn import find_executable as which
-else:
-    from shutil import which
 
 machine = machine()  # not expected to change at runtime
 
@@ -368,9 +362,7 @@ def get_osx_framework():
         stdout=PIPE, shell=True
     ).communicate()[0]
 
-    if not PY2:
-        framework = framework.decode('utf-8')
-
+    framework = framework.decode('utf-8')
     return framework.strip()
 
 

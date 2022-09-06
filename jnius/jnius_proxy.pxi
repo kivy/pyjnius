@@ -133,9 +133,7 @@ cdef jobject py_invoke0(JNIEnv *j_env, jobject j_this, jobject j_proxy, jobject
     if ret_signature == 'Ljava/lang/Object;':
         # generic object, try to manually convert it
         tp = type(ret)
-        if PY2 and tp == int:
-            jtype = 'I'
-        elif (PY2 and tp == long) or tp == int:
+        if tp == int:
             jtype = 'J'
         elif tp == float:
             jtype = 'D'
