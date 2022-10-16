@@ -2,7 +2,6 @@ import sys
 import os
 from os.path import join
 from jnius.env import get_java_setup
-from cpython.version cimport PY_MAJOR_VERSION
 
 # on desktop, we need to create an env :)
 # example taken from http://www.inonit.com/cygwin/jni/invocationApi/c.html

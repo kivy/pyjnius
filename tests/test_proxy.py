@@ -1,8 +1,6 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-from six.moves import range
-import sys
 
 from jnius import autoclass, java_method, PythonJavaClass, cast
 
@@ -149,9 +147,8 @@ print('Order of data after shuffle()', a.data)
 
 
 # XXX We have issues for methosd with multiple signature
-if sys.version_info >= (3, 0):
-    print('-> Collections.max(a)')
-    print(Collections.max(a2))
+print('-> Collections.max(a)')
+print(Collections.max(a2))
 #print '-> Collections.shuffle(a)'
 #print Collections.shuffle(a2)
 

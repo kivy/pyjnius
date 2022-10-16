@@ -2,7 +2,6 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-import sys
 import unittest
 from jnius.reflect import autoclass
 
@@ -29,6 +28,4 @@ class ImplementationTest(unittest.TestCase):
         emoji = u'\U0001F602'
         stack.push(emoji)
         popped = stack.pop()
-        if sys.version_info < (3, 0):
-            popped = popped.decode('utf-8')
         self.assertEqual(emoji, popped)

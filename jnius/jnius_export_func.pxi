@@ -1,12 +1,8 @@
-from cpython.version cimport PY_MAJOR_VERSION
-
-
 def cast(destclass, obj):
     cdef JavaClass jc
     cdef JavaClass jobj = obj
     from .reflect import autoclass
-    if (PY_MAJOR_VERSION < 3 and isinstance(destclass, base_string)) or \
-          (PY_MAJOR_VERSION >=3 and isinstance(destclass, str)):
+    if isinstance(destclass, str):
         jc = autoclass(destclass)(noinstance=True)
     else:
         jc = destclass(noinstance=True)
