@@ -43,7 +43,6 @@ FILES = [
     'jnius_jvm_desktop.pxi',
     'jnius_jvm_dlopen.pxi',
     'jnius_localref.pxi',
-    'jnius_nativetypes.pxi',
     'jnius_nativetypes3.pxi',
     'jnius_proxy.pxi',
     'jnius.pyx',
@@ -87,7 +86,6 @@ compile_native_invocation_handler(JAVA)
 # generate the config.pxi
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
     fd.write('DEF JNIUS_PLATFORM = {0!r}\n\n'.format(PLATFORM))
-    fd.write('DEF JNIUS_PYTHON3 = True\n\n')
 
 # pop setup.py from included files in the installed package
 SETUP_KWARGS['py_modules'].remove('setup')
