@@ -110,10 +110,8 @@ include "jnius_env.pxi"
 include "jnius_utils.pxi"
 include "jnius_conversion.pxi"
 include "jnius_localref.pxi"
-IF JNIUS_PYTHON3:
-    include "jnius_nativetypes3.pxi"
-ELSE:
-    include "jnius_nativetypes.pxi"
+
+include "jnius_nativetypes3.pxi"
 
 include "jnius_export_func.pxi"
 include "jnius_export_class.pxi"

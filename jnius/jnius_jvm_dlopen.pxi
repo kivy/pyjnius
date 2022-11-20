@@ -54,14 +54,7 @@ cdef void create_jnienv() except *:
     JAVA_LOCATION = get_java_setup()
     cdef str java_lib = JAVA_LOCATION.get_jnius_lib_location()
 
-    IF JNIUS_PYTHON3:
-        try:
-            java_lib = java_lib.decode("utf-8")
-        except AttributeError:
-            java_lib = java_lib
-        lib_path = str_for_c(java_lib)
-    ELSE:
-        lib_path = str_for_c(java_lib)
+    lib_path = str_for_c(java_lib)
 
     handle = dlopen(lib_path, RTLD_NOW | RTLD_GLOBAL)
 
