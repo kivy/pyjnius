@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 from __future__ import division
 from collections import defaultdict
-from logging import getLogger, DEBUG
+import logging
 
 
 from .jnius import (
@@ -13,7 +13,7 @@ from .jnius import (
 
 __all__ = ('autoclass', 'ensureclass', 'protocol_map')
 
-log = getLogger(__name__)
+log = logging.getLogger('kivy').getChild(__name__)
 
 
 class Class(JavaClass, metaclass=MetaJavaClass):
@@ -298,7 +298,7 @@ def autoclass(clsname, include_protected=True, include_private=True):
             sig = '({0}){1}'.format(
                 ''.join([get_signature(x) for x in method.getParameterTypes()]),
                 get_signature(method.getReturnType()))
-            if log.isEnabledFor(DEBUG):
+            if log.isEnabledFor(logging.DEBUG):
                 log_method(method, name, sig)
             classDict[name] = (JavaStaticMethod if static else JavaMethod)(sig, varargs=varargs)
             # methods that fit the characteristics of a JavaBean's methods get turned into properties.
@@ -333,7 +333,7 @@ def autoclass(clsname, include_protected=True, include_private=True):
                 return_sig = get_signature(method.getReturnType())
                 sig = '({0}){1}'.format(param_sig, return_sig)
 
-                if log.isEnabledFor(DEBUG):
+                if log.isEnabledFor(logging.DEBUG):
                     log_method(method, name, sig)
                 signatures.append((sig, Modifier.isStatic(method.getModifiers()), method.isVarArgs()))
 

@@ -9,11 +9,11 @@ from os import getenv
 from platform import machine
 from subprocess import Popen, check_output, PIPE
 from shlex import split
-from logging import getLogger
+import logging
 from textwrap import dedent
 from shutil import which
 
-log = getLogger(__name__)
+log = logging.getLogger('kivy').getChild(__name__)
 
 machine = machine()  # not expected to change at runtime
 
