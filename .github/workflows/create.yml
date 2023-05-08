@@ -40,7 +40,7 @@ jobs:
         if: matrix.os == 'macos-latest' || matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Setup java
         # There's no need to setup java on ubuntu-latest, as build is done into a manylinux
@@ -57,7 +57,7 @@ jobs:
         env:
           CIBW_ARCHS: '${{ matrix.cibw_archs }}'
         run: |
-          python -m pip install cibuildwheel==2.6.0
+          python -m pip install cibuildwheel~=2.12.3
           python -m cibuildwheel --output-dir dist
 
       - name: Install cibuildwheel & build wheels (Linux, macOS Intel)
@@ -66,8 +66,8 @@ jobs:
           CIBW_ARCHS: '${{ matrix.cibw_archs }}'
         run: |
           source .ci/utils.sh
-          ensure_python_version 3.10
-          python -m pip install cibuildwheel==2.6.0
+          ensure_python_version 3.11
+          python -m pip install cibuildwheel~=2.12.3
           python -m cibuildwheel --output-dir dist
 
       - name: upload wheels
@@ -87,7 +87,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Build sdist
         run: |
@@ -109,7 +109,7 @@ jobs:
     strategy:
       matrix:
         os: ['ubuntu-latest', 'macos-latest', 'windows-latest', 'kivy-ubuntu-arm64']
-        python: ['3.7', '3.8', '3.9', '3.10', 'pypy3.7', 'pypy3.8', 'pypy3.9']
+        python: ['3.7', '3.8', '3.9', '3.10', '3.11', 'pypy3.7', 'pypy3.8', 'pypy3.9']
         include:
           # We may would like to introduce tests also on windows-latest on x86 (win32 wheels)?
           - os: ubuntu-latest
