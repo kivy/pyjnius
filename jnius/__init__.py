@@ -7,7 +7,7 @@ Accessing Java classes from Python.
 All the documentation is available at: http://pyjnius.readthedocs.org
 '''
 
-__version__ = '1.4.2'
+__version__ = '1.5.0'
 
 from .env import get_java_setup
 

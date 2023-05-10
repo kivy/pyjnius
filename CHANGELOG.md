@@ -1,5 +1,26 @@
 # Change Log
 
+## [1.5.0](https://github.com/kivy/pyjnius/tree/1.5.0) (2023-05-10)
+[Full Changelog](https://github.com/kivy/pyjnius/compare/1.4.2...1.5.0)
+
+**Implemented enhancements:**
+- [\#633](https://github.com/kivy/pyjnius/pull/633) Add BSD Unix build support (FreeBSD, OpenBSD, NetBSD, ..)
+- [\#643](https://github.com/kivy/pyjnius/pull/643) Initialize logger as a child of the Kivy's one
+- [\#657](https://github.com/kivy/pyjnius/pull/657) Add support request automation (as other kivy projects)
+- [\#656](https://github.com/kivy/pyjnius/pull/656) Add support for Python 3.11
+
+**Cleanup**
+- [\#619](https://github.com/kivy/pyjnius/pull/619) Remove Python 2 support, six dependency
+- [\#641](https://github.com/kivy/pyjnius/pull/641) Removes some Python2-era complexity
+- [\#654](https://github.com/kivy/pyjnius/pull/654) Remove Python 3.6 from supported and test matrix, as it reached EOL
+
+**CI**
+- [\#655](https://github.com/kivy/pyjnius/pull/655) Linux x86 tests force as safe directory
+
+**Packaging**
+- [\#653](https://github.com/kivy/pyjnius/pull/653) Build (and test) `manylinux-aarch64` wheels via our `kivy-ubuntu-arm64` self-hosted runner
+
+
 ## [1.4.2](https://github.com/kivy/pyjnius/tree/1.4.2) (2022-07-02)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.4.1...1.4.2)
 
