@@ -41,6 +41,9 @@ class TestCollections(unittest.TestCase):
         # __iter__
         for k in hmap:
            self.assertTrue(k in data)
+        # __map_entry__
+        for k,v in hmap.entrySet():
+           self.assertEqual(data[k], v)
         # __contains__
         self.assertFalse(0 in hmap)
         # __delitem__
