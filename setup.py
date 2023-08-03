@@ -34,19 +34,7 @@ def getenv(key):
 
 
 FILES = [
-    'jni.pxi',
-    'jnius_compat.pxi',
-    'jnius_conversion.pxi',
-    'jnius_export_class.pxi',
-    'jnius_export_func.pxi',
-    'jnius_jvm_android.pxi',
-    'jnius_jvm_desktop.pxi',
-    'jnius_jvm_dlopen.pxi',
-    'jnius_localref.pxi',
-    'jnius_nativetypes3.pxi',
-    'jnius_proxy.pxi',
     'jnius.pyx',
-    'jnius_utils.pxi',
 ]
 
 EXTRA_LINK_ARGS = []
