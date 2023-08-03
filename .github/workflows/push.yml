@@ -70,6 +70,7 @@ jobs:
     - name: Install pyjnius with [dev, ci] extras
       run: |
         pip install --timeout=120 .[dev,ci]
+        pip list
   
     - name: (Windows) Test pyjnius via pytest
       if: matrix.os == 'windows-latest'
