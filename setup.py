@@ -33,8 +33,22 @@ def getenv(key):
     return val
 
 
-FILES = [
+PYX_FILES = [
     'jnius.pyx',
+]
+PXI_FILES = [
+    'jnius_compat.pxi',
+    'jnius_conversion.pxi',
+    'jnius_export_class.pxi',
+    'jnius_export_func.pxi',
+    'jnius_jvm_android.pxi',
+    'jnius_jvm_desktop.pxi',
+    'jnius_jvm_dlopen.pxi',
+    'jnius_localref.pxi',
+    'jnius_nativetypes3.pxi',
+    'jnius_proxy.pxi',
+    'jnius.pyx',
+    'jnius_utils.pxi'
 ]
 
 EXTRA_LINK_ARGS = []
@@ -47,7 +61,7 @@ if NDKPLATFORM is not None and getenv('LIBLINK'):
 
 # detect platform
 if PLATFORM == 'android':
-    FILES = [fn[:-3] + 'c' for fn in FILES if fn.endswith('pyx')]
+    PYX_FILES = [fn[:-3] + 'c' for fn in PYX_FILES]
 
 JAVA=get_java_setup(PLATFORM)
 
@@ -80,7 +94,9 @@ SETUP_KWARGS['py_modules'].remove('setup')
 
 ext_modules = [
     Extension(
-        'jnius', [join('jnius', x) for x in FILES],
+        'jnius', 
+        [join('jnius', x) for x in PYX_FILES],
+        depends=[join('jnius', x) for x in PXI_FILES],
         libraries=JAVA.get_libraries(),
         library_dirs=JAVA.get_library_dirs(),
         include_dirs=JAVA.get_include_dirs(),
