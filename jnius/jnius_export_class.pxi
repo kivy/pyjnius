@@ -43,7 +43,7 @@ cdef class JavaClassStorage:
 class MetaJavaBase(type):
     def __instancecheck__(cls, value):
         cdef JNIEnv *j_env = get_jnienv()
-        cdef JavaClassStorage meta = getattr(cls, '__cls_storage', None)
+        cdef JavaClassStorage meta = getattr(cls, '_JavaClass__cls_storage', None)
         cdef JavaObject jo
         cdef JavaClass jc
         cdef PythonJavaClass pc
@@ -132,7 +132,7 @@ class MetaJavaClass(MetaJavaBase):
 
     def __subclasscheck__(cls, value):
         cdef JNIEnv *j_env = get_jnienv()
-        cdef JavaClassStorage me = getattr(cls, '__cls_storage')
+        cdef JavaClassStorage me = getattr(cls, '_JavaClass__cls_storage')
         cdef JavaClassStorage jcs
         cdef JavaClass jc
         cdef jclass obj = NULL
@@ -141,7 +141,7 @@ class MetaJavaClass(MetaJavaBase):
             jc = value
             obj = jc.j_self.obj
         else:
-            jcs = getattr(value, '__cls_storage', None)
+            jcs = getattr(value, '_JavaClass__cls_storage', None)
             if jcs is not None:
                 obj = jcs.j_cls
 
@@ -218,7 +218,7 @@ class MetaJavaClass(MetaJavaBase):
         #    in the section Local and Global References
         jcs.j_cls = j_env[0].NewGlobalRef(j_env, jcs.j_cls)
 
-        classDict['__cls_storage'] = jcs
+        classDict['_JavaClass__cls_storage'] = jcs
 
         # search all the static JavaMethod within our class, and resolve them
         cdef JavaMethod jm
@@ -263,6 +263,8 @@ cdef class JavaClass(object):
     def __init__(self, *args, **kwargs):
         super(JavaClass, self).__init__()
         # copy the current attribute in the storage to our class
+        # from Cython 3.0, in the MetaJavaClass, this is accessed as _JavaClass__cls_storage
+        # see https://cython.readthedocs.io/en/latest/src/userguide/migrating_to_cy30.html#class-private-name-mangling
         cdef JavaClassStorage jcs = self.__cls_storage
         self.j_cls = jcs.j_cls
 
