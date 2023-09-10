@@ -377,6 +377,12 @@ def _map_getitem(self, k):
         raise KeyError()
     return rtr
 
+def _map_entry_getitem(self, i):
+    if i == 0:
+        return self.getKey()
+    if i == 1:
+        return self.getValue()
+    raise IndexError()
 
 def _iterator_next(self):
     ''' dunder method for java.util.Iterator'''
@@ -403,6 +409,11 @@ protocol_map = {
         '__len__' : lambda self: self.size(),
         '__contains__' : lambda self, item: self.containsKey(item),
         '__iter__' : lambda self: self.keySet().iterator()
+    },
+    'java.util.Map$Entry' : {
+        '__getitem__' : _map_entry_getitem,
+        '__iter__' : lambda self: iter([self.getKey(), self.getValue()]),
+        '__len__' : lambda self: 2
     },
     'java.util.Iterator' : {
         '__iter__' : lambda self: self,
