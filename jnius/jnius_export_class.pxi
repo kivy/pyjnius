@@ -1,10 +1,6 @@
 from cpython cimport PyObject
 from warnings import warn
 
-# from Cython 3.0, in the MetaJavaClass, this is accessed as _JavaClass__cls_storage
-# see https://cython.readthedocs.io/en/latest/src/userguide/migrating_to_cy30.html#class-private-name-mangling
-cdef CLS_STORAGE_NAME = '_JavaClass__cls_storage' if JNIUS_CYTHON_3 else '__cls_storage'
-
 class JavaException(Exception):
     '''Can be a real java exception, or just an exception from the wrapper.
     '''
@@ -46,7 +42,7 @@ cdef class JavaClassStorage:
 class MetaJavaBase(type):
     def __instancecheck__(cls, value):
         cdef JNIEnv *j_env = get_jnienv()
-        cdef JavaClassStorage meta = getattr(cls, '_JavaClass__cls_storage' if JNIUS_CYTHON_3 else '__cls_storage', None)
+        cdef JavaClassStorage meta = getattr(cls, CLS_STORAGE_NAME, None)
         cdef JavaObject jo
         cdef JavaClass jc
         cdef PythonJavaClass pc
@@ -135,7 +131,7 @@ class MetaJavaClass(MetaJavaBase):
 
     def __subclasscheck__(cls, value):
         cdef JNIEnv *j_env = get_jnienv()
-        cdef JavaClassStorage me = getattr(cls, CLS_STORAGE_NAME, None)
+        cdef JavaClassStorage me = getattr(cls, CLS_STORAGE_NAME)
         cdef JavaClassStorage jcs
         cdef JavaClass jc
         cdef jclass obj = NULL
