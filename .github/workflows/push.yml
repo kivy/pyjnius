@@ -78,7 +78,7 @@ jobs:
     - name: (Linux, macOS) Force Cython version
       # macOS sed requires .bak filename extensions
       if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'macos-latest')
-      run: sed -i 's/"Cython"/"Cython${{matrix.cython}}"/' pyproject.toml
+      run: sed -i.bak 's/"Cython"/"Cython${{matrix.cython}}"/' pyproject.toml
 
     - name: Install pyjnius with [dev, ci] extras
       run: |
