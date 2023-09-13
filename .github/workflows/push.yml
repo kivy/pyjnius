@@ -26,6 +26,9 @@ jobs:
         architecture:
           - 'x64'
           - 'x86'
+        cython:
+          - '<3'
+          - '>=3'
 
         # exclude problematic combinations
         exclude:
@@ -66,6 +69,9 @@ jobs:
 
     - name: Build test classes via ant
       run: ant all
+
+    - name: Force Cython version
+      run: sed -i.bak 's/"Cython"/"Cython${{matrix.cython}}"/' pyproject.toml
 
     - name: Install pyjnius with [dev, ci] extras
       run: |
