@@ -71,7 +71,7 @@ jobs:
       run: ant all
 
     - name: Force Cython version
-      run: sed -i.bak 's/"Cython"/"Cython${{matrix.cython}}"/' pyproject.toml
+      run: sed -i 's/"Cython"/"Cython${{matrix.cython}}"/' pyproject.toml
 
     - name: Install pyjnius with [dev, ci] extras
       run: |
