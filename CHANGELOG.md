@@ -1,5 +1,12 @@
 # Change Log
 
+# [1.6.0](https://github.com/kivy/pyjnius/tree/1.6.0) (2023-09-16)
+[Full Changelog](https://github.com/kivy/pyjnius/compare/1.5.0...1.6.0)
+
+**Implemented enhancements:**
+- [\#659](https://github.com/kivy/pyjnius/pull/659) introduce protocol_map for Map$Entry
+- [\#669](https://github.com/kivy/pyjnius/pull/669) Support both Cython >3 and Cython < 3
+
 ## [1.5.0](https://github.com/kivy/pyjnius/tree/1.5.0) (2023-05-10)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.4.2...1.5.0)
 
