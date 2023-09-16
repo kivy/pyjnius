@@ -33,8 +33,10 @@ def getenv(key):
     return val
 
 
-FILES = [
-    'jni.pxi',
+PYX_FILES = [
+    'jnius.pyx',
+]
+PXI_FILES = [
     'jnius_compat.pxi',
     'jnius_conversion.pxi',
     'jnius_export_class.pxi',
@@ -46,7 +48,7 @@ FILES = [
     'jnius_nativetypes3.pxi',
     'jnius_proxy.pxi',
     'jnius.pyx',
-    'jnius_utils.pxi',
+    'jnius_utils.pxi'
 ]
 
 EXTRA_LINK_ARGS = []
@@ -59,7 +61,7 @@ if NDKPLATFORM is not None and getenv('LIBLINK'):
 
 # detect platform
 if PLATFORM == 'android':
-    FILES = [fn[:-3] + 'c' for fn in FILES if fn.endswith('pyx')]
+    PYX_FILES = [fn[:-3] + 'c' for fn in PYX_FILES]
 
 JAVA=get_java_setup(PLATFORM)
 
@@ -85,14 +87,20 @@ compile_native_invocation_handler(JAVA)
 
 # generate the config.pxi
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
+    import Cython
+    cython3 = Cython.__version__.startswith('3.')
     fd.write('DEF JNIUS_PLATFORM = {0!r}\n\n'.format(PLATFORM))
+    # record the Cython version, to address #669
+    fd.write(f'DEF JNIUS_CYTHON_3 = {cython3}')
 
 # pop setup.py from included files in the installed package
 SETUP_KWARGS['py_modules'].remove('setup')
 
 ext_modules = [
     Extension(
-        'jnius', [join('jnius', x) for x in FILES],
+        'jnius', 
+        [join('jnius', x) for x in PYX_FILES],
+        depends=[join('jnius', x) for x in PXI_FILES],
         libraries=JAVA.get_libraries(),
         library_dirs=JAVA.get_library_dirs(),
         include_dirs=JAVA.get_include_dirs(),

@@ -88,7 +88,7 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                 jo = py_arg
                 j_args[index].l = jo.obj
             elif isinstance(py_arg, MetaJavaClass):
-                jcs = py_arg.__cls_storage
+                jcs = getattr(py_arg, CLS_STORAGE_NAME)
                 j_args[index].l = jcs.j_cls
             elif isinstance(py_arg, PythonJavaClass):
                 # from python class, get the proxy/python class
@@ -515,7 +515,7 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
             jo = obj
             return jo.obj
         elif isinstance(obj, MetaJavaClass):
-            jcs = obj.__cls_storage
+            jcs = getattr(obj, CLS_STORAGE_NAME)
             return jcs.j_cls
         elif isinstance(obj, PythonJavaClass):
             # from python class, get the proxy/python class

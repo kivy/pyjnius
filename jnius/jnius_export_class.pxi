@@ -1,7 +1,6 @@
 from cpython cimport PyObject
 from warnings import warn
 
-
 class JavaException(Exception):
     '''Can be a real java exception, or just an exception from the wrapper.
     '''
@@ -43,7 +42,7 @@ cdef class JavaClassStorage:
 class MetaJavaBase(type):
     def __instancecheck__(cls, value):
         cdef JNIEnv *j_env = get_jnienv()
-        cdef JavaClassStorage meta = getattr(cls, '__cls_storage', None)
+        cdef JavaClassStorage meta = getattr(cls, CLS_STORAGE_NAME, None)
         cdef JavaObject jo
         cdef JavaClass jc
         cdef PythonJavaClass pc
@@ -132,7 +131,7 @@ class MetaJavaClass(MetaJavaBase):
 
     def __subclasscheck__(cls, value):
         cdef JNIEnv *j_env = get_jnienv()
-        cdef JavaClassStorage me = getattr(cls, '__cls_storage')
+        cdef JavaClassStorage me = getattr(cls, CLS_STORAGE_NAME)
         cdef JavaClassStorage jcs
         cdef JavaClass jc
         cdef jclass obj = NULL
@@ -141,7 +140,7 @@ class MetaJavaClass(MetaJavaBase):
             jc = value
             obj = jc.j_self.obj
         else:
-            jcs = getattr(value, '__cls_storage', None)
+            jcs = getattr(value, CLS_STORAGE_NAME, None)
             if jcs is not None:
                 obj = jcs.j_cls
 
@@ -218,7 +217,7 @@ class MetaJavaClass(MetaJavaBase):
         #    in the section Local and Global References
         jcs.j_cls = j_env[0].NewGlobalRef(j_env, jcs.j_cls)
 
-        classDict['__cls_storage'] = jcs
+        classDict[CLS_STORAGE_NAME] = jcs
 
         # search all the static JavaMethod within our class, and resolve them
         cdef JavaMethod jm
@@ -263,7 +262,7 @@ cdef class JavaClass(object):
     def __init__(self, *args, **kwargs):
         super(JavaClass, self).__init__()
         # copy the current attribute in the storage to our class
-        cdef JavaClassStorage jcs = self.__cls_storage
+        cdef JavaClassStorage jcs = getattr(self, CLS_STORAGE_NAME, None)
         self.j_cls = jcs.j_cls
 
         if 'noinstance' not in kwargs:
