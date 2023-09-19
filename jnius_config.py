@@ -81,13 +81,11 @@ def get_classpath():
         # use https://github.com/python/importlib_resources/issues/60 not __name__ as jnius_config.py is not a package
         resource_path = importlib.resources.files('jnius') / 'src'
         return_classpath = [ str(resource_path) ]
-        print(return_classpath)
         path = file_manager.enter_context(
             importlib.resources.as_file(resource_path))
     else:
         from pkg_resources import resource_filename
         return_classpath = [realpath(resource_filename(__name__, 'jnius/src'))]
-        print(return_classpath)
 
 
     if classpath is not None:
