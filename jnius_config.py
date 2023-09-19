@@ -77,8 +77,9 @@ def get_classpath():
         # see https://importlib-resources.readthedocs.io/en/latest/migration.html#pkg-resources-resource-filename
         file_manager = ExitStack()
         atexit.register(file_manager.close)
-        #  importlib.resources.files is only availale from Python 3.9
-        return_classpath = [ importlib.resources.files(__name__) /  'jnius/src' ]
+        # importlib.resources.files is only available from Python 3.9
+        # use https://github.com/python/importlib_resources/issues/60 not __name__ as jnius_config.py is not a package
+        return_classpath = [ importlib.resources.files(__package__) /  'jnius/src' ]
         path = file_manager.enter_context(
             importlib.resources.as_file(return_classpath[0]))
     else:
