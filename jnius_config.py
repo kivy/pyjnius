@@ -65,7 +65,7 @@ def add_classpath(*path):
 def get_classpath():
     "Retrieves the classpath the JVM will use."
     from os import environ
-    from os.path import realpath, join
+    from os.path import realpath
     import sys
     global classpath
 
