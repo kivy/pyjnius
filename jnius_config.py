@@ -83,7 +83,7 @@ def get_classpath():
         return_classpath = [ str(resource_path) ]
         print(return_classpath)
         path = file_manager.enter_context(
-            importlib.resources.as_file(return_classpath[0]))
+            importlib.resources.as_file(resource_path))
     else:
         from pkg_resources import resource_filename
         return_classpath = [realpath(resource_filename(__name__, 'jnius/src'))]
