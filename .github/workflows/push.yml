@@ -60,7 +60,7 @@ jobs:
       uses: actions/setup-java@v3
       with:
         java-version: ${{ matrix.java }}
-        distribution: 'temurin'
+        distribution: 'zulu'
         architecture: ${{ matrix.architecture }}
 
     - name: (macOS) Setup test dependencies
