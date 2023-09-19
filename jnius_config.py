@@ -87,6 +87,7 @@ def get_classpath():
     else:
         from pkg_resources import resource_filename
         return_classpath = [realpath(resource_filename(__name__, 'jnius/src'))]
+        print(return_classpath)
 
 
     if classpath is not None:
