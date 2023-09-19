@@ -65,7 +65,7 @@ def add_classpath(*path):
 def get_classpath():
     "Retrieves the classpath the JVM will use."
     from os import environ
-    from os.path import realpath
+    from os.path import realpath, join
     import sys
     global classpath
 
@@ -79,7 +79,7 @@ def get_classpath():
         atexit.register(file_manager.close)
         # importlib.resources.files is only available from Python 3.9
         # use https://github.com/python/importlib_resources/issues/60 not __name__ as jnius_config.py is not a package
-        return_classpath = [ importlib.resources.files(__package__) /  'jnius/src' ]
+        return_classpath = [ importlib.resources.files('jnius') / 'src' ]
         path = file_manager.enter_context(
             importlib.resources.as_file(return_classpath[0]))
     else:
