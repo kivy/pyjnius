@@ -45,6 +45,8 @@ jobs:
         - os: windows-latest
           architecture: 'x86'
           python: 'pypy-3.9'
+        - os: windows-latest
+          java: '20'
 
     runs-on: ${{ matrix.os }}
     steps:
