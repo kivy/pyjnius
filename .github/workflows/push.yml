@@ -46,6 +46,7 @@ jobs:
           architecture: 'x86'
           python: 'pypy-3.9'
         - os: windows-latest
+          architecture: 'x86'
           java: '20'
 
     runs-on: ${{ matrix.os }}
@@ -62,7 +63,7 @@ jobs:
       uses: actions/setup-java@v3
       with:
         java-version: ${{ matrix.java }}
-        distribution: 'zulu'
+        distribution: 'temurin'
         architecture: ${{ matrix.architecture }}
 
     - name: (macOS) Setup test dependencies
