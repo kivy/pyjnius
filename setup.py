@@ -70,7 +70,7 @@ assert JAVA.is_jdk(), "You need a JDK, we only found a JRE. Try setting JAVA_HOM
 def compile_native_invocation_handler(java):
     '''Find javac and compile NativeInvocationHandler.java.'''
     javac = java.get_javac()
-    source_level = '1.7'
+    source_level = '8'
     try:
         subprocess.check_call([
             javac, '-target', source_level, '-source', source_level,
