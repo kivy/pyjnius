@@ -66,11 +66,27 @@ def get_classpath():
     "Retrieves the classpath the JVM will use."
     from os import environ
     from os.path import realpath
+    import sys
     global classpath
 
     # add a path to java classes packaged with jnius
-    from pkg_resources import resource_filename
-    return_classpath = [realpath(resource_filename(__name__, 'jnius/src'))]
+    if sys.version_info >= (3, 9):
+        from contextlib import ExitStack
+        import importlib.resources
+        import atexit
+
+        # see https://importlib-resources.readthedocs.io/en/latest/migration.html#pkg-resources-resource-filename
+        file_manager = ExitStack()
+        atexit.register(file_manager.close)
+        # importlib.resources.files is only available from Python 3.9
+        # use https://github.com/python/importlib_resources/issues/60 not __name__ as jnius_config.py is not a package
+        resource_path = importlib.resources.files('jnius') / 'src'
+        return_classpath = [ str(resource_path) ]
+        file_manager.enter_context(importlib.resources.as_file(resource_path))
+    else:
+        from pkg_resources import resource_filename
+        return_classpath = [realpath(resource_filename(__name__, 'jnius/src'))]
+
 
     if classpath is not None:
         return_classpath = classpath + return_classpath
