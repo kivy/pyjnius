@@ -6,6 +6,8 @@
 **Implemented enhancements:**
 - [\#659](https://github.com/kivy/pyjnius/pull/659) introduce protocol_map for Map$Entry
 - [\#669](https://github.com/kivy/pyjnius/pull/669) Support both Cython >3 and Cython < 3
+- [\#672](https://github.com/kivy/pyjnius/pull/672) Support Java 20, remove Java 7 support
+- [\#673](https://github.com/kivy/pyjnius/pull/673) Remove pkg_resources for Python >=3.9
 
 ## [1.5.0](https://github.com/kivy/pyjnius/tree/1.5.0) (2023-05-10)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.4.2...1.5.0)
