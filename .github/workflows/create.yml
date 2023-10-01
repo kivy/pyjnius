@@ -179,21 +179,31 @@ jobs:
 
       - name: Install pyjnius wheel + test prerequisites (Windows, macOS x64)
         if: matrix.os == 'windows-latest' || matrix.os == 'macos-latest'
-        run: python -m pip install --find-links=dist pyjnius[dev,ci]
+        # --find-links=dist --no-index is needed to avoid downloading the pyjnius wheel
+        # from the index. We need to test the wheel we just built.
+        run: |
+          python -m pip install --find-links=dist --no-index pyjnius
+          python -m pip install pyjnius[dev,ci]
 
       - name: Install pyjnius wheel + test prerequisites (Linux)
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'kivy-ubuntu-arm64'
+        # --find-links=dist --no-index is needed to avoid downloading the pyjnius wheel
+        # from the index. We need to test the wheel we just built.
         run: |
           source .ci/utils.sh
           ensure_python_version ${{ matrix.python }}
-          python -m pip install --find-links=dist pyjnius[dev,ci]
+          python -m pip install --find-links=dist --no-index pyjnius
+          python -m pip install pyjnius[dev,ci]
 
       - name: Install pyjnius wheel + test prerequisites (Apple Silicon M1)
         if: matrix.os == 'apple-silicon-m1'
+        # --find-links=dist --no-index is needed to avoid downloading the pyjnius wheel
+        # from the index. We need to test the wheel we just built.
         run: |
           source .ci/osx_ci.sh
           arm64_set_path_and_python_version ${{ matrix.python }}
-          python -m pip install --find-links=dist pyjnius[dev,ci]
+          python -m pip install --find-links=dist --no-index pyjnius
+          python -m pip install pyjnius[dev,ci]
 
       - name: Test wheel (Linux, macOS Intel)
         if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'kivy-ubuntu-arm64') || (matrix.os == 'macos-latest')
