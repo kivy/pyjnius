@@ -122,13 +122,16 @@ jobs:
             architecture: 'x64'
           - os: apple-silicon-m1
             architecture: 'aarch64'
-            python: '3.8.13'
+            python: '3.8'
           - os: apple-silicon-m1
             architecture: 'aarch64'
-            python: '3.9.11'
+            python: '3.9'
           - os: apple-silicon-m1
             architecture: 'aarch64'
-            python: '3.10.3'
+            python: '3.10'
+          - os: apple-silicon-m1
+            architecture: 'aarch64'
+            python: '3.11'
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -142,7 +145,7 @@ jobs:
 
       - name: Setup Python (Ubuntu x86_64, macOS Intel, Windows x86_64)
         # Needs to be skipped on our self-hosted runners tagged as 'apple-silicon-m1'
-        if: matrix.os == 'macos-latest' || matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'macos-latest' || matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest' || matrix.os == 'apple-silicon-m1'
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
@@ -157,8 +160,6 @@ jobs:
       - name: Setup ant on macOS
         if: (matrix.os == 'macos-latest') || (matrix.os == 'apple-silicon-m1')
         run: |
-          source .ci/osx_ci.sh
-          arm64_set_path_and_python_version ${{ matrix.python }}
           brew install ant
 
       - name: Setup ant on Linux
@@ -166,19 +167,11 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y ant
 
-      - name: Build test-classes via ant (macOS x64, macOS Apple Silicon)
-        if: (matrix.os == 'macos-latest') || (matrix.os == 'apple-silicon-m1')
-        run: |
-          source .ci/osx_ci.sh
-          arm64_set_path_and_python_version ${{ matrix.python }}
-          ant all
-
-      - name: Build test-classes via ant (Linux, Windows)
-        if: matrix.os == 'windows-latest' || matrix.os == 'kivy-ubuntu-arm64' || matrix.os == 'ubuntu-latest'
+      - name: Build test-classes via ant
         run: ant all
 
-      - name: Install pyjnius wheel + test prerequisites (Windows, macOS x64)
-        if: matrix.os == 'windows-latest' || matrix.os == 'macos-latest'
+      - name: Install pyjnius wheel + test prerequisites (Windows, macOS)
+        if: matrix.os == 'windows-latest' || matrix.os == 'macos-latest' || matrix.os == 'apple-silicon-m1'
         # --find-links=dist --no-index is needed to avoid downloading the pyjnius wheel
         # from the index. We need to test the wheel we just built.
         run: |
@@ -195,29 +188,11 @@ jobs:
           python -m pip install --find-links=dist --no-index pyjnius
           python -m pip install pyjnius[dev,ci]
 
-      - name: Install pyjnius wheel + test prerequisites (Apple Silicon M1)
-        if: matrix.os == 'apple-silicon-m1'
-        # --find-links=dist --no-index is needed to avoid downloading the pyjnius wheel
-        # from the index. We need to test the wheel we just built.
-        run: |
-          source .ci/osx_ci.sh
-          arm64_set_path_and_python_version ${{ matrix.python }}
-          python -m pip install --find-links=dist --no-index pyjnius
-          python -m pip install pyjnius[dev,ci]
-
-      - name: Test wheel (Linux, macOS Intel)
-        if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'kivy-ubuntu-arm64') || (matrix.os == 'macos-latest')
+      - name: Test wheel (Linux, macOS)
+        if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'kivy-ubuntu-arm64') || (matrix.os == 'macos-latest') || (matrix.os == 'apple-silicon-m1')
         run: |
           source .ci/utils.sh
           ensure_python_version ${{ matrix.python }}
-          cd tests
-          CLASSPATH=../build/test-classes:../build/classes python -m pytest -v
-
-      - name: Test wheel (macOS Apple Silicon)
-        if: matrix.os == 'apple-silicon-m1'
-        run: |
-          source .ci/osx_ci.sh
-          arm64_set_path_and_python_version ${{ matrix.python }}
           cd tests
           CLASSPATH=../build/test-classes:../build/classes python -m pytest -v
 
