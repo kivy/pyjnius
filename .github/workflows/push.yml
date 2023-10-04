@@ -24,31 +24,55 @@ jobs:
           - 'ubuntu-latest'
           - 'windows-latest'
           - 'macos-latest'
-        architecture:
-          - 'x64'
-          - 'x86'
+          - 'apple-silicon-m1'
         cython:
           - '<3'
           - '>=3'
-
-        # exclude problematic combinations
+        architecture:
+          - 'x64'
+          - 'x86'
+          - 'aarch64'
         exclude:
-        - os: ubuntu-latest
-          architecture: 'x86'
-        - os: macos-latest
-          architecture: 'x86'
-        - os: windows-latest
-          architecture: 'x86'
-          python: 'pypy-3.7'
-        - os: windows-latest
-          architecture: 'x86'
-          python: 'pypy-3.8'
-        - os: windows-latest
-          architecture: 'x86'
-          python: 'pypy-3.9'
-        - os: windows-latest
-          architecture: 'x86'
-          java: '20'
+          - os: windows-latest
+            architecture: aarch64
+          - os: ubuntu-latest
+            architecture: aarch64
+          - os: ubuntu-latest
+            architecture: x86
+          - os: macos-latest
+            architecture: aarch64
+          - os: macos-latest
+            architecture: x86
+          - os: apple-silicon-m1
+            architecture: x86
+          - os: apple-silicon-m1
+            architecture: x64
+          - os: apple-silicon-m1
+            python: '3.7'
+          - os: apple-silicon-m1
+            python: '3.8'
+          - os: apple-silicon-m1
+            python: '3.9'
+          - os: apple-silicon-m1
+            python: 'pypy-3.7'
+          - os: apple-silicon-m1
+            python: 'pypy-3.8'
+          - os: apple-silicon-m1
+            python: 'pypy-3.9'
+          - os: windows-latest
+            architecture: x86
+            python: 'pypy-3.7'
+          - os: windows-latest
+            architecture: x86
+            python: 'pypy-3.8'
+          - os: windows-latest
+            architecture: x86
+            python: 'pypy-3.9'
+          - os: apple-silicon-m1
+            java: '8'
+          - os: windows-latest
+            architecture: x86
+            java: '20'
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -58,7 +82,7 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
-        architecture: ${{ matrix.architecture }}
+        architecture: ${{ (matrix.os == 'apple-silicon-m1' && matrix.architecture == 'aarch64') && 'arm64' ||  matrix.architecture  }}
 
     - name: Setup java
       uses: actions/setup-java@v3
@@ -68,7 +92,7 @@ jobs:
         architecture: ${{ matrix.architecture }}
 
     - name: (macOS) Setup test dependencies
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macos-latest' || matrix.os == 'apple-silicon-m1'
       run: brew install ant
 
     - name: Build test classes via ant
@@ -81,7 +105,7 @@ jobs:
     
     - name: (Linux, macOS) Force Cython version
       # macOS sed requires .bak filename extensions
-      if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'macos-latest')
+      if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'macos-latest') || (matrix.os == 'apple-silicon-m1')
       run: sed -i.bak 's/"Cython"/"Cython${{matrix.cython}}"/' pyproject.toml
 
     - name: Install pyjnius with [dev, ci] extras
@@ -97,7 +121,7 @@ jobs:
         pytest -v
 
     - name: (Linux, macOS) Test pyjnius via pytest
-      if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'macos-latest')
+      if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'macos-latest') || (matrix.os == 'apple-silicon-m1')
       run: |
         cd tests
         CLASSPATH=../build/test-classes:../build/classes python -m pytest -v
