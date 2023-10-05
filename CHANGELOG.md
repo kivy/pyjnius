@@ -1,6 +1,6 @@
 # Change Log
 
-# [1.6.0](https://github.com/kivy/pyjnius/tree/1.6.0) (2023-09-16)
+# [1.6.0](https://github.com/kivy/pyjnius/tree/1.6.0) (2023-10-05)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.5.0...1.6.0)
 
 **Implemented enhancements:**
@@ -8,6 +8,17 @@
 - [\#669](https://github.com/kivy/pyjnius/pull/669) Support both Cython >3 and Cython < 3
 - [\#672](https://github.com/kivy/pyjnius/pull/672) Support Java 20, remove Java 7 support
 - [\#673](https://github.com/kivy/pyjnius/pull/673) Remove pkg_resources for Python >=3.9
+- [\#681](https://github.com/kivy/pyjnius/pull/681) Add missing Python supported version label for Python 3.12
+
+**Packaging**
+- [\#680](https://github.com/kivy/pyjnius/pull/680) Update cibuildwheel to perform build for Python 3.12
+
+**CI**
+- [\#676](https://github.com/kivy/pyjnius/pull/676) Ensure we test the produced wheel, and not the one from the index
+- [\#678](https://github.com/kivy/pyjnius/pull/678) Add tests for python 3.12
+- [\#677](https://github.com/kivy/pyjnius/pull/677) Now Github Actions provides python3 via setup-python also for Apple Silicon Macs
+- [\#679](https://github.com/kivy/pyjnius/pull/679) Add tests on push for Apple Silicon
+
 
 ## [1.5.0](https://github.com/kivy/pyjnius/tree/1.5.0) (2023-05-10)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.4.2...1.5.0)
