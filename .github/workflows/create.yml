@@ -91,7 +91,7 @@ jobs:
 
       - name: Build sdist
         run: |
-            pip install -U setuptools
+            pip install -U setuptools Cython
             python setup.py sdist
 
       - name: upload sdist
