@@ -1,6 +1,6 @@
 # Change Log
 
-# [1.6.0](https://github.com/kivy/pyjnius/tree/1.6.0) (2023-10-05)
+# [1.6.0](https://github.com/kivy/pyjnius/tree/1.6.0) (2023-10-07)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.5.0...1.6.0)
 
 **Implemented enhancements:**
@@ -18,6 +18,7 @@
 - [\#678](https://github.com/kivy/pyjnius/pull/678) Add tests for python 3.12
 - [\#677](https://github.com/kivy/pyjnius/pull/677) Now Github Actions provides python3 via setup-python also for Apple Silicon Macs
 - [\#679](https://github.com/kivy/pyjnius/pull/679) Add tests on push for Apple Silicon
+- [\#682](https://github.com/kivy/pyjnius/pull/682) Build stdist needs Cython to perform the build
 
 
 ## [1.5.0](https://github.com/kivy/pyjnius/tree/1.5.0) (2023-05-10)
