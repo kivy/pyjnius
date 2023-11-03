@@ -87,8 +87,11 @@ compile_native_invocation_handler(JAVA)
 
 # generate the config.pxi
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
-    import Cython
-    cython3 = Cython.__version__.startswith('3.')
+    if PLATFORM == 'android':
+        cython3 = environ.get('ANDROID_PYJNIUS_CYTHON_3', '0') == '1'
+    else:
+        import Cython
+        cython3 = Cython.__version__.startswith('3.')
     fd.write('DEF JNIUS_PLATFORM = {0!r}\n\n'.format(PLATFORM))
     # record the Cython version, to address #669
     fd.write(f'DEF JNIUS_CYTHON_3 = {cython3}')
