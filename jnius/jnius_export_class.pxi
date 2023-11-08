@@ -14,6 +14,12 @@ class JavaException(Exception):
         self.stacktrace = stacktrace
         Exception.__init__(self, message)
 
+    def __repr__(self):
+        '''
+        Override __repr__ so that we can see the Java stacktrace
+        '''
+        return super(Exception).__repr__() + '\n' + '\n\t'.join(self.stacktrace)
+
 
 cdef class JavaObject(object):
     '''Can contain any Java object. Used to store instance, or whatever.
