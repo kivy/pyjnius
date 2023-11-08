@@ -76,7 +76,7 @@ cdef void check_exception(JNIEnv *j_env) except *:
             j_env[0].DeleteLocalRef(j_env, e_msg)
         j_env[0].DeleteLocalRef(j_env, exc)
 
-        raise JavaException('JVM exception occurred: %s' % (str(pyexcclass) + ":" + pymsg if pymsg is not None else pyexcclass), pyexcclass, pymsg, pystack)
+        raise JavaException('JVM exception occurred: %s' % (str(pyexcclass) + ": " + pymsg if pymsg is not None else pyexcclass), pyexcclass, pymsg, pystack)
 
 
 cdef void _append_exception_trace_messages(
