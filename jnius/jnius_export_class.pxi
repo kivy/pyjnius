@@ -18,7 +18,7 @@ class JavaException(Exception):
         '''
         Override __str__ so that we can see the Java stacktrace
         '''
-        rtr = super(Exception).__str__()
+        rtr = self.args[0]
         if self.stacktrace is not None:
             rtr += '\n' + '\n\t'.join(self.stacktrace)
         return rtr
