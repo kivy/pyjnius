@@ -93,7 +93,10 @@ jobs:
 
     - name: (macOS) Setup test dependencies
       if: matrix.os == 'macos-latest' || matrix.os == 'apple-silicon-m1'
-      run: brew install ant
+      run: |
+        brew install ant
+        codesign -dvvvv --xml --entitlements - $(which python)
+        codesign -dvvvv --xml --entitlements - $(which java)
 
     - name: Build test classes via ant
       run: ant all
