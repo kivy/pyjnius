@@ -86,7 +86,6 @@ compile_native_invocation_handler(JAVA)
 
 def check_python_signing():
     import platform
-    print("****", sys.platform, platform.processor())
     # check for mac
     if sys.platform != 'darwin':
         return
@@ -98,7 +97,6 @@ def check_python_signing():
             ['/usr/bin/codesign', '--display', '--verbose=4', '--xml', '--entitlements', '-',
             sys.executable]
         ).decode("utf-8")
-        print("****", codesign)
         assert "com.apple.security.cs.disable-executable-page-protection" in codesign, (
                 ("Python (%s) was not signed with com.apple.security.cs.disable-executable-page-protection entitlement. " % sys.executable) +
                 "You should installed a version of Python that has been codesigned with this entitlement.")
