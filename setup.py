@@ -96,7 +96,7 @@ def check_python_signing():
         codesign = subprocess.check_output(
             ['/usr/bin/codesign', '--display', '--verbose=4', '--xml', '--entitlements', '-',
             sys.executable]
-        )
+        ).decode("utf-8")
         assert "com.apple.security.cs.disable-executable-page-protection" in codesign, (
                 ("Python (%s) was not signed with com.apple.security.cs.disable-executable-page-protection entitlement. " % sys.executable) +
                 "You should installed a version of Python that has been codesigned with this entitlement.")
