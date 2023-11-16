@@ -84,6 +84,27 @@ def compile_native_invocation_handler(java):
 
 compile_native_invocation_handler(JAVA)
 
+def check_python_signing():
+    import platform
+    # check for mac
+    if sys.platform != 'darwin':
+        return
+    # check for arm
+    if platform.processor() != 'arm':
+        return
+    try:
+        codesign = subprocess.check_output(
+            ['/usr/bin/codesign', '--display', '--verbose=4', '--xml', '--entitlements', '-',
+            sys.executable]
+        )
+        assert "com.apple.security.cs.disable-executable-page-protection" not in codesign, (
+                ("Python (%s) was not signed with com.apple.security.cs.disable-executable-page-protection entitlement. " % sys.executable) +
+                "You should installed a version of Python that has been codesigned with this entitlement.")
+    except:
+        assert False, (("Could not apply codesign to %s. Codesign is required for Apple Silicon. You should installed a version of " +
+            "Python installed that has been codesigned") % sys.executable)
+
+check_python_signing()
 
 # generate the config.pxi
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
