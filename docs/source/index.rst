@@ -18,6 +18,7 @@ documentation.
    quickstart
    android
    api
+   building
    packaging
 
 Indices and tables

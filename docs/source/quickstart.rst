@@ -4,8 +4,9 @@ Quickstart
 ==========
 
 Eager to get started? This page will give you a good introduction to Pyjnius. It assumes
-you have already Pyjnius installed. If you do not, head over the
-:ref:`installation` section.
+you have already Pyjnius installed. If you do not, ensure you have a Java JDK installed, 
+then try `pip install pyjnius` - you can head over to the :ref:`installation` section 
+for more information.
 
 A minimal example
 -----------------
