@@ -51,10 +51,9 @@ Reflection classes
     .. attribute:: __javaconstructor__
 
         If not set, we assume the default constructor takes no parameters.
-        Otherwise, it can be a list of all possible signatures and if it can
-        take a variable number of arguments or not as parameters of the
-        constructor. For example, a reflection of the String java class would
-        look like::
+        Otherwise, it can be a list of all possible signatures and if it is
+        varArgs or not as parameters of the constructor. For example, 
+        a reflection of the String java class would look like::
 
             class String(JavaClass):
                 __javaclass__ = 'java/lang/String'
@@ -153,9 +152,12 @@ Reflection classes
             __metaclass__ = MetaJavaClass
 
             getBytes = JavaMultipleMethod([
-                '(Ljava/lang/String;)[B',
-                '(Ljava/nio/charset/Charset;)[B',
-                '()[B'])
+                ('(Ljava/lang/String;)[B', False, False),
+                ('(Ljava/nio/charset/Charset;)[B', False, False),
+                ('()[B', False, False)])
+
+    Each method should contain three informations: its signature, is static,
+    and is varArgs.
 
     Then, when you try to access this method, it will choose the best
     method available according to the type of the arguments you're using.
