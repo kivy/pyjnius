@@ -51,7 +51,8 @@ Reflection classes
     .. attribute:: __javaconstructor__
 
         If not set, we assume the default constructor takes no parameters.
-        Otherwise, it can be a list of all possible signatures of the
+        Otherwise, it can be a list of all possible signatures and if it can
+        take a variable number of arguments or not as parameters of the
         constructor. For example, a reflection of the String java class would
         look like::
 
@@ -59,10 +60,10 @@ Reflection classes
                 __javaclass__ = 'java/lang/String'
                 __metaclass__ = MetaJavaClass
                 __javaconstructor__ = (
-                    '()V',
-                    '(Ljava/lang/String;)V',
-                    '([C)V',
-                    '([CII)V',
+                    ('()V', False),
+                    ('(Ljava/lang/String;)V', False),
+                    ('([C)V', False),
+                    ('([CII)V', False),
                     # ...
                 )
 
