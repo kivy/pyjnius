@@ -3,8 +3,8 @@
 Packaging
 =========
 
-For Packaging we use `PyInstaller <http://www.pyinstaller.org/>`_ and with
-these simple steps we will create a simple executable containing PyJNIus
+For Packaging, we suggest use of `PyInstaller <http://www.pyinstaller.org/>`_. 
+With these simple steps we will create a simple executable containing PyJNIus
 that prints the path of currently used Java. These steps assume you have
 a supported version of Python for PyJNIus and PyInstaller available together
 with Java installed (necessary for running the application).

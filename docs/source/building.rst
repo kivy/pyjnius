@@ -8,8 +8,8 @@ Building PyJNIus depends on `Cython <http://cython.org/>`_ and the `Java
 Environment).
 
 
-Installation on GNU/Linux distributions
----------------------------------------
+Building on GNU/Linux distributions
+-----------------------------------
 
 You need the GNU Compiler Collection (GCC), the JDK installed (openjdk
 will do), and Cython. Then, just type::
@@ -26,29 +26,8 @@ You can run the tests suite to make sure everything is running right::
     make tests
 
 
-Installation for Android
-------------------------
-
-To use pyjnius in an Android app, you must include it in your compiled
-Python distribution. This is done automatically if you build a `Kivy
-<https://kivy.org/#home>`__ app, but you can also add it to your
-requirements explicitly as follows.
-
-If you use `buildozer
-<https://buildozer.readthedocs.io/en/latest/>`__, add pyjnius to your
-requirements in buildozer.spec::
-
-  requirements = pyjnius
-
-If you use `python-for-android
-<http://python-for-android.readthedocs.io/en/latest/>`__ directly, add
-pyjnius to the requirements argument when creating a dist or apk::
-
-  p4a apk --requirements=pyjnius
-
-
-Installation for Windows
-------------------------
+Building on Windows
+-------------------
 
 Python and pip must be installed and present in the ``PATH`` environment variable.
 
@@ -110,8 +89,8 @@ Python and pip must be installed and present in the ``PATH`` environment variabl
        or ``C:\Program Files (x86)\Java\jdkx.y.z_b``.
 
 
-Installation for macOS
-----------------------
+Building for macOS
+------------------
 
 Python and pip must be installed and present in the ``PATH`` environment variable.
 
@@ -142,19 +121,3 @@ Python and pip must be installed and present in the ``PATH`` environment variabl
 
        pip install pyjnius
 
-
-Installation for Conda
-----------------------
-
-Similar to PIP there is a package manager for
-`Anaconda <https://www.anaconda.com/what-is-anaconda/>` called Conda.
-An unofficial compiled distributions of PyJNIus for Conda supported
-platforms you can find at https://anaconda.org/conda-forge/pyjnius.
-
-You can install ``pyjnius`` with this command::
-
-    conda install -c conda-forge pyjnius
-
-Or if you want a specific package label e.g. ``gcc7``::
-
-    conda install -c conda-forge/label/gcc7 pyjnius
