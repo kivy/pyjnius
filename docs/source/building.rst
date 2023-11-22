@@ -4,8 +4,8 @@ Building PYJNIus
 ================
 
 Building PyJNIus depends on `Cython <http://cython.org/>`_ and the `Java
-<http://www.oracle.com/javase>`_ Development Kit (includes the Java Runtime
-Environment).
+<https://www.oracle.com/java/technologies/downloads/>`_ Development Kit 
+(includes the Java Runtime Environment).
 
 
 Building on GNU/Linux distributions
@@ -33,7 +33,7 @@ Python and pip must be installed and present in the ``PATH`` environment variabl
 
 1. Download and install the JDK containing the JRE:
 
-   http://www.oracle.com/technetwork/java/javase/downloads/index.html
+   https://www.oracle.com/java/technologies/downloads/
 
 2. Edit your system and environment variables (use the appropriate Java bitness
    and version in the paths):
@@ -86,7 +86,7 @@ Python and pip must be installed and present in the ``PATH`` environment variabl
 
 1. Download and install the JDK containing the JRE:
 
-   http://www.oracle.com/technetwork/java/javase/downloads/index.html
+   https://www.oracle.com/java/technologies/downloads/
 
 2. Edit your system and environment variables (use the appropriate Java bitness
    and version in the paths):
