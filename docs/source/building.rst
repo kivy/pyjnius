@@ -14,7 +14,7 @@ Building on GNU/Linux distributions
 You need the GNU Compiler Collection (GCC), the JDK installed (openjdk
 will do), and Cython. Then, just type::
 
-    sudo python setup.py install
+    pip install .
 
 If you want to compile the extension within the directory for any development,
 just type::
@@ -31,7 +31,6 @@ Building on Windows
 
 Python and pip must be installed and present in the ``PATH`` environment variable.
 
-
 1. Download and install the JDK containing the JRE:
 
    http://www.oracle.com/technetwork/java/javase/downloads/index.html
@@ -42,32 +41,22 @@ Python and pip must be installed and present in the ``PATH`` environment variabl
     Add to your `Environment Variables
     <https://en.wikipedia.org/wiki/Environment_variable>`_:
 
-    * ``JAVA_HOME``: C:\\Program Files\\Java\\jdk1.7.0_79\\bin
-    * ``PATH``: C:\\Program Files\\Java\\jdk1.7.0_79\\jre\\bin\\server
+    * ``JAVA_HOME``: C:\\Program Files\\Java\\jdk1.x.y_zz\\bin
+    * ``PATH``: C:\\Program Files\\Java\\jdk1.x.y_zz\\jre\\bin\\server
       contains the ``jvm.dll`` necessary for importing and using PyJNIus.
 
       .. note::
-         set PATH=%PATH%;C:\\Program Files\\Java\\jdk1.7.0_79\\jre\\bin\\server
+         set PATH=%PATH%;C:\\Program Files\\Java\\jdk1.x.y_zz\\jre\\bin\\server
 
     Add to System Variables or have it present in your ``PATH``:
-        * ``PATH``: C:\\Program Files\\Java\\jdk1.7.0_79\\bin`
+        * ``PATH``: C:\\Program Files\\Java\\jdk1.x.y_zz\\bin`
 
 3. Download and install the C compiler:
 
-   a) Microsoft Visual C++ Compiler for Python 2.7:
+   Microsoft Visual C++ Build Tools (command-line tools subset of Visual
+   Studio) can be obtained from https://visualstudio.microsoft.com/downloads/
 
-      http://aka.ms/vcpython27
-
-   b) MinGWPy for Python 2.7:
-
-      https://anaconda.org/carlkl/mingwpy
-
-   c) Microsoft Visual C++ Build Tools (command-line tools subset of Visual
-      Studio) for Python 3.5 and 3.6:
-
-      https://visualstudio.microsoft.com/downloads/
-
-   For other versions see Python's `Windows Compilers wiki
+   For more information or options, see Python's `Windows Compilers wiki
    <https://wiki.python.org/moin/WindowsCompilers>`_.
 
 4. Update `pip <https://pip.pypa.io/en/stable/installing>`_ and setuptools::
