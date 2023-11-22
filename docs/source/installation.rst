@@ -3,7 +3,7 @@
 Installation
 ============
 
-Pyjnius has pre-compiled binaries on PyPi for recent Python versions on Linux,
+PyJNIus has pre-compiled binaries on PyPi for recent Python versions on Linux,
 macOS and Windows.
 
 On each platform::
