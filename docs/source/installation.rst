@@ -16,9 +16,10 @@ If there is no pre-compiled binary available, pip install will aim to compile
 a binary on your operating system. For more information see the :ref:`building` 
 documentation.
 
-You will need the Java JDK installed (`OpenJDK <https://openjdk.org/>`__` is fine).
+You will need the Java JDK installed (`OpenJDK <https://openjdk.org/>`_ is fine).
 PyJNIus searches for Java in the usual places on each operating system. If PyJNIus 
-cannot find Java, set the `JAVA_HOME` environment variable.
+cannot find Java, set the `JAVA_HOME` environment variable (this is often needed 
+`on Windows <https://www.baeldung.com/java-home-on-windows-7-8-10-mac-os-x-linux#windows>`_).
 
 Installation for Android
 ------------------------
