@@ -4,13 +4,14 @@ Quickstart
 ==========
 
 Eager to get started? This page will give you a good introduction to Pyjnius. It assumes
-you have already Pyjnius installed. If you do not, head over the
-:ref:`installation` section.
+you have already PyJNIus installed. If you do not, ensure you have a Java JDK installed, 
+then try `pip install pyjnius` - you can head over to the :ref:`installation` section 
+for more information.
 
 A minimal example
 -----------------
 
-A minimal Pyjnius example looks something like this::
+A minimal PyJNIus example looks something like this::
 
     from jnius import autoclass
 
@@ -24,7 +25,7 @@ A minimal Pyjnius example looks something like this::
 
 Just save it as `test.py` (or something similar) and run it with your Python
 interpreter. Make sure not to call your application `jnius.py` because it would
-conflict with Pyjnius itself::
+conflict with PyJNIus itself::
 
     $ python test.py
     world
@@ -39,7 +40,7 @@ To load nested java classes, use the "$" separator as so::
 Automatic recursive inspection
 ------------------------------
 
-Pyjnius uses Java reflection to give you a new autoclass() if the return type is
+PyJNIus uses Java reflection to give you a new autoclass() if the return type is
 not a native type. Let's see this example::
 
     System = autoclass('java.lang.System')
