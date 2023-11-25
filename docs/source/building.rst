@@ -27,7 +27,7 @@ In all cases, after checking out PyJNIus from GitHub, it can be *built* and inst
 This installs `Cython <https://cython.org/>`_ (as specified in the 
 `pyproject.toml <https://pip.pypa.io/en/stable/reference/build-system/pyproject-toml/>`_) 
 in a Python build environment. On all platforms, if PyJNIus cannot find your JDK, you can set 
-the `JAVA_HOME` shell environment variable (this is often needed on Windows).
+the `JAVA_HOME` environment variable (this is often needed on Windows).
 
 If you want to compile the PyJNIus extension within the directory for any development,
 just type::

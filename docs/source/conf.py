@@ -232,7 +232,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'pyjnius', u'Pyjnius Documentation',
+    ('index', 'pyjnius', u'PyJNIus Documentation',
      [u'Kivy Team and other contributors'], 1)
 ]
 
@@ -246,8 +246,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'Pyjnius', u'Pyjnius Documentation',
-   u'Kivy Team and other contributors', 'Pyjnius', 'Dynamic access to Java classes from Python',
+  ('index', 'PyJNIus', u'PyJNIus Documentation',
+   u'Kivy Team and other contributors', 'PyJNIus', 'Dynamic access to Java classes from Python',
    'Miscellaneous'),
 ]
 

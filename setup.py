@@ -2,18 +2,15 @@
 Setup.py for creating a binary distribution.
 '''
 
-from __future__ import print_function
-from setuptools import setup, Extension
-from setuptools.command.build_ext import build_ext
-try:
-    import subprocess32 as subprocess
-except ImportError:
-    import subprocess
-
 from os import environ
 from os.path import dirname, join
+import subprocess
 import sys
+
 from setup_sdist import SETUP_KWARGS
+from setuptools import setup, Extension
+from setuptools.command.build_ext import build_ext
+
 
 # XXX hack to be able to import jnius.env withough having build
 # jnius.jnius yet, better solution welcome
@@ -67,6 +64,7 @@ JAVA=get_java_setup(PLATFORM)
 
 assert JAVA.is_jdk(), "You need a JDK, we only found a JRE. Try setting JAVA_HOME"
 
+
 def compile_native_invocation_handler(java):
     '''Find javac and compile NativeInvocationHandler.java.'''
     javac = java.get_javac()
@@ -81,6 +79,7 @@ def compile_native_invocation_handler(java):
             javac.replace('"', ''), '-target', source_level, '-source', source_level,
             join('jnius', 'src', 'org', 'jnius', 'NativeInvocationHandler.java')
         ])
+
 
 compile_native_invocation_handler(JAVA)
 

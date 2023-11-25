@@ -1,5 +1,5 @@
 '''
-Pyjnius
+PyJNIus
 =======
 
 Accessing Java classes from Python.
