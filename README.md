@@ -201,57 +201,42 @@ This project exists thanks to
 [all the people who contribute](https://github.com/kivy/pyjnius/graphs/contributors).
 [[Become a contributor](CONTRIBUTING.md)].
 
+<img src="https://contrib.nn.ci/api?repo=kivy/kivy&pages=5&no_bot=true&radius=22&cols=18">
+
 ## Backers
 
-Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/kivy#backer)]
+Thank you to [all of our backers](https://opencollective.com/kivy)! 
+🙏 [[Become a backer](https://opencollective.com/kivy#backer)]
 
-<img src="https://opencollective.com/kivy/backers.svg?width=890&avatarHeight=45&button=false">
+<img src="https://opencollective.com/kivy/backers.svg?width=890&avatarHeight=44&button=false">
 
 ## Sponsors
 
-Special thanks to all our sponsors. Support this project by 
+Special thanks to 
+[all of our sponsors, past and present](https://opencollective.com/kivy).
+Support this project by 
 [[becoming a sponsor](https://opencollective.com/kivy#sponsor)].
-Your logo will show up here with a link to your website. 
+
+Here are our top current sponsors. Please click through to see their websites,
+and support them as they support us. 
 
 <!--- See https://github.com/orgs/kivy/discussions/15 for explanation of this code. -->
 <a href="https://opencollective.com/kivy/sponsor/0/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/0/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/1/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/1/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/2/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/2/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/3/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/3/avatar.svg"></a>
+
 <a href="https://opencollective.com/kivy/sponsor/4/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/4/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/5/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/5/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/6/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/6/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/7/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/7/avatar.svg"></a>
+
 <a href="https://opencollective.com/kivy/sponsor/8/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/8/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/9/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/9/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/10/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/10/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/11/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/11/avatar.svg"></a>
+
 <a href="https://opencollective.com/kivy/sponsor/12/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/12/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/13/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/13/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/14/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/14/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/15/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/15/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/16/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/16/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/17/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/17/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/18/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/18/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/19/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/19/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/20/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/20/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/21/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/21/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/22/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/22/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/23/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/23/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/24/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/24/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/25/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/25/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/26/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/26/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/27/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/27/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/28/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/28/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/29/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/29/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/30/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/30/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/31/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/30/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/32/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/30/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/33/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/30/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/34/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/30/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/35/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/30/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/36/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/30/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/37/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/30/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/38/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/30/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/39/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/30/avatar.svg"></a>
-<a href="https://opencollective.com/kivy/sponsor/40/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/30/avatar.svg"></a>
