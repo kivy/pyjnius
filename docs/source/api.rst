@@ -6,7 +6,7 @@ API
 
 .. module:: jnius
 
-This part of the documentation covers all the interfaces of Pyjnius.
+This part of the documentation covers all the interfaces of PyJNIus.
 
 Reflection classes
 ------------------
@@ -407,13 +407,13 @@ called from another Java method, the other Java method would see the value chang
 parameters are passed by reference. The two methods share the same memory space. Only one copy of
 the array data exists.
 
-In Pyjnius, Python calls to Java methods simulate pass by reference by copying the variable values
+In PyJNIus, Python calls to Java methods simulate pass by reference by copying the variable values
 from the JVM back to Python. This extra copying will have a performance impact for large data
 structures. To skip the extra copy and pass by value, use the named parameter `pass_by_reference`.
 
     obj.method(param1, param2, param3, pass_by_reference=False)
 
-Since Java does not have function named parameters like Python does, they are interpreted by Pyjnius
+Since Java does not have function named parameters like Python does, they are interpreted by PyJNIus
 and are not passed to the Java method.
 
 In the above example, the `pass_by_reference` parameter will apply to all the parameters. For more
@@ -442,17 +442,17 @@ If no classpath is provided and CLASSPATH is not set, the path defaults to `'.'`
 This functionality is not available on Android.
 
 
-Pyjnius and threads
+PyJNIus and threads
 -------------------
 
 .. function:: detach()
 
-    Each time you create a native thread in Python and use Pyjnius, any call to
-    Pyjnius methods will force attachment of the native thread to the current JVM.
-    But you must detach it before leaving the thread, and Pyjnius cannot do it for
+    Each time you create a native thread in Python and use PyJNIus, any call to
+    PyJNIus methods will force attachment of the native thread to the current JVM.
+    But you must detach it before leaving the thread, and PyJNIus cannot do it for
     you.
 
-Pyjnius automatically calls this `detach()` function for you when a python thread exits. This is done by
+PyJNIus automatically calls this `detach()` function for you when a python thread exits. This is done by
 monkey-patching the default `run()` method of `threading.Thread` class.
 
 So if you entirely override `run()` from your own subclass of Thread, you must call `detach()` yourself

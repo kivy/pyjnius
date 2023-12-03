@@ -1,16 +1,33 @@
 PyJNIus
 =======
 
-A Python module to access Java classes as Python classes using the Java Native
-Interface (JNI).
-Warning: the pypi name is now `pyjnius` instead of `jnius`.
+PyJNIus is a [Python](https://www.python.org/) library for accessing 
+[Java](https://www.java.com/) classes using the 
+[Java Native Interface](https://docs.oracle.com/javase/8/docs/technotes/guides/jni/)
+(JNI). 
+
+PyJNIus is managed by the [Kivy Team](https://kivy.org/about.html) and can be
+used with [python-for-android](https://github.com/kivy/python-for-android). 
+
+It can also be used independently of Kivy, on desktop and mobile platforms. 
+
+> [!WARNING]
+> The [PyPI](https://pypi.org/) package name is now 
+[pyjnius](https://pypi.org/project/pyjnius/) instead of `jnius`.
+
+
+[![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers)
+[![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors)
+[![GitHub contributors](https://img.shields.io/github/contributors-anon/kivy/pyjnius)](https://github.com/kivy/pyjnius/graphs/contributors)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](code_of_conduct.md)
+
+![PyPI - Version](https://img.shields.io/pypi/v/pyjnius)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyjnius)
 
 [![Tests](https://github.com/kivy/pyjnius/workflows/Continuous%20Integration/badge.svg)](https://github.com/kivy/pyjnius/actions)
 [![Tests (x86)](https://github.com/kivy/pyjnius/workflows/Continuous%20Integration%20(x86)/badge.svg)](https://github.com/kivy/pyjnius/actions)
 [![Builds](https://github.com/kivy/pyjnius/workflows/Continuous%20Delivery/badge.svg)](https://github.com/kivy/pyjnius/actions)
-[![PyPI](https://img.shields.io/pypi/v/pyjnius.svg)]()
-[![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers)
-[![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors)
+
 
 Installation
 ------------
@@ -23,18 +40,18 @@ Quick overview
 --------------
 
 ```python
->>> from jnius import autoclass
->>> autoclass('java.lang.System').out.println('Hello world')
-Hello world
-
->>> Stack = autoclass('java.util.Stack')
->>> stack = Stack()
->>> stack.push('hello')
->>> stack.push('world')
->>> print(stack.pop())
-world
->>> print(stack.pop())
-hello
+    >>> from jnius import autoclass
+    >>> autoclass('java.lang.System').out.println('Hello world')
+    Hello world
+    
+    >>> Stack = autoclass('java.util.Stack')
+    >>> stack = Stack()
+    >>> stack.push('hello')
+    >>> stack.push('world')
+    >>> print(stack.pop())
+    world
+    >>> print(stack.pop())
+    hello
 ```
 
 Usage with python-for-android
@@ -43,7 +60,7 @@ Usage with python-for-android
 * Get [python-for-android](http://github.com/kivy/python-for-android)
 * Compile a distribution with kivy (PyJNIus will be automatically added)
 
-Then, you can do this kind of things:
+Then, you can do this kind of thing:
 
 ```python
 from time import sleep
@@ -53,9 +70,9 @@ Hardware = autoclass('org.renpy.android.Hardware')
 print('DPI is', Hardware.getDPI())
 
 Hardware.accelerometerEnable(True)
-for x in xrange(20):
+for x in range(20):
     print(Hardware.accelerometerReading())
-    sleep(.1)
+    sleep(0.1)
 ```
 
 It will output something like:
@@ -109,9 +126,9 @@ class Hardware(JavaClass):
 print('DPI is', Hardware.getDPI())
 
 Hardware.accelerometerEnable()
-for x in xrange(20):
+for x in range(20):
     print(Hardware.accelerometerReading())
-    sleep(.1)
+    sleep(0.1)
 ```
 
 You can use the `signatures` method of `JavaMethod` and `JavaMultipleMethod`, to inspect the discovered signatures of a method of an object
@@ -132,61 +149,94 @@ Make sure a Java Development Kit (JDK) is installed on your operating system if
 you want to use PyJNIus on desktop. OpenJDK is known to work, and the Oracle
 Java JDK should work as well.
 
-On windows, make sure `JAVA_HOME` points to your java installation, so PyJNIus
-can locate the `jvm.dll` file allowing it to start java. This shouldn't be
-necessary on OSX and Linux, but in case PyJNIus fails to find it, setting
+On Windows, make sure `JAVA_HOME` points to your Java installation, so PyJNIus
+can locate the `jvm.dll` file allowing it to start Java. This shouldn't be
+necessary on macOS and Linux, but in case PyJNIus fails to find it, setting
 `JAVA_HOME` should help.
 
-Support
--------
+## License
 
-If you need assistance, you can ask for help on our mailing list:
+PyJNIus is [MIT licensed](LICENSE), actively developed by a great
+community and is supported by many projects managed by the 
+[Kivy Organization](https://www.kivy.org/about.html).
 
-* User Group : https://groups.google.com/group/kivy-users
-* Email      : kivy-users@googlegroups.com
+## Documentation
 
-We also have a Discord server:
+[Documentation for this repository](https://pyjnius.readthedocs.io/).
 
-[https://chat.kivy.org/](https://chat.kivy.org/)
+## Support
 
-Contributing
-------------
+Are you having trouble using PyJNIus or any of its related projects in the Kivy
+ecosystem?
+Is there an error you don’t understand? Are you trying to figure out how to use 
+it? We have volunteers who can help!
 
-We love pull requests and discussing novel ideas. Check out our
-[contribution guide](http://kivy.org/docs/contribute.html) and
-feel free to improve PyJNIus.
+The best channels to contact us for support are listed in the latest 
+[Contact Us](https://github.com/kivy/pyjnius/blob/master/CONTACT.md) document.
 
-The following mailing list and IRC channel are used exclusively for
-discussions about developing the Kivy framework and its sister projects:
+## Contributing
 
-* Dev Group : https://groups.google.com/group/kivy-dev
-* Email     : kivy-dev@googlegroups.com
+PyJNIus is part of the [Kivy](https://kivy.org) ecosystem - a large group of
+products used by many thousands of developers for free, but it
+is built entirely by the contributions of volunteers. We welcome (and rely on) 
+users who want to give back to the community by contributing to the project.
 
-License
--------
+Contributions can come in many forms. See the latest 
+[Contribution Guidelines](https://github.com/kivy/pyjnius/blob/master/CONTRIBUTING.md)
+for how you can help us.
 
-PyJNIus is released under the terms of the MIT License. Please refer to the
-LICENSE file for more information.
+## Code of Conduct
 
+In the interest of fostering an open and welcoming community, we as 
+contributors and maintainers need to ensure participation in our project and 
+our sister projects is a harassment-free and positive experience for everyone. 
+It is vital that all interaction is conducted in a manner conveying respect, 
+open-mindedness and gratitude.
+
+Please consult the [latest Code of Conduct](https://github.com/kivy/pyjnius/blob/master/CODE_OF_CONDUCT.md).
+
+## Contributors
+
+This project exists thanks to 
+[all the people who contribute](https://github.com/kivy/pyjnius/graphs/contributors).
+[[Become a contributor](CONTRIBUTING.md)].
+
+<img src="https://contrib.nn.ci/api?repo=kivy/pyjnius&pages=5&no_bot=true&radius=22&cols=18">
 
 ## Backers
 
-Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/kivy#backer)]
+Thank you to [all of our backers](https://opencollective.com/kivy)! 
+🙏 [[Become a backer](https://opencollective.com/kivy#backer)]
 
-<a href="https://opencollective.com/kivy#backers" target="_blank"><img src="https://opencollective.com/kivy/backers.svg?width=890"></a>
-
+<img src="https://opencollective.com/kivy/backers.svg?width=890&avatarHeight=44&button=false">
 
 ## Sponsors
 
-Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/kivy#sponsor)]
+Special thanks to 
+[all of our sponsors, past and present](https://opencollective.com/kivy).
+Support this project by 
+[[becoming a sponsor](https://opencollective.com/kivy#sponsor)].
 
+Here are our top current sponsors. Please click through to see their websites,
+and support them as they support us. 
+
+<!--- See https://github.com/orgs/kivy/discussions/15 for explanation of this code. -->
 <a href="https://opencollective.com/kivy/sponsor/0/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/0/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/1/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/1/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/2/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/2/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/3/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/3/avatar.svg"></a>
+
 <a href="https://opencollective.com/kivy/sponsor/4/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/4/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/5/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/5/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/6/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/6/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/7/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/7/avatar.svg"></a>
+
 <a href="https://opencollective.com/kivy/sponsor/8/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/8/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/9/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/9/avatar.svg"></a>
+<a href="https://opencollective.com/kivy/sponsor/10/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/10/avatar.svg"></a>
+<a href="https://opencollective.com/kivy/sponsor/11/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/11/avatar.svg"></a>
+
+<a href="https://opencollective.com/kivy/sponsor/12/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/12/avatar.svg"></a>
+<a href="https://opencollective.com/kivy/sponsor/13/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/13/avatar.svg"></a>
+<a href="https://opencollective.com/kivy/sponsor/14/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/14/avatar.svg"></a>
+<a href="https://opencollective.com/kivy/sponsor/15/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/15/avatar.svg"></a>

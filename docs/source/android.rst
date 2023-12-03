@@ -4,7 +4,7 @@ Android
 =======
 
 Android has a great and extensive API to control devices, your application
-etc. Some parts of the Android API are directly accessible with Pyjnius but
+etc. Some parts of the Android API are directly accessible with PyJNIus but
 some of them require you to code in Java.
 
 .. note::
@@ -37,7 +37,7 @@ Recording an audio file
 By looking at the `Audio Capture
 <http://developer.android.com/guide/topics/media/audio-capture.html>`_ guide
 for Android, you can see the simple steps for recording an audio file.
-Let's do it with Pyjnius::
+Let's do it with PyJNIus::
 
     from jnius import autoclass
     from time import sleep
@@ -97,7 +97,7 @@ Accessing the Activity
 
 This example will show how to start a new Intent. Be careful: some Intents
 require you to setup parts in the `AndroidManifest.xml` and have some
-actions performed within your Activity. This is out of the scope of Pyjnius but
+actions performed within your Activity. This is out of the scope of PyJNIus but
 we'll show you what the best approach is for playing with it.
 
 Using the Python-for-android project, you can access the default
@@ -131,7 +131,7 @@ Accelerometer access
 --------------------
 
 The accelerometer is a good example that shows how to write a little
-Java code that you can access later with Pyjnius.
+Java code that you can access later with PyJNIus.
 
 The `SensorManager
 <http://developer.android.com/reference/android/hardware/SensorManager.html>`_
@@ -188,7 +188,7 @@ everything needed for accessing the accelerometer::
 
 So we created one method named `accelerometerEnable` to activate/deactivate the
 listener. And we saved the last event received in `Hardware.lastEvent`.
-Now you can use it in Pyjnius::
+Now you can use it in PyJNIus::
 
     from time import sleep
     from jnius import autoclass
@@ -226,7 +226,8 @@ Using TextToSpeech
 ------------------
 
 Same as the audio capture, by looking at the `An introduction to Text-To-Speech in Android
-<http://android-developers.blogspot.fr/2009/09/introduction-to-text-to-speech-in.html>`_ blog post, it's easy to do it with Pyjnius::
+<http://android-developers.blogspot.fr/2009/09/introduction-to-text-to-speech-in.html>`_ blog post, it's easy to do it
+with PyJNIus::
 
     from jnius import autoclass
     Locale = autoclass('java.util.Locale')
