@@ -201,7 +201,7 @@ This project exists thanks to
 [all the people who contribute](https://github.com/kivy/pyjnius/graphs/contributors).
 [[Become a contributor](CONTRIBUTING.md)].
 
-<img src="https://contrib.nn.ci/api?repo=kivy/kivy&pages=5&no_bot=true&radius=22&cols=18">
+<img src="https://contrib.nn.ci/api?repo=kivy/pyjnius&pages=5&no_bot=true&radius=22&cols=18">
 
 ## Backers
 
