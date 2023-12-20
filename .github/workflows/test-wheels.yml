@@ -23,9 +23,6 @@ jobs:
           - os: ubuntu-latest
             architecture: 'x64'
             cibw_archs: 'x86_64'
-          - os: kivy-ubuntu-arm64
-            architecture: 'aarch64'
-            cibw_archs: aarch64
           - os: macos-latest
             architecture: 'x64'
             cibw_archs: 'x86_64 universal2'
@@ -113,8 +110,6 @@ jobs:
           # We may would like to introduce tests also on windows-latest on x86 (win32 wheels)?
           - os: ubuntu-latest
             architecture: 'x64'
-          - os: kivy-ubuntu-arm64
-            architecture: 'aarch64'
           - os: windows-latest
             architecture: 'x64'
           - os: macos-latest
