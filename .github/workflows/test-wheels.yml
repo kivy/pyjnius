@@ -72,33 +72,8 @@ jobs:
           name: dist
           path: dist
 
-  build_sdist:
-    name: Build sdist
-    if: (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build sdist]') || contains(github.event.pull_request.title, '[build sdist]')
-    runs-on: 'ubuntu-latest'
-    steps:
-      - name: Checkout pyjnius
-        uses: actions/checkout@v3
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Build sdist
-        run: |
-            pip install -U setuptools Cython
-            python setup.py sdist
-
-      - name: upload sdist
-        uses: actions/upload-artifact@v2
-        with:
-          name: dist
-          path: dist
-
   test_wheels:
     name: Test wheel on ${{ matrix.os }} (${{ matrix.architecture }}) Python ${{ matrix.python }}
-    if: (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel]')
     needs:
       - build_wheels
     continue-on-error: true
