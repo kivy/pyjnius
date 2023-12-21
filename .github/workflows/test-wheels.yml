@@ -5,6 +5,35 @@ on:
   
 name: Continuous Integration - Testing Wheels on JREs
 jobs:
+  build_test_jar:
+    runs-on: 'ubuntu-latest'
+    steps:
+
+      - name: Checkout pyjnius
+        uses: actions/checkout@v3
+
+      - name: Setup java
+        # There's no need to setup java on ubuntu-latest, as build is done into a manylinux
+        # containerized environment. (CIBW_BEFORE_ALL_LINUX) takes care of it.
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          architecture: 'x64'
+
+      - name: Setup ant on Linux
+        run: |
+          sudo apt-get update && sudo apt-get install -y ant
+
+      - name: Build test-classes via ant
+        run: ant all
+
+      - name: Upload test-classes
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-classes
+          path: build/test-classes
+          
   build_wheels:
     name: cibuildwheel on ${{ matrix.os }} ${{ matrix.architecture }}
     env:
@@ -67,7 +96,7 @@ jobs:
           python -m cibuildwheel --output-dir dist
 
       - name: upload wheels
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: dist
           path: dist
@@ -89,25 +118,30 @@ jobs:
             architecture: 'x64'
           - os: macos-latest
             architecture: 'x64'
-          - os: apple-silicon-m1
-            architecture: 'aarch64'
-            python: '3.10'
-          - os: apple-silicon-m1
-            architecture: 'aarch64'
-            python: '3.11'
-          - os: apple-silicon-m1
-            architecture: 'aarch64'
-            python: '3.12'
+          #- os: apple-silicon-m1
+          #  architecture: 'aarch64'
+          #  python: '3.10'
+          #- os: apple-silicon-m1
+          #  architecture: 'aarch64'
+          #  python: '3.11'
+          #- os: apple-silicon-m1
+          #  architecture: 'aarch64'
+          #  python: '3.12'
     runs-on: ${{ matrix.os }}
     steps:
 
       - name: Checkout pyjnius
         uses: actions/checkout@v3
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: dist
           path: dist
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: test-classes
+          path: build/test-classes
 
       - name: Setup Python (Ubuntu x86_64, macOS Intel, Windows x86_64)
         # Needs to be skipped on our self-hosted runners tagged as 'apple-silicon-m1'
@@ -123,19 +157,6 @@ jobs:
           distribution: 'temurin'
           java-package: 'jre'
           architecture: ${{ matrix.architecture }}
-
-      - name: Setup ant on macOS
-        if: (matrix.os == 'macos-latest') || (matrix.os == 'apple-silicon-m1')
-        run: |
-          brew install ant
-
-      - name: Setup ant on Linux
-        if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'kivy-ubuntu-arm64')
-        run: |
-          sudo apt-get update && sudo apt-get install -y ant
-
-      - name: Build test-classes via ant
-        run: ant all
 
       - name: Install pyjnius wheel + test prerequisites (Windows, macOS)
         if: matrix.os == 'windows-latest' || matrix.os == 'macos-latest' || matrix.os == 'apple-silicon-m1'
