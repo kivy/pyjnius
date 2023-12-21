@@ -118,15 +118,15 @@ jobs:
             architecture: 'x64'
           - os: macos-latest
             architecture: 'x64'
-          #- os: apple-silicon-m1
-          #  architecture: 'aarch64'
-          #  python: '3.10'
-          #- os: apple-silicon-m1
-          #  architecture: 'aarch64'
-          #  python: '3.11'
-          #- os: apple-silicon-m1
-          #  architecture: 'aarch64'
-          #  python: '3.12'
+          - os: apple-silicon-m1
+            architecture: 'aarch64'
+            python: '3.10'
+          - os: apple-silicon-m1
+            architecture: 'aarch64'
+            python: '3.11'
+          - os: apple-silicon-m1
+            architecture: 'aarch64'
+            python: '3.12'
     runs-on: ${{ matrix.os }}
     steps:
 
