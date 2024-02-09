@@ -20,8 +20,8 @@ A minimal PyJNIus example looks something like this::
     stack.push('hello')
     stack.push('world')
 
-    print stack.pop() # --> 'world'
-    print stack.pop() # --> 'hello'
+    print(stack.pop()) # --> 'world'
+    print(stack.pop()) # --> 'hello'
 
 Just save it as `test.py` (or something similar) and run it with your Python
 interpreter. Make sure not to call your application `jnius.py` because it would
