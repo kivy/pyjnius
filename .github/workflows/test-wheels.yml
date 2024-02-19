@@ -1,13 +1,41 @@
 on:
-  push:
-  pull_request:
-  create:
-
-name: Continuous Delivery
+    push:
+    pull_request:
+    create:
+  
+name: Continuous Integration - Testing Wheels on JREs
 jobs:
+  build_test_jar:
+    runs-on: 'ubuntu-latest'
+    steps:
+
+      - name: Checkout pyjnius
+        uses: actions/checkout@v3
+
+      - name: Setup java
+        # There's no need to setup java on ubuntu-latest, as build is done into a manylinux
+        # containerized environment. (CIBW_BEFORE_ALL_LINUX) takes care of it.
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          architecture: 'x64'
+
+      - name: Setup ant on Linux
+        run: |
+          sudo apt-get update && sudo apt-get install -y ant
+
+      - name: Build test-classes via ant
+        run: ant all
+
+      - name: Upload test-classes
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-classes
+          path: build/test-classes
+          
   build_wheels:
     name: cibuildwheel on ${{ matrix.os }} ${{ matrix.architecture }}
-    if: (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel]')
     env:
       CIBW_BEFORE_ALL_LINUX: 'yum install -y java-11-openjdk-devel'
       CIBW_REPAIR_WHEEL_COMMAND_MACOS: ''
@@ -24,9 +52,6 @@ jobs:
           - os: ubuntu-latest
             architecture: 'x64'
             cibw_archs: 'x86_64'
-          - os: kivy-ubuntu-arm64
-            architecture: 'aarch64'
-            cibw_archs: aarch64
           - os: macos-latest
             architecture: 'x64'
             cibw_archs: 'x86_64 universal2'
@@ -71,38 +96,13 @@ jobs:
           python -m cibuildwheel --output-dir dist
 
       - name: upload wheels
-        uses: actions/upload-artifact@v2
-        with:
-          name: dist
-          path: dist
-
-  build_sdist:
-    name: Build sdist
-    if: (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build sdist]') || contains(github.event.pull_request.title, '[build sdist]')
-    runs-on: 'ubuntu-latest'
-    steps:
-      - name: Checkout pyjnius
-        uses: actions/checkout@v3
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Build sdist
-        run: |
-            pip install -U setuptools Cython
-            python setup.py sdist
-
-      - name: upload sdist
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: dist
           path: dist
 
   test_wheels:
     name: Test wheel on ${{ matrix.os }} (${{ matrix.architecture }}) Python ${{ matrix.python }}
-    if: (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel]')
     needs:
       - build_wheels
     continue-on-error: true
@@ -114,8 +114,6 @@ jobs:
           # We may would like to introduce tests also on windows-latest on x86 (win32 wheels)?
           - os: ubuntu-latest
             architecture: 'x64'
-          - os: kivy-ubuntu-arm64
-            architecture: 'aarch64'
           - os: windows-latest
             architecture: 'x64'
           - os: macos-latest
@@ -135,10 +133,15 @@ jobs:
       - name: Checkout pyjnius
         uses: actions/checkout@v3
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: dist
           path: dist
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: test-classes
+          path: build/test-classes
 
       - name: Setup Python (Ubuntu x86_64, macOS Intel, Windows x86_64)
         # Needs to be skipped on our self-hosted runners tagged as 'apple-silicon-m1'
@@ -154,19 +157,6 @@ jobs:
           distribution: 'temurin'
           java-package: 'jre'
           architecture: ${{ matrix.architecture }}
-
-      - name: Setup ant on macOS
-        if: (matrix.os == 'macos-latest') || (matrix.os == 'apple-silicon-m1')
-        run: |
-          brew install ant
-
-      - name: Setup ant on Linux
-        if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'kivy-ubuntu-arm64')
-        run: |
-          sudo apt-get update && sudo apt-get install -y ant
-
-      - name: Build test-classes via ant
-        run: ant all
 
       - name: Install pyjnius wheel + test prerequisites (Windows, macOS)
         if: matrix.os == 'windows-latest' || matrix.os == 'macos-latest' || matrix.os == 'apple-silicon-m1'
@@ -209,58 +199,3 @@ jobs:
           cd tests
           $env:CLASSPATH ="../build/test-classes;../build/classes"
           python -m pytest -v
-  
-
-  release:
-    if: (github.event_name == 'create' && github.event.ref_type == 'tag')
-    name: release
-    needs:
-      - build_wheels
-      - build_sdist
-      - test_wheels
-    runs-on: 'ubuntu-latest'
-    steps:
-    - uses: actions/download-artifact@v2
-      with:
-        name: dist
-        path: dist
-
-    - name: Upload Test Release Asset
-      id: create_test_release
-      if: startsWith(github.ref, 'refs/tags/') && endsWith(github.ref, '-test')
-      uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
-      with:
-        prerelease: true
-        files: |
-          dist/*.whl
-          dist/*.zip
-          dist/*.tar.gz
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Upload Release Asset
-      id: upload-release-asset
-      if: startsWith(github.ref, 'refs/tags/') && ! endsWith(github.ref, '-test')
-      uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
-      with:
-        files: |
-          dist/*.whl
-          dist/*.zip
-          dist/*.tar.gz
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Publish package
-      if: startsWith(github.ref, 'refs/tags/') && endsWith(github.ref, '-test')
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_TOKEN_TEST }}
-        repository_url: https://test.pypi.org/legacy/
-
-    - name: Publish package
-      if: startsWith(github.ref, 'refs/tags/') && ! endsWith(github.ref, '-test')
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_TOKEN }}
