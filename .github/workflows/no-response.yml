@@ -6,8 +6,8 @@ on:
   issue_comment:
     types: [created]
   schedule:
-    # Schedule for five minutes after the hour, every hour
-    - cron: '5 * * * *'
+    # Schedule for an arbitrary time (4am) once every day
+    - cron: '* 4 * * *'
 
 jobs:
   noResponse:
