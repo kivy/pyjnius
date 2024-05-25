@@ -109,7 +109,7 @@ jobs:
     strategy:
       matrix:
         os: ['ubuntu-latest', 'macos-latest', 'windows-latest', 'kivy-ubuntu-arm64']
-        python: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12', 'pypy3.7', 'pypy3.8', 'pypy3.9']
+        python: ['3.8', '3.9', '3.10', '3.11', '3.12', 'pypy3.8', 'pypy3.9']
         include:
           # We may would like to introduce tests also on windows-latest on x86 (win32 wheels)?
           - os: ubuntu-latest
@@ -193,17 +193,8 @@ jobs:
           cd tests
           CLASSPATH=../build/test-classes:../build/classes python -m pytest -v
 
-      - name: Test wheel ( Windows + Python == 3.7.x )
-        # On Python < 3.8.x, we can't use `os.add_dll_directory`, so the jre should be in PATH.
-        if: (matrix.os == 'windows-latest') && contains(matrix.python, '3.7')
-        run: |
-          cd tests
-          $env:PATH +=";$env:JAVA_HOME\jre\bin\server\;$env:JAVA_HOME\jre\bin\client\;$env:JAVA_HOME\bin\server\"
-          $env:CLASSPATH ="../build/test-classes;../build/classes"
-          python -m pytest -v
-
-      - name: Test wheel (Windows + Python != 3.7.x )
-        if: (matrix.os == 'windows-latest') && !contains(matrix.python, '3.7')
+      - name: Test wheel (Windows)
+        if: matrix.os == 'windows-latest'
         run: |
           cd tests
           $env:CLASSPATH ="../build/test-classes;../build/classes"

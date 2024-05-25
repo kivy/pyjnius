@@ -7,13 +7,11 @@ jobs:
     strategy:
       matrix:
         python:
-           - '3.7'
            - '3.8'
            - '3.9'
            - '3.10'
            - '3.11'
            - '3.12'
-           - 'pypy-3.7'
            - 'pypy-3.8'
            - 'pypy-3.9'
         java:
@@ -48,20 +46,13 @@ jobs:
           - os: apple-silicon-m1
             architecture: x64
           - os: apple-silicon-m1
-            python: '3.7'
-          - os: apple-silicon-m1
             python: '3.8'
           - os: apple-silicon-m1
             python: '3.9'
           - os: apple-silicon-m1
-            python: 'pypy-3.7'
-          - os: apple-silicon-m1
             python: 'pypy-3.8'
           - os: apple-silicon-m1
             python: 'pypy-3.9'
-          - os: windows-latest
-            architecture: x86
-            python: 'pypy-3.7'
           - os: windows-latest
             architecture: x86
             python: 'pypy-3.8'
