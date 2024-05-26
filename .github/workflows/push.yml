@@ -44,6 +44,9 @@ jobs:
           - os: macos-13
             architecture: x86
           - os: macos-latest
+            architecture: aarch64
+            java: '8'
+          - os: macos-latest
             architecture: x64
           - os: macos-latest
             architecture: x86
