@@ -37,7 +37,6 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Setup Python (Ubuntu x86_64, macOS Intel, Windows x86_64)
-        if: matrix.os == 'macos-latest' || matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
@@ -65,8 +64,6 @@ jobs:
         env:
           CIBW_ARCHS: '${{ matrix.cibw_archs }}'
         run: |
-          source .ci/utils.sh
-          ensure_python_version 3.11
           python -m pip install cibuildwheel~=2.16.2
           python -m cibuildwheel --output-dir dist
 
@@ -112,23 +109,18 @@ jobs:
         python: ['3.8', '3.9', '3.10', '3.11', '3.12', 'pypy3.8', 'pypy3.9']
         include:
           # We may would like to introduce tests also on windows-latest on x86 (win32 wheels)?
+          # macos-latest (ATM macos-14) runs on Apple Silicon,
+          # macos-13 runs on Intel
           - os: ubuntu-latest
             architecture: 'x64'
           - os: kivy-ubuntu-arm64
             architecture: 'aarch64'
           - os: windows-latest
             architecture: 'x64'
-          - os: macos-latest
+          - os: macos-13
             architecture: 'x64'
-          - os: apple-silicon-m1
+          - os: macos-latest
             architecture: 'aarch64'
-            python: '3.10'
-          - os: apple-silicon-m1
-            architecture: 'aarch64'
-            python: '3.11'
-          - os: apple-silicon-m1
-            architecture: 'aarch64'
-            python: '3.12'
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -140,9 +132,7 @@ jobs:
           name: dist
           path: dist
 
-      - name: Setup Python (Ubuntu x86_64, macOS Intel, Windows x86_64)
-        # Needs to be skipped on our self-hosted runners tagged as 'apple-silicon-m1'
-        if: matrix.os == 'macos-latest' || matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest' || matrix.os == 'apple-silicon-m1'
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
@@ -155,7 +145,7 @@ jobs:
           architecture: ${{ matrix.architecture }}
 
       - name: Setup ant on macOS
-        if: (matrix.os == 'macos-latest') || (matrix.os == 'apple-silicon-m1')
+        if: (matrix.os == 'macos-latest') || (matrix.os == 'macos-13')
         run: |
           brew install ant
 
@@ -168,7 +158,7 @@ jobs:
         run: ant all
 
       - name: Install pyjnius wheel + test prerequisites (Windows, macOS)
-        if: matrix.os == 'windows-latest' || matrix.os == 'macos-latest' || matrix.os == 'apple-silicon-m1'
+        if: matrix.os == 'windows-latest' || matrix.os == 'macos-latest' || matrix.os == 'macos-13'
         # --find-links=dist --no-index is needed to avoid downloading the pyjnius wheel
         # from the index. We need to test the wheel we just built.
         run: |
@@ -180,16 +170,12 @@ jobs:
         # --find-links=dist --no-index is needed to avoid downloading the pyjnius wheel
         # from the index. We need to test the wheel we just built.
         run: |
-          source .ci/utils.sh
-          ensure_python_version ${{ matrix.python }}
           python -m pip install --find-links=dist --no-index pyjnius
           python -m pip install pyjnius[dev,ci]
 
       - name: Test wheel (Linux, macOS)
-        if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'kivy-ubuntu-arm64') || (matrix.os == 'macos-latest') || (matrix.os == 'apple-silicon-m1')
+        if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'kivy-ubuntu-arm64') || (matrix.os == 'macos-latest') || (matrix.os == 'macos-13')
         run: |
-          source .ci/utils.sh
-          ensure_python_version ${{ matrix.python }}
           cd tests
           CLASSPATH=../build/test-classes:../build/classes python -m pytest -v
 

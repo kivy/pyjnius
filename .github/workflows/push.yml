@@ -19,10 +19,12 @@ jobs:
           - '11'
           - '20'
         os:
+          # macos-latest (ATM macos-14) runs on Apple Silicon,
+          # macos-13 runs on Intel
           - 'ubuntu-latest'
           - 'windows-latest'
           - 'macos-latest'
-          - 'apple-silicon-m1'
+          - 'macos-13'
         cython:
           - '<3'
           - '>=3'
@@ -37,30 +39,23 @@ jobs:
             architecture: aarch64
           - os: ubuntu-latest
             architecture: x86
+          - os: macos-13
+            architecture: aarch64
+          - os: macos-13
+            architecture: x86
           - os: macos-latest
             architecture: aarch64
+            java: '8'
+          - os: macos-latest
+            architecture: x64
           - os: macos-latest
             architecture: x86
-          - os: apple-silicon-m1
-            architecture: x86
-          - os: apple-silicon-m1
-            architecture: x64
-          - os: apple-silicon-m1
-            python: '3.8'
-          - os: apple-silicon-m1
-            python: '3.9'
-          - os: apple-silicon-m1
-            python: 'pypy-3.8'
-          - os: apple-silicon-m1
-            python: 'pypy-3.9'
           - os: windows-latest
             architecture: x86
             python: 'pypy-3.8'
           - os: windows-latest
             architecture: x86
             python: 'pypy-3.9'
-          - os: apple-silicon-m1
-            java: '8'
           - os: windows-latest
             architecture: x86
             java: '20'
@@ -73,7 +68,6 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
-        architecture: ${{ (matrix.os == 'apple-silicon-m1' && matrix.architecture == 'aarch64') && 'arm64' ||  matrix.architecture  }}
 
     - name: Setup java
       uses: actions/setup-java@v3
@@ -83,7 +77,7 @@ jobs:
         architecture: ${{ matrix.architecture }}
 
     - name: (macOS) Setup test dependencies
-      if: matrix.os == 'macos-latest' || matrix.os == 'apple-silicon-m1'
+      if: matrix.os == 'macos-latest' || matrix.os == 'macos-13'
       run: brew install ant
 
     - name: Build test classes via ant
@@ -96,7 +90,7 @@ jobs:
     
     - name: (Linux, macOS) Force Cython version
       # macOS sed requires .bak filename extensions
-      if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'macos-latest') || (matrix.os == 'apple-silicon-m1')
+      if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'macos-latest') || (matrix.os == 'macos-13')
       run: sed -i.bak 's/"Cython"/"Cython${{matrix.cython}}"/' pyproject.toml
 
     - name: Install pyjnius with [dev, ci] extras
@@ -112,7 +106,7 @@ jobs:
         pytest -v
 
     - name: (Linux, macOS) Test pyjnius via pytest
-      if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'macos-latest') || (matrix.os == 'apple-silicon-m1')
+      if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'macos-latest') || (matrix.os == 'macos-13')
       run: |
         cd tests
         CLASSPATH=../build/test-classes:../build/classes python -m pytest -v
