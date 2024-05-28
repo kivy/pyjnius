@@ -70,7 +70,7 @@ jobs:
         python-version: ${{ matrix.python }}
 
     - name: Setup java
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: ${{ matrix.java }}
         distribution: 'temurin'
