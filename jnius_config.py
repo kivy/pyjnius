@@ -72,6 +72,7 @@ def get_classpath():
     # add a path to java classes packaged with jnius
     if sys.version_info >= (3, 9):
         from contextlib import ExitStack
+        from pathlib import Path
         import importlib.resources
         import atexit
 
@@ -80,7 +81,7 @@ def get_classpath():
         atexit.register(file_manager.close)
         # importlib.resources.files is only available from Python 3.9
         # use https://github.com/python/importlib_resources/issues/60 not __name__ as jnius_config.py is not a package
-        resource_path = importlib.resources.files('jnius') / 'src'
+        resource_path = Path(__file__).parent / 'jnius' / 'src'
         return_classpath = [ str(resource_path) ]
         file_manager.enter_context(importlib.resources.as_file(resource_path))
     else:
