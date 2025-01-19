@@ -18,6 +18,9 @@ jobs:
           - '8'
           - '11'
           - '20'
+          - '21'
+          - '22'
+          - '23'
         os:
           # macos-latest (ATM macos-14) runs on Apple Silicon,
           # macos-13 runs on Intel
