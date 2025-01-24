@@ -58,7 +58,7 @@ jobs:
             python: 'pypy-3.9'
           - os: windows-latest
             architecture: x86
-            java: '20'
+            java: ['20', '21', '22', '23']
 
     runs-on: ${{ matrix.os }}
     steps:
