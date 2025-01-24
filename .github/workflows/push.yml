@@ -58,8 +58,17 @@ jobs:
             python: 'pypy-3.9'
           - os: windows-latest
             architecture: x86
-            java: ['20', '21', '22', '23']
-
+            java: '20'
+          - os: windows-latest
+            architecture: x86
+            java: '21'
+          - os: windows-latest
+            architecture: x86
+            java: '22'
+          - os: windows-latest
+            architecture: x86
+            java: '23'
+          
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@master
