@@ -15,8 +15,8 @@ jobs:
            - 'pypy-3.8'
            - 'pypy-3.9'
         java:
-          - '21'
-          - '22'
+          - '8'
+          - '11'
           - '23'
         os:
           # macos-latest (ATM macos-14) runs on Apple Silicon,
