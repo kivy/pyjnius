@@ -17,7 +17,7 @@ jobs:
         java:
           - '8'
           - '11'
-          - '20'
+          - '23'
         os:
           # macos-latest (ATM macos-14) runs on Apple Silicon,
           # macos-13 runs on Intel
@@ -59,7 +59,16 @@ jobs:
           - os: windows-latest
             architecture: x86
             java: '20'
-
+          - os: windows-latest
+            architecture: x86
+            java: '21'
+          - os: windows-latest
+            architecture: x86
+            java: '22'
+          - os: windows-latest
+            architecture: x86
+            java: '23'
+          
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@master
