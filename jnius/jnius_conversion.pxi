@@ -634,6 +634,7 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
     cdef jclass j_class
     cdef JavaObject jo
     cdef JavaClass jc
+    from ctypes import c_long as long
 
     cdef ByteArray a_bytes
 
