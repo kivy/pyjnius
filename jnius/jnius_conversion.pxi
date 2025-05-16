@@ -38,6 +38,7 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
     cdef JavaClass jc
     cdef PythonJavaClass pc
     cdef int index
+    from ctypes import c_long as long
 
     for index, argtype in enumerate(definition_args):
         py_arg = args[index]
@@ -467,6 +468,7 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
     cdef JavaClassStorage jcs
     cdef PythonJavaClass pc
     cdef int index
+    from ctypes import c_long as long
 
     if definition[0] == 'V':
         return NULL
