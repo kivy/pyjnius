@@ -278,6 +278,7 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
     cdef JavaClass jc
     cdef int args_len = len(args)
     cdef int sign_args_len = len(sign_args)
+    from ctypes import c_long as long
 
     if args_len != sign_args_len and not is_varargs:
         # if the number of arguments expected is not the same
