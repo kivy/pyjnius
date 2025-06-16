@@ -175,7 +175,7 @@ class SignaturesTest(unittest.TestCase):
     def test_calc_signature(self):
         import sys
         clz = autoclass("org.jnius.SignatureTest$IntOrLong")
-        obj = clz(0) # could be int or long
+        obj = clz(0, debug=True) # could be int or long
         # this isnt truly deterministic, the two possible methods are tied for score
         self.assertTrue(obj.was_long)
         
@@ -194,4 +194,4 @@ class SignaturesTest(unittest.TestCase):
         self.assertFalse(obj.was_short)
 
         autoclass("org.jnius.SignatureTest$ShortOnly")(0) # this should work as short
-        autoclass("org.jnius.SignatureTest$ShortOnly")(0., debug=True) # this float should be cast to short
+        autoclass("org.jnius.SignatureTest$ShortOnly")(0.) # this float should be cast to short

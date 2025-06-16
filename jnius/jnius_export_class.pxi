@@ -357,9 +357,10 @@ cdef class JavaClass(object):
                     )
                 )
             scores.sort()
+            score, definition, d_ret, d_args, args_ = scores[-1]
             if debug:
                 print(scores)
-            score, definition, d_ret, d_args, args_ = scores[-1]
+                print("Selected %s for invocation" % definition)
 
         try:
             # convert python arguments to java arguments
@@ -1169,9 +1170,10 @@ cdef class JavaMultipleMethod(object):
                 )
             )
         scores.sort()
+        score, signature = scores[-1]
         if debug:
             print(scores)
-        score, signature = scores[-1]
+            print("Selected %s for invocation" % signature)
 
         jm = methods[signature]
         jm.j_self = self.j_self
