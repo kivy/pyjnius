@@ -292,6 +292,7 @@ cdef class JavaClass(object):
         cdef jmethodID constructor = NULL
         cdef JNIEnv *j_env = get_jnienv()
         cdef list found_definitions = []
+        debug = kwargs.get("debug", False)
 
         # get the constructor definition if exist
         definitions = [('()V', False)]
@@ -356,6 +357,8 @@ cdef class JavaClass(object):
                     )
                 )
             scores.sort()
+            if debug:
+                print(scores)
             score, definition, d_ret, d_args, args_ = scores[-1]
 
         try:
@@ -1131,6 +1134,7 @@ cdef class JavaMultipleMethod(object):
         cdef dict methods
         cdef int max_sign_args
         cdef list found_signatures = []
+        debug = kwargs.get("debug", False)
 
         if self.j_self:
             methods = self.instance_methods
@@ -1165,6 +1169,8 @@ cdef class JavaMultipleMethod(object):
                 )
             )
         scores.sort()
+        if debug:
+            print(scores)
         score, signature = scores[-1]
 
         jm = methods[signature]
