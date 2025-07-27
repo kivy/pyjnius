@@ -300,27 +300,26 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
         r = sign_args[index]
         arg = args[index]
 
-        if r == 'Z':
+        if r == 'Z': # boolean
             if not isinstance(arg, bool):
                 return -1
             score += 10
             continue
 
-        if r == 'B':
+        if r == 'B': # byte
             if not isinstance(arg, int):
                 return -1
             score += 10
             continue
 
-        if r == 'C':
+        if r == 'C': # char
             if not isinstance(arg, str) or len(arg) != 1:
                 return -1
             score += 10
             continue
 
-        if r == 'S' or r == 'I':
-            if isinstance(arg, int) or (
-                    (isinstance(arg, long) and arg < 2147483648)):
+        if r == 'S': # short
+            if isinstance(arg, int) and arg <= 32767 and arg >= -32768:
                 score += 10
                 continue
             elif isinstance(arg, float):
@@ -329,8 +328,8 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
             else:
                 return -1
 
-        if r == 'J':
-            if isinstance(arg, int) or isinstance(arg, long):
+        if r == 'I': # int
+            if isinstance(arg, int) and arg <= 2147483647 and arg >= -2147483648:
                 score += 10
                 continue
             elif isinstance(arg, float):
@@ -339,7 +338,17 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
             else:
                 return -1
 
-        if r == 'F' or r == 'D':
+        if r == 'J': # long
+            if isinstance(arg, int):
+                score += 10
+                continue
+            elif isinstance(arg, float):
+                score += 5
+                continue
+            else:
+                return -1
+
+        if r == 'F' or r == 'D': # float or double
             if isinstance(arg, int):
                 score += 5
                 continue
@@ -349,7 +358,7 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
             else:
                 return -1
 
-        if r[0] == 'L':
+        if r[0] == 'L': # classname
 
             r = r[1:-1]
 

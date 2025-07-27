@@ -12,7 +12,6 @@ jobs:
            - '3.11'
            - '3.12'
            - '3.13'
-           - 'pypy-3.8'
            - 'pypy-3.9'
         java:
           - '8'
@@ -52,9 +51,6 @@ jobs:
             architecture: x64
           - os: macos-latest
             architecture: x86
-          - os: windows-latest
-            architecture: x86
-            python: 'pypy-3.8'
           - os: windows-latest
             architecture: x86
             python: 'pypy-3.9'
