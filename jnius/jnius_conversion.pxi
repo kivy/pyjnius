@@ -38,7 +38,6 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
     cdef JavaClass jc
     cdef PythonJavaClass pc
     cdef int index
-    from ctypes import c_long as long
 
     for index, argtype in enumerate(definition_args):
         py_arg = args[index]
@@ -63,7 +62,7 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                 j_args[index].l = NULL
 
             # numeric types
-            elif isinstance(py_arg, (int, long)):
+            elif isinstance(py_arg, int):
                 j_args[index].l = convert_python_to_jobject(
                     j_env, 'Ljava/lang/Integer;', py_arg
                 )
@@ -468,7 +467,6 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
     cdef JavaClassStorage jcs
     cdef PythonJavaClass pc
     cdef int index
-    from ctypes import c_long as long
 
     if definition[0] == 'V':
         return NULL
@@ -481,7 +479,7 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
             return convert_pystr_to_java(j_env, to_unicode(obj))
 
         # numeric types
-        elif isinstance(obj, (int, long)) and \
+        elif isinstance(obj, int) and \
                 definition in (
                     'Ljava/lang/Integer;',
                     'Ljava/lang/Number;',
@@ -543,7 +541,6 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
         conversions = {
             int: 'I',
             bool: 'Z',
-            long: 'J',
             float: 'F',
             unicode: 'Ljava/lang/String;',
             bytes: 'B'
@@ -634,7 +631,6 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
     cdef jclass j_class
     cdef JavaObject jo
     cdef JavaClass jc
-    from ctypes import c_long as long
 
     cdef ByteArray a_bytes
 
@@ -644,7 +640,6 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
         conversions = {
             int: 'I',
             bool: 'Z',
-            long: 'J',
             float: 'F',
             bytes: 'B',
             str: 'Ljava/lang/String;',

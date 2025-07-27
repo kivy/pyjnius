@@ -172,3 +172,26 @@ class SignaturesTest(unittest.TestCase):
         sig = signature(jvoid, [JArray(jint), JArray(jboolean)])
         self.assertEqual(sig, "([I[Z)V")
 
+    def test_calc_signature(self):
+        import sys
+        clz = autoclass("org.jnius.SignatureTest$IntOrLong")
+        obj = clz(0, debug=True) # could be int or long
+        # this isnt truly deterministic, the two possible methods are tied for score
+        self.assertTrue(obj.was_long)
+        
+        obj = clz(sys.maxsize)
+        self.assertTrue(obj.was_long)
+
+        obj = clz(-1 * sys.maxsize)
+        self.assertTrue(obj.was_long)
+    
+        clz = autoclass("org.jnius.SignatureTest$ShortOrLong")
+        obj = clz(0) # could be short or long
+        # this isnt truly deterministic, the two possible methods are tied for score
+        self.assertTrue(obj.was_short)
+
+        obj = clz(sys.maxsize)
+        self.assertFalse(obj.was_short)
+
+        autoclass("org.jnius.SignatureTest$ShortOnly")(0) # this should work as short
+        autoclass("org.jnius.SignatureTest$ShortOnly")(0.) # this float should be cast to short
