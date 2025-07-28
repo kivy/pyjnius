@@ -51,20 +51,11 @@ jobs:
           distribution: 'temurin'
           architecture: ${{ matrix.architecture }}
 
-      - name: Install cibuildwheel & build wheels (Windows)
-        if: matrix.os == 'windows-latest'
+      - name: Install cibuildwheel & build wheels
         env:
           CIBW_ARCHS: '${{ matrix.cibw_archs }}'
         run: |
-          python -m pip install cibuildwheel~=2.16.2
-          python -m cibuildwheel --output-dir dist
-
-      - name: Install cibuildwheel & build wheels (Linux, macOS Intel)
-        if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'kivy-ubuntu-arm64') ||  (matrix.os == 'macos-latest')
-        env:
-          CIBW_ARCHS: '${{ matrix.cibw_archs }}'
-        run: |
-          python -m pip install cibuildwheel~=2.16.2
+          python -m pip install cibuildwheel~=3.1.1
           python -m cibuildwheel --output-dir dist
 
       - name: upload wheels
