@@ -24,16 +24,12 @@ jobs:
           - 'windows-latest'
           - 'macos-latest'
           - 'macos-13'
-        cython:
-          - '<3'
-          - '>=3'
         architecture:
           - 'x64'
           - 'x86'
           - 'aarch64'
         exclude:
           - python: '3.13'
-            cython: '<3'
           - os: windows-latest
             architecture: aarch64
           - os: ubuntu-latest
@@ -90,16 +86,6 @@ jobs:
 
     - name: Build test classes via ant
       run: ant all
-
-    - name: (Windows) Force Cython version
-      # Windows sed doesnt accept .bak filename extensions
-      if: matrix.os == 'windows-latest'
-      run: sed -i 's/"Cython"/"Cython${{matrix.cython}}"/' pyproject.toml
-    
-    - name: (Linux, macOS) Force Cython version
-      # macOS sed requires .bak filename extensions
-      if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'macos-latest') || (matrix.os == 'macos-13')
-      run: sed -i.bak 's/"Cython"/"Cython${{matrix.cython}}"/' pyproject.toml
 
     - name: Install pyjnius with [dev, ci] extras
       run: |
