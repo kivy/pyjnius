@@ -204,7 +204,7 @@ jobs:
     - name: Upload Test Release Asset
       id: create_test_release
       if: startsWith(github.ref, 'refs/tags/') && endsWith(github.ref, '-test')
-      uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
+      uses: softprops/action-gh-release@f2352b97da0095b4dbbd885a81023e3deabf4fef
       with:
         prerelease: true
         files: |
@@ -217,7 +217,7 @@ jobs:
     - name: Upload Release Asset
       id: upload-release-asset
       if: startsWith(github.ref, 'refs/tags/') && ! endsWith(github.ref, '-test')
-      uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
+      uses: softprops/action-gh-release@f2352b97da0095b4dbbd885a81023e3deabf4fef
       with:
         files: |
           dist/*.whl
