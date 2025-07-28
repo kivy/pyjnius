@@ -68,9 +68,9 @@ jobs:
           python -m cibuildwheel --output-dir dist
 
       - name: upload wheels
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: wheels-${{ matrix.os }}-${{ matrix.architecture }}
           path: dist
 
   build_sdist:
@@ -92,9 +92,9 @@ jobs:
             python setup.py sdist
 
       - name: upload sdist
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: wheels-sdist
           path: dist
 
   test_wheels:
@@ -127,9 +127,9 @@ jobs:
       - name: Checkout pyjnius
         uses: actions/checkout@v4
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
-          name: dist
+          name: wheels-${{ matrix.os }}-${{ matrix.architecture }}
           path: dist
 
       - name: Setup Python
@@ -196,9 +196,9 @@ jobs:
       - test_wheels
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v4
       with:
-        name: dist
+        pattern: wheels-*
         path: dist
 
     - name: Upload Test Release Asset
