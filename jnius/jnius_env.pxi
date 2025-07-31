@@ -14,10 +14,10 @@ cdef JNIEnv *get_jnienv() except NULL:
         default_env[0].GetJavaVM(default_env, &jvm)
 
     # return the current env attached to the thread
-    # XXX it threads are created from C (not java), we'll leak here.
-    cdef JNIEnv *env = NULL
+    # XXX if threads are created from C (not java), we'll leak here.
+    cdef void *env = NULL
     jvm[0].AttachCurrentThread(jvm, &env, NULL)
-    return env
+    return <JNIEnv*>env
 
 
 def detach():

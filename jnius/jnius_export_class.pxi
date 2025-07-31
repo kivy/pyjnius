@@ -178,19 +178,25 @@ class MetaJavaClass(MetaJavaBase):
 
         cdef JavaClassStorage jcs = JavaClassStorage()
         cdef bytes __javaclass__ = <bytes>classDict['__javaclass__']
-        cdef bytes __javainterfaces__ = <bytes>classDict.get('__javainterfaces__', b'')
+        __javainterfaces__ = classDict.get('__javainterfaces__', None) # List[str]
         cdef bytes __javabaseclass__ = <bytes>classDict.get('__javabaseclass__', b'')
-        cdef jmethodID getProxyClass, getClassLoader
-        cdef jclass *interfaces
-        cdef jobject *jargs
         cdef JNIEnv *j_env = get_jnienv()
 
+        cdef jclass classClass = j_env[0].FindClass(j_env, b"java/lang/Class")
+
+        cdef jmethodID getProxyClass, getClassLoader
+        # cdef jclass *interfaces
+        cdef jvalue *jargs
+
         if __javainterfaces__ and __javabaseclass__:
+
             baseclass = j_env[0].FindClass(j_env, <char*>__javabaseclass__)
-            interfaces = <jclass *>malloc(sizeof(jclass) * len(__javainterfaces__))
+            interfaces = j_env[0].NewObjectArray(j_env, len(__javainterfaces__), classClass, NULL)
+            # interfaces = <jclass *>malloc(sizeof(jclass) * len(__javainterfaces__))
 
             for n, i in enumerate(__javainterfaces__):
-                interfaces[n] = j_env[0].FindClass(j_env, <char*>i)
+                # interfaces[n] = j_env[0].FindClass(j_env, <char*>i)
+                j_env[0].SetObjectArrayElement(j_env, interfaces, n, j_env[0].FindClass(j_env, <char*>i))
 
             getProxyClass = j_env[0].GetStaticMethodID(
                 j_env, baseclass, "getProxyClass",
@@ -199,15 +205,16 @@ class MetaJavaClass(MetaJavaBase):
             getClassLoader = j_env[0].GetStaticMethodID(
                 j_env, baseclass, "getClassLoader", "()Ljava/lang/Class;")
 
+            jargs = <jvalue*>malloc(sizeof(jvalue) * 2)
             with nogil:
                 classLoader = j_env[0].CallStaticObjectMethodA(
                         j_env, baseclass, getClassLoader, NULL)
-                jargs = <jobject *>malloc(sizeof(jobject) * 2)
-                jargs[0] = <jobject *>classLoader
-                jargs[1] = interfaces
-                jcs.j_cls = j_env[0].CallStaticObjectMethod(
+                
+                jargs[0].l = classLoader
+                jargs[1].l = interfaces
+                jcs.j_cls = j_env[0].CallStaticObjectMethodA(
                         j_env, baseclass, getProxyClass, jargs)
-
+            free(jargs)
             j_env[0].DeleteLocalRef(j_env, baseclass)
 
             if jcs.j_cls == NULL:
