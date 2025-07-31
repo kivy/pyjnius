@@ -24,7 +24,7 @@ jobs:
           - os: ubuntu-latest
             architecture: 'x64'
             cibw_archs: 'x86_64'
-          - os: kivy-ubuntu-arm64
+          - os: ubuntu-24.04-arm
             architecture: 'aarch64'
             cibw_archs: aarch64
           - os: macos-latest
@@ -60,7 +60,7 @@ jobs:
           python -m cibuildwheel --output-dir dist
 
       - name: Install cibuildwheel & build wheels (Linux, macOS Intel)
-        if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'kivy-ubuntu-arm64') ||  (matrix.os == 'macos-latest')
+        if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'ubuntu-24.04-arm') ||  (matrix.os == 'macos-latest')
         env:
           CIBW_ARCHS: '${{ matrix.cibw_archs }}'
         run: |
@@ -105,7 +105,7 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        os: ['ubuntu-latest', 'macos-latest', 'windows-latest', 'kivy-ubuntu-arm64']
+        os: ['ubuntu-latest', 'macos-latest', 'windows-latest', 'ubuntu-24.04-arm']
         python: ['3.9', '3.10', '3.11', '3.12', '3.13', 'pypy3.9']
         include:
           # We may would like to introduce tests also on windows-latest on x86 (win32 wheels)?
@@ -113,7 +113,7 @@ jobs:
           # macos-13 runs on Intel
           - os: ubuntu-latest
             architecture: 'x64'
-          - os: kivy-ubuntu-arm64
+          - os: ubuntu-24.04-arm
             architecture: 'aarch64'
           - os: windows-latest
             architecture: 'x64'
@@ -150,7 +150,7 @@ jobs:
           brew install ant
 
       - name: Setup ant on Linux
-        if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'kivy-ubuntu-arm64')
+        if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'ubuntu-24.04-arm')
         run: |
           sudo apt-get update && sudo apt-get install -y ant
 
@@ -166,7 +166,7 @@ jobs:
           python -m pip install pyjnius[dev,ci]
 
       - name: Install pyjnius wheel + test prerequisites (Linux)
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'kivy-ubuntu-arm64'
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'ubuntu-24.04-arm'
         # --find-links=dist --no-index is needed to avoid downloading the pyjnius wheel
         # from the index. We need to test the wheel we just built.
         run: |
@@ -174,7 +174,7 @@ jobs:
           python -m pip install pyjnius[dev,ci]
 
       - name: Test wheel (Linux, macOS)
-        if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'kivy-ubuntu-arm64') || (matrix.os == 'macos-latest') || (matrix.os == 'macos-13')
+        if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'ubuntu-24.04-arm') || (matrix.os == 'macos-latest') || (matrix.os == 'macos-13')
         run: |
           cd tests
           CLASSPATH=../build/test-classes:../build/classes python -m pytest -v
