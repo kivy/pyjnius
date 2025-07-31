@@ -178,7 +178,7 @@ class MetaJavaClass(MetaJavaBase):
 
         cdef JavaClassStorage jcs = JavaClassStorage()
         cdef bytes __javaclass__ = <bytes>classDict['__javaclass__']
-        cdef bytes __javainterfaces__ = <bytes>classDict.get('__javainterfaces__', b'')
+        __javainterfaces__ = classDict.get('__javainterfaces__', None) # List[str]
         cdef bytes __javabaseclass__ = <bytes>classDict.get('__javabaseclass__', b'')
         cdef JNIEnv *j_env = get_jnienv()
 
@@ -205,15 +205,16 @@ class MetaJavaClass(MetaJavaBase):
             getClassLoader = j_env[0].GetStaticMethodID(
                 j_env, baseclass, "getClassLoader", "()Ljava/lang/Class;")
 
+            jargs = <jvalue*>malloc(sizeof(jvalue) * 2)
             with nogil:
                 classLoader = j_env[0].CallStaticObjectMethodA(
                         j_env, baseclass, getClassLoader, NULL)
-                jargs = <jvalue*>malloc(sizeof(jvalue) * 2)
+                
                 jargs[0].l = classLoader
                 jargs[1].l = interfaces
                 jcs.j_cls = j_env[0].CallStaticObjectMethodA(
                         j_env, baseclass, getProxyClass, jargs)
-
+            free(jargs)
             j_env[0].DeleteLocalRef(j_env, baseclass)
 
             if jcs.j_cls == NULL:
