@@ -99,11 +99,11 @@ include "jnius_compat.pxi"
 include "jni.pxi"
 include "config.pxi"
 
-IF JNIUS_PLATFORM == "android":
+if JNIUS_PLATFORM == "android":
     include "jnius_jvm_android.pxi"
-ELIF JNIUS_PLATFORM == "win32":
+elif JNIUS_PLATFORM == "win32":
     include "jnius_jvm_desktop.pxi"
-ELSE:
+else:
     include "jnius_jvm_dlopen.pxi"
 
 # from Cython 3.0, in the MetaJavaClass, this is accessed as _JavaClass__cls_storage
