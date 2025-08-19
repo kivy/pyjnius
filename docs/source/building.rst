@@ -6,9 +6,9 @@ Building PyJNIus
 Building PyJNIus is necessary for development purposes, or if there is no 
 pre-built binary for your particular platform. 
 
-Like installation of PyJNIus, building PyJNIus requires a  `Java Development Kit
+Building PyJNIus requires a  `Java Development Kit
 <https://www.oracle.com/java/technologies/downloads/>`_  (JDK)
-to be installed.
+to be installed (NB: installing pre-built wheels required only a JRE).
 
 Apart from the JDK, the build requirements for each platform are as follows:
 
