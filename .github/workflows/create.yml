@@ -106,7 +106,7 @@ jobs:
     strategy:
       matrix:
         os: ['ubuntu-latest', 'macos-latest', 'windows-latest', 'ubuntu-24.04-arm', 'macos-13']
-        python: ['3.9', '3.10', '3.11', '3.12', '3.13', 'pypy3.9']
+        python: ['3.9', '3.10', '3.11', '3.12', '3.13']
         include:
           # We may would like to introduce tests also on windows-latest on x86 (win32 wheels)?
           # macos-latest (ATM macos-14) runs on Apple Silicon,
