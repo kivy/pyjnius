@@ -105,22 +105,27 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        os: ['ubuntu-latest', 'macos-latest', 'windows-latest', 'ubuntu-24.04-arm']
-        python: ['3.9', '3.10', '3.11', '3.12', '3.13', 'pypy3.9']
+        os: ['ubuntu-latest', 'macos-latest', 'windows-latest', 'ubuntu-24.04-arm', 'macos-13']
+        python: ['3.9', '3.10', '3.11', '3.12', '3.13']
         include:
           # We may would like to introduce tests also on windows-latest on x86 (win32 wheels)?
           # macos-latest (ATM macos-14) runs on Apple Silicon,
           # macos-13 runs on Intel
           - os: ubuntu-latest
             architecture: 'x64'
+            wheel_upload_pool: 'ubuntu-latest-x64'
           - os: ubuntu-24.04-arm
             architecture: 'aarch64'
+            wheel_upload_pool: 'ubuntu-24.04-arm-aarch64'
           - os: windows-latest
             architecture: 'x64'
+            wheel_upload_pool: 'windows-latest-x64'
           - os: macos-13
             architecture: 'x64'
+            wheel_upload_pool: 'macos-latest-x64'
           - os: macos-latest
             architecture: 'aarch64'
+            wheel_upload_pool: 'macos-latest-x64'
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -129,7 +134,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: wheels-${{ matrix.os }}-${{ matrix.architecture }}
+          name: wheels-${{ matrix.wheel_upload_pool }}
           path: dist
 
       - name: Setup Python
