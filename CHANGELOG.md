@@ -1,5 +1,18 @@
 # Change Log
 
+# [1.7.0](https://github.com/kivy/pyjnius/tree/1.7.0) (2025-08-31)
+[Full Changelog](https://github.com/kivy/pyjnius/compare/1.6.1...1.7.0)
+
+# Highlights
+- [\#713](https://github.com/kivy/pyjnius/pull/713) Remove support for Python 3.7 as reached EOL
+- [\#696](https://github.com/kivy/pyjnius/pull/696) Display Java stacktrace by default in JavaException
+- [\#753](https://github.com/kivy/pyjnius/pull/753) fixes for Cython 3.1 support
+- [\#762](https://github.com/kivy/pyjnius/pull/762) Remove support for Python 3.8 which reached EOL on 2024-10-07
+- [\#756](https://github.com/kivy/pyjnius/pull/756) Remove python long to support Cython >= 3.1.x
+- [\#766](https://github.com/kivy/pyjnius/pull/766) Remove support for Cython versions prior to 3.x.x
+- [\#764](https://github.com/kivy/pyjnius/pull/764) Add support for Python 3.13, fix incompatible pointers
+
+
 # [1.6.1](https://github.com/kivy/pyjnius/tree/1.6.1) (2023-11-05)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.6.0...1.6.1)
 
