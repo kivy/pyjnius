@@ -125,7 +125,7 @@ jobs:
             wheel_upload_pool: 'macos-latest-x64'
           - os: macos-latest
             architecture: 'aarch64'
-            wheel_upload_pool: 'macos-latest-aarch64'
+            wheel_upload_pool: 'macos-latest-x64'
     runs-on: ${{ matrix.os }}
     steps:
 
