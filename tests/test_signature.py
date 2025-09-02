@@ -186,11 +186,14 @@ class SignaturesTest(unittest.TestCase):
         self.assertTrue(obj.was_long)
     
         clz = autoclass("org.jnius.SignatureTest$ShortOrLong")
-        obj = clz(0) # could be short or long
-        # this isnt truly deterministic, the two possible methods are tied for score
+        # short and long would be tied, 0 could be short or long
+        obj = clz(0, signature="(S)V") # so lets tell it is a short
         self.assertTrue(obj.was_short)
 
-        obj = clz(sys.maxsize)
+        obj = clz(0, signature="(J)V") # lets tell it is a long
+        self.assertFalse(obj.was_short)
+
+        obj = clz(sys.maxsize) # this should be a long
         self.assertFalse(obj.was_short)
 
         autoclass("org.jnius.SignatureTest$ShortOnly")(0) # this should work as short
