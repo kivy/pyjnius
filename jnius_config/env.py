@@ -106,6 +106,12 @@ class JavaLocation:
         '''
         javac = self.get_javac()
         return exists(javac)
+    
+    def get_java(self): 
+        '''
+            Returns absolute path of the javac executable
+        '''
+        return join(self.home, "bin", "java")
 
     def get_javac(self): 
         '''
@@ -196,6 +202,9 @@ class JavaLocation:
 class WindowsJavaLocation(JavaLocation):
     def get_javac(self):
         return super().get_javac() + ".exe"
+    
+    def get_java(self):
+        return super().get_java() + ".exe"
 
     def get_libraries(self):
         return ['jvm']
