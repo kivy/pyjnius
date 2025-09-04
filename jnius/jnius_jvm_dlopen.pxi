@@ -5,7 +5,7 @@ from subprocess import check_output, CalledProcessError
 from os.path import dirname, join, exists
 from os import readlink
 from sys import platform
-from .env import get_java_setup
+from jnius_config.env import get_java_setup
 
 
 cdef extern from 'dlfcn.h' nogil:

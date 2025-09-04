@@ -34,7 +34,7 @@ SETUP_KWARGS = {
         'Bug Reports': "https://github.com/kivy/pyjnius/issues",
         },
     'packages': ['jnius'],
-    'py_modules': ['jnius_config', 'setup', 'setup_sdist', 'jnius.env'],
+    'py_modules': ['jnius_config', 'jnius_config.env', 'setup', 'setup_sdist'],
     'ext_package': 'jnius',
     'package_data': {
         'jnius': ['src/org/jnius/*'],

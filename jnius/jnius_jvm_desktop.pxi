@@ -1,7 +1,7 @@
 import sys
 import os
 from os.path import join
-from jnius.env import get_java_setup
+from jnius_config.env import get_java_setup
 
 # on desktop, we need to create an env :)
 # example taken from http://www.inonit.com/cygwin/jni/invocationApi/c.html
