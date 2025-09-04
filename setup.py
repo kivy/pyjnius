@@ -12,8 +12,7 @@ from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
 
-# XXX hack to be able to import jnius.env withough having build
-# jnius.jnius yet, better solution welcome
+# import jnius_config.env withough having build
 syspath = sys.path[:]
 sys.path.insert(0, 'jnius_config')
 from env import get_java_setup
