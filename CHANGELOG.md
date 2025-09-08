@@ -1,6 +1,6 @@
 # Change Log
 
-# [1.7.0](https://github.com/kivy/pyjnius/tree/1.7.0) (2025-08-31)
+# [1.7.0](https://github.com/kivy/pyjnius/tree/1.7.0) (2025-09-08)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.6.1...1.7.0)
 
 # Highlights
