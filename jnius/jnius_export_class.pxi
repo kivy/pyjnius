@@ -224,6 +224,10 @@ class MetaJavaClass(MetaJavaBase):
             class_name = str_for_c(__javaclass__)
             jcs.j_cls = j_env[0].FindClass(j_env,
                     <char *>class_name)
+            try:
+                check_exception(j_env)
+            except JavaException as e:
+                jcs.j_cls = load_class_from_dex_jni(class_name)
             if jcs.j_cls == NULL:
                 raise JavaException('Unable to find the class'
                         ' {0}'.format(__javaclass__))
