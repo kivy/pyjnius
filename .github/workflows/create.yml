@@ -45,7 +45,7 @@ jobs:
         # There's no need to setup java on ubuntu-latest, as build is done into a manylinux
         # containerized environment. (CIBW_BEFORE_ALL_LINUX) takes care of it.
         if: ${{ matrix.os  != 'ubuntu-latest' }}
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -143,7 +143,7 @@ jobs:
           python-version: ${{ matrix.python }}
 
       - name: Setup java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
