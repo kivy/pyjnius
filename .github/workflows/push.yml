@@ -37,9 +37,9 @@ jobs:
             architecture: aarch64
           - os: ubuntu-latest
             architecture: x86
-          - os: macos-15-inte
+          - os: macos-15-intel
             architecture: aarch64
-          - os: macos-15-inte
+          - os: macos-15-intel
             architecture: x86
           - os: macos-latest
             architecture: aarch64
@@ -68,14 +68,14 @@ jobs:
     steps:
     - uses: actions/checkout@master
 
-    - name: Setup python
+    - name: Setup Python ${{ matrix.python }}
       uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python }}
         architecture: ${{ matrix.architecture == 'aarch64' && 'arm64' || matrix.architecture }}
         allow-prereleases: true
 
-    - name: Setup java
+    - name: Setup Java ${{ matrix.java }}
       uses: actions/setup-java@v5
       with:
         java-version: ${{ matrix.java }}
@@ -83,7 +83,7 @@ jobs:
         architecture: ${{ matrix.architecture }}
 
     - name: (macOS) Setup test dependencies
-      if: matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel'
+      if: runner.os == 'macOS'
       run: brew install ant
 
     - name: Build test classes via ant
