@@ -12,18 +12,20 @@ jobs:
            - '3.11'
            - '3.12'
            - '3.13'
-           - 'pypy-3.9'
+           - '3.14'
+           - '3.14t'
+           - 'pypy-3.11'
         java:
           - '8'
           - '11'
           - '23'
         os:
-          # macos-latest (ATM macos-14) runs on Apple Silicon,
-          # macos-13 runs on Intel
+          # macos-latest (ATM macos-15) runs on Apple Silicon,
+          # macos-15-intel runs on Intel
           - 'ubuntu-latest'
           - 'windows-latest'
           - 'macos-latest'
-          - 'macos-13'
+          - 'macos-15-intel'
         architecture:
           - 'x64'
           - 'x86'
@@ -36,9 +38,9 @@ jobs:
             architecture: aarch64
           - os: ubuntu-latest
             architecture: x86
-          - os: macos-13
+          - os: macos-15-intel
             architecture: aarch64
-          - os: macos-13
+          - os: macos-15-intel
             architecture: x86
           - os: macos-latest
             architecture: aarch64
@@ -49,7 +51,7 @@ jobs:
             architecture: x86
           - os: windows-latest
             architecture: x86
-            python: 'pypy-3.9'
+            python: 'pypy-3.11'
           - os: windows-latest
             architecture: x86
             java: '20'
@@ -67,21 +69,22 @@ jobs:
     steps:
     - uses: actions/checkout@master
 
-    - name: Setup python
-      uses: actions/setup-python@v5
+    - name: Setup Python ${{ matrix.python }}
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python }}
         architecture: ${{ matrix.architecture == 'aarch64' && 'arm64' || matrix.architecture }}
+        allow-prereleases: true
 
-    - name: Setup java
-      uses: actions/setup-java@v4
+    - name: Setup Java ${{ matrix.java }}
+      uses: actions/setup-java@v5
       with:
         java-version: ${{ matrix.java }}
         distribution: 'temurin'
         architecture: ${{ matrix.architecture }}
 
     - name: (macOS) Setup test dependencies
-      if: matrix.os == 'macos-latest' || matrix.os == 'macos-13'
+      if: runner.os == 'macOS'
       run: brew install ant
 
     - name: Build test classes via ant
@@ -92,7 +95,7 @@ jobs:
         pip install --timeout=120 .[dev,ci]
   
     - name: (Windows) Test pyjnius via pytest
-      if: matrix.os == 'windows-latest'
+      if: runner.os == 'Windows'
       run: |
         $env:PATH +=";$env:JAVA_HOME\jre\bin\server\;$env:JAVA_HOME\jre\bin\client\;$env:JAVA_HOME\bin\server\"
         $env:CLASSPATH ="../build/test-classes;../build/classes"
@@ -100,7 +103,7 @@ jobs:
         pytest -v
 
     - name: (Linux, macOS) Test pyjnius via pytest
-      if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'macos-latest') || (matrix.os == 'macos-13')
+      if: runner.os != 'Windows'
       run: |
         cd tests
         CLASSPATH=../build/test-classes:../build/classes python -m pytest -v
