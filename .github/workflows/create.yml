@@ -132,7 +132,7 @@ jobs:
       - name: Checkout pyjnius
         uses: actions/checkout@v4
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: wheels-${{ matrix.wheel_upload_pool }}
           path: dist
@@ -201,7 +201,7 @@ jobs:
       - test_wheels
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v5
       with:
         pattern: wheels-*
         path: dist
