@@ -1,0 +1,107 @@
+name: Android wheels
+
+# Builds redistributable PEP 738 Android wheels (android_*) for pyjnius via
+# cibuildwheel, and (on a GitHub release) publishes them to PyPI using trusted
+# publishing (OIDC). Desktop wheels/sdist are handled by the existing CI; this
+# workflow is additive and Android-only.
+#
+# The wheel is SDL-agnostic and Java-free: it resolves the JNIEnv at runtime and
+# ships no Java. See docs/source/android-wheel.rst for the runtime/Java-glue
+# contract that the host app (packager) must satisfy.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "jnius/**"
+      - "jnius_config/**"
+      - "setup.py"
+      - "setup_sdist.py"
+      - "pyproject.toml"
+      - ".github/workflows/android-wheels.yml"
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build + test (${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # cibuildwheel builds every ABI in [tool.cibuildwheel.android].archs
+        # (arm64_v8a ships; x86_64 is the on-device-testable ABI) for each
+        # selected CPython. 3.15 is pre-release until Oct 2026 (see CIBW_ENABLE).
+        python: ["cp313", "cp314"]
+    steps:
+      - uses: actions/checkout@v4
+
+      # Host interpreter that runs cibuildwheel (not the target). cibuildwheel
+      # downloads the target CPython Android runtime itself.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      # The x86_64 testbed boots a Gradle-managed emulator, which needs KVM.
+      # GitHub's Linux runners expose /dev/kvm; widen its permissions so the
+      # emulator can use it. arm64_v8a builds but skips on-device tests (the
+      # runner is x86_64).
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      # On Android, setup.py compiles a pre-generated jnius.c (Cython is a
+      # build-only tool, not needed on the target), so it must exist before the
+      # build. It is arch-independent -- one .c serves both ABIs. config.pxi must
+      # select the android include branch at cythonize time.
+      - name: Pre-generate jnius.c (Android compiles the .c, not the .pyx)
+        run: |
+          python -m pip install "Cython~=3.1.2"
+          printf "DEF JNIUS_PLATFORM = 'android'\n" > jnius/config.pxi
+          cython -3 jnius/jnius.pyx -o jnius/jnius.c
+
+      # Pin the cibuildwheel action to the same version pinned in
+      # pyproject.toml's toolchain comment: cibuildwheel selects the NDK, so this
+      # pin (plus the explicit -Wl,-z,max-page-size=16384 in pyproject) fixes the
+      # produced ABI/alignment. ubuntu-latest ships the Android SDK (ANDROID_HOME);
+      # cibuildwheel installs the matching NDK via sdkmanager. A fresh checkout has
+      # no stale build/ dir, so the Java-free prune in setup.py is reliable here
+      # (locally you must `rm -rf build` first -- see docs/source/android-wheel.rst).
+      - name: Build Android wheels
+        uses: pypa/cibuildwheel@v4.1.0
+        env:
+          CIBW_PLATFORM: android
+          CIBW_BUILD: "${{ matrix.python }}-android_*"
+          CIBW_ENABLE: cpython-prerelease
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-wheels-${{ matrix.python }}
+          path: ./wheelhouse/*.whl
+          if-no-files-found: error
+
+  publish:
+    name: Publish to PyPI
+    needs: build
+    if: github.event_name == 'release' && github.event.action == 'published'
+    runs-on: ubuntu-latest
+    # Requires a PyPI trusted publisher configured for this repo + environment.
+    # Maintainer action: https://docs.pypi.org/trusted-publishers/
+    environment: pypi
+    permissions:
+      id-token: write   # OIDC token for trusted publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: android-wheels-*
+          path: dist
+          merge-multiple: true
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist

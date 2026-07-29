@@ -4,3 +4,52 @@ requires = [
     "wheel",
     "Cython~=3.1.2",
 ]
+
+# --- Android wheel build -----------------------------------------------------
+# Reproducible cibuildwheel configuration for the redistributable, SDL-agnostic
+# Android wheel. All keys are scoped to the `android` subsection so desktop
+# builds are unaffected.
+#
+# Toolchain pins (the inputs that determine the produced wheel):
+#   * cibuildwheel : 4.1.0  -- pins the NDK it installs via sdkmanager.
+#     cibuildwheel has no NDK-version key; the NDK is a function of the
+#     cibuildwheel version, so pin cibuildwheel to pin the NDK.
+#   * NDK          : 27.3.13750724  (installed by cibuildwheel 4.1.0)
+#   * Cython       : ~=3.1.2  (build-only; see [build-system] above)
+#
+# Invocation (ABI is selected per run; only the build-host arch is testable):
+#   uvx --from "Cython~=3.1.2" cython -3 jnius/jnius.pyx -o jnius/jnius.c
+#   cibuildwheel --only cp314-android_x86_64    --output-dir ~/wheelhouse
+#   cibuildwheel --only cp314-android_arm64_v8a --output-dir ~/wheelhouse
+#
+# CPython 3.15 (final Oct 2026) additionally needs `--enable cpython-prerelease`
+# on the command line; the 3.14 config below is unchanged for it.
+[tool.cibuildwheel.android]
+# Android does not support the `pip` build frontend.
+build-frontend = "build"
+
+# The two target ABIs: arm64_v8a ships to devices; x86_64 is the testability ABI
+# (cibuildwheel's emulator testbed only runs the build-host architecture).
+archs = ["arm64_v8a", "x86_64"]
+
+# ANDROID_API_LEVEL: minimum supported API level baked into the wheel tag
+#   (-> android_24_*). 24 is the first level with RUNPATH (required by auditwheel to
+#   graft external .so's) and covers ~99% of active devices.
+# LDFLAGS -Wl,-z,max-page-size=16384: force 16 KB-aligned ELF LOAD segments, required
+#   to load on Android 15/16 (16 KB-page) devices. This is deliberate reproducibility
+#   policy, not a workaround: NDK r27 (pinned above) does NOT 16 KB-align by default
+#   (verified: the same r27 clang emits 4 KB under a bare build); the wheel's 16 KB
+#   today rides on CPython-Android's implicit LDFLAGS. Setting it here makes alignment
+#   independent of the NDK version and of CPython's build flags. NOTE: this aligns only
+#   this extension's .so -- bootstrap libs (SDL/python/main) and final APK zip-alignment
+#   are the app packager's responsibility.
+environment = { ANDROID_API_LEVEL = "24", LDFLAGS = "-Wl,-z,max-page-size=16384" }
+
+# On-device smoke test. cibuildwheel installs the wheel and runs this in its
+# Android testbed on an emulator (only the build-host arch, x86_64, is tested;
+# arm64_v8a builds but skips on-device tests). The testbed has NO SDL loaded, so a
+# successful autoclass here specifically exercises the tier-3 JNI_GetCreatedJavaVMs
+# fallback (tiers 1-2 dlsym would return NULL without SDL). The default emulator is
+# `--managed maxVersion` (API >= 31), where that symbol is a public export.
+# Android can't run shell scripts, so this must be a `python -c`/`-m` command.
+test-command = "python -c 'import jnius; from jnius import autoclass; S = autoclass(\"java.lang.System\"); vm = S.getProperty(\"java.vm.name\"); vendor = S.getProperty(\"java.vendor\"); ver = S.getProperty(\"java.version\"); assert vm, \"no java.vm.name (JNI round-trip failed)\"; print(\"ANDROID_SMOKE_OK vm.name=%s vendor=%s java.version=%s\" % (vm, vendor, ver))'"

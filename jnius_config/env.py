@@ -297,7 +297,11 @@ class MacOsXJavaLocation(UnixJavaLocation):
 
 class AndroidJavaLocation(UnixJavaLocation):
     def get_libraries(self):
-        return ['SDL2', 'log']
+        # Do NOT hard-link any specific SDL generation: a DT_NEEDED on
+        # libSDL2.so/libSDL3.so would lock the wheel to one SDL/Kivy generation
+        # and fail to dlopen against the other. The JNIEnv getter is resolved at
+        # runtime instead (see jnius_jvm_android.pxi); only liblog is needed.
+        return ['log']
 
     def get_include_dirs(self):
         # When cross-compiling for Android, we should not use the include dirs
