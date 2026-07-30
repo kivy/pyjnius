@@ -61,7 +61,14 @@ if PLATFORM == 'android':
 
 JAVA=get_java_setup(PLATFORM)
 
-assert JAVA.is_jdk(), "You need a JDK, we only found a JRE. Try setting JAVA_HOME"
+# The Android wheel is Java-free: the org.jnius.NativeInvocationHandler glue is
+# supplied and dex'd by the host app (e.g. a Kivy/kivyforge bootstrap), never by the
+# wheel -- a class in site-packages is not on ART's dex classpath, so a bundled
+# .class/.java would be inert. Android therefore needs no javac/JDK and ships no Java
+# (see the package_data prune below). Desktop is unchanged: it still requires a JDK to
+# compile and bundle NativeInvocationHandler.class, which its self-hosted JVM loads.
+if PLATFORM != 'android':
+    assert JAVA.is_jdk(), "You need a JDK, we only found a JRE. Try setting JAVA_HOME"
 
 
 def compile_native_invocation_handler(java):
@@ -80,7 +87,8 @@ def compile_native_invocation_handler(java):
         ])
 
 
-compile_native_invocation_handler(JAVA)
+if PLATFORM != 'android':
+    compile_native_invocation_handler(JAVA)
 
 
 # generate the config.pxi
@@ -89,6 +97,15 @@ with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
 
 # pop setup.py from included files in the installed package
 SETUP_KWARGS['py_modules'].remove('setup')
+
+# Make the Android wheel truly Java-free: drop the org.jnius glue from package_data so
+# neither the .java source nor a .class ships (it would be inert on Android anyway).
+# The canonical source stays in the repo/sdist for any packager that needs it.
+if PLATFORM == 'android':
+    SETUP_KWARGS['package_data'] = {
+        pkg: [p for p in patterns if not p.startswith('src/org')]
+        for pkg, patterns in SETUP_KWARGS.get('package_data', {}).items()
+    }
 
 ext_modules = [
     Extension(
