@@ -41,7 +41,7 @@ jobs:
 
       # Host interpreter that runs cibuildwheel (not the target). cibuildwheel
       # downloads the target CPython Android runtime itself.
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
 

@@ -70,7 +70,7 @@ jobs:
     - uses: actions/checkout@master
 
     - name: Setup Python ${{ matrix.python }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python }}
         architecture: ${{ matrix.architecture == 'aarch64' && 'arm64' || matrix.architecture }}
