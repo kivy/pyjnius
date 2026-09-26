@@ -80,7 +80,7 @@ jobs:
           CIBW_BUILD: "${{ matrix.python }}-android_*"
           CIBW_ENABLE: cpython-prerelease
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: android-wheels-${{ matrix.python }}
           path: ./wheelhouse/*.whl
@@ -97,7 +97,7 @@ jobs:
     permissions:
       id-token: write   # OIDC token for trusted publishing
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: android-wheels-*
           path: dist
