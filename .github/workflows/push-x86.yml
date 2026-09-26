@@ -11,7 +11,7 @@ jobs:
            - '3.10'
            - '3.11'
     container:
-      image: i386/python:${{ matrix.python }}-bullseye
+      image: i386/python:${{ matrix.python }}-bookworm
     steps:
     - name: info
       run: |
@@ -40,7 +40,7 @@ jobs:
       run: |
         linux32 sh -ec '
           apt update
-          apt install -y openjdk-11-jdk-headless ant
+          apt install -y openjdk-17-jdk-headless ant
           java -version
         '
       env:
