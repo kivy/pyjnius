@@ -1,5 +1,11 @@
 # Change Log
 
+# Unreleased
+
+## Highlights
+- Drop support for Python 3.9 and 3.10; Python 3.11 is now the minimum supported
+  version.
+
 # [1.8.0](https://github.com/kivy/pyjnius/tree/1.8.0) (2026-09-26)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.7.0...1.8.0)
 
