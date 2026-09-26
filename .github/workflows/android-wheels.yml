@@ -37,7 +37,7 @@ jobs:
         # selected CPython. 3.15 is pre-release until Oct 2026 (see CIBW_ENABLE).
         python: ["cp313", "cp314"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Host interpreter that runs cibuildwheel (not the target). cibuildwheel
       # downloads the target CPython Android runtime itself.
