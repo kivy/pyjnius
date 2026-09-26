@@ -5,6 +5,7 @@ jobs:
     name: base
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python:
            - '3.9'
@@ -40,7 +41,7 @@ jobs:
       run: |
         linux32 sh -ec '
           apt update
-          apt install --yes openjdk-21-jre-headless ant
+          apt install --yes openjdk-21-jdk-headless ant
           java -version
         '
       env:
