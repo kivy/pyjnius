@@ -1,5 +1,23 @@
 # Change Log
 
+# [1.8.0](https://github.com/kivy/pyjnius/tree/1.8.0) (2026-09-26)
+[Full Changelog](https://github.com/kivy/pyjnius/compare/1.7.0...1.8.0)
+
+## Highlights
+- [#796](https://github.com/kivy/pyjnius/pull/796) Add SDL-agnostic,
+  redistributable PEP 738 Android wheels for CPython 3.13 and 3.14
+- [#710](https://github.com/kivy/pyjnius/pull/710) Add the `get_jni_java_vm`
+  function
+- [#780](https://github.com/kivy/pyjnius/pull/780) Make `jnius_config.env`
+  accessible without starting the JVM
+- [#784](https://github.com/kivy/pyjnius/pull/784) Add Python 3.14 and 3.14t
+  testing
+
+## Maintenance
+- [#772](https://github.com/kivy/pyjnius/pull/772) Update the Android test app
+  to Python 3 syntax
+- Update GitHub Actions dependencies
+
 # [1.7.0](https://github.com/kivy/pyjnius/tree/1.7.0) (2025-09-08)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.6.1...1.7.0)
 
