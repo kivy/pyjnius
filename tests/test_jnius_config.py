@@ -1,4 +1,3 @@
-import sys
 import pytest
 import jnius_config
 
@@ -8,6 +7,7 @@ class TestJniusConfig:
         """Resets the options global."""
         jnius_config.options = []
         jnius_config.vm_running = False
+        jnius_config.vm_started_at = None
         jnius_config.classpath = None
 
     def teardown_method(self):
@@ -26,12 +26,10 @@ class TestJniusConfig:
         """The functions should only raise an error when the vm is running."""
         assert jnius_config.vm_running is False
         function(*args)
+        jnius_config.vm_started_at = "test stack"
         jnius_config.vm_running = True
         with pytest.raises(ValueError) as ex_info:
             function(*args)
-        pytest.mark.skipif(
-            sys.version_info < (3, 5), reason="Exception args are different on Python 2"
-        )
         assert "VM is already running, can't set" in ex_info.value.args[0]
 
     def test_set_options(self):
