@@ -74,7 +74,7 @@ jobs:
       # no stale build/ dir, so the Java-free prune in setup.py is reliable here
       # (locally you must `rm -rf build` first -- see docs/source/android-wheel.rst).
       - name: Build Android wheels
-        uses: pypa/cibuildwheel@v4.1.0
+        uses: pypa/cibuildwheel@v4.2.1
         env:
           CIBW_PLATFORM: android
           CIBW_BUILD: "${{ matrix.python }}-android_*"
