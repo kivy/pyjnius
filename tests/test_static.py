@@ -4,10 +4,18 @@ Test calling non-static methods on classes.
 
 from __future__ import absolute_import
 import unittest
-from jnius import autoclass, JavaException, JavaMethod, JavaMultipleMethod
+from jnius import (autoclass, JavaClass, JavaException, JavaField, JavaMethod,
+                   JavaMultipleMethod, MetaJavaClass)
 
 
 class TestStatic(unittest.TestCase):
+
+    def test_manual_static_field(self):
+        class System(JavaClass, metaclass=MetaJavaClass):
+            __javaclass__ = 'java/lang/System'
+            out = JavaField('Ljava/io/PrintStream;', static=True)
+
+        self.assertEqual(System.out.getClass().getName(), 'java.io.PrintStream')
 
     def test_method(self):
         '''
