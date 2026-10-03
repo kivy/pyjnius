@@ -120,14 +120,18 @@ Reflection classes
         Create a reflection of a Java field. The signature is in the JNI
         format. For example::
 
-            class System(JavaClass):
+            from jnius import JavaClass, JavaField, MetaJavaClass
+
+            class System(JavaClass, metaclass=MetaJavaClass):
                 __javaclass__ = 'java/lang/System'
-                __metaclass__ = MetaJavaClass
 
-                out = JavaField('()Ljava/io/InputStream;', static=True)
+                out = JavaField('Ljava/io/PrintStream;', static=True)
 
-        The name associated to the method is automatically set from the
-        declaration within the JavaClass itself.
+            System.out.getClass().getName()  # 'java.io.PrintStream'
+
+        Field signatures describe a type, without the ``()`` used for method
+        signatures. The field name is taken from its declaration in the
+        JavaClass.
 
 
 .. class:: JavaStaticField
