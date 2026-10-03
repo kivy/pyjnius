@@ -75,7 +75,7 @@ jobs:
         allow-prereleases: true
 
     - name: Setup Java ${{ matrix.java }}
-      uses: actions/setup-java@v5
+      uses: actions/setup-java@v6
       with:
         java-version: ${{ matrix.java }}
         distribution: 'temurin'
