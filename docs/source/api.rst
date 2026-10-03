@@ -51,8 +51,8 @@ Reflection classes
     .. attribute:: __javaconstructor__
 
         If not set, we assume the default constructor takes no parameters.
-        Otherwise, it can be a list of all possible signatures and if it is
-        varArgs or not as parameters of the constructor. For example, 
+        Otherwise, it can be a list of (signature, is_varargs) tuples, one per
+        constructor. For example,
         a reflection of the String java class would look like::
 
             class String(JavaClass):
@@ -156,8 +156,8 @@ Reflection classes
                 ('(Ljava/nio/charset/Charset;)[B', False, False),
                 ('()[B', False, False)])
 
-    Each method should contain three informations: its signature, is static,
-    and is varArgs.
+    Each method should contain three pieces of information: its signature,
+    whether it is static, and whether it accepts varargs.
 
     Then, when you try to access this method, it will choose the best
     method available according to the type of the arguments you're using.
