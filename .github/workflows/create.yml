@@ -105,12 +105,12 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        os: ['ubuntu-latest', 'macos-latest', 'windows-latest', 'ubuntu-24.04-arm', 'macos-13']
+        os: ['ubuntu-latest', 'macos-latest', 'windows-latest', 'ubuntu-24.04-arm', 'macos-15-intel']
         python: ['3.11', '3.12', '3.13', '3.14']
         include:
           # We may would like to introduce tests also on windows-latest on x86 (win32 wheels)?
-          # macos-latest (ATM macos-14) runs on Apple Silicon,
-          # macos-13 runs on Intel
+          # macos-latest runs on Apple Silicon,
+          # macos-15-intel runs on Intel
           - os: ubuntu-latest
             architecture: 'x64'
             wheel_upload_pool: 'ubuntu-latest-x64'
@@ -120,7 +120,7 @@ jobs:
           - os: windows-latest
             architecture: 'x64'
             wheel_upload_pool: 'windows-latest-x64'
-          - os: macos-13
+          - os: macos-15-intel
             architecture: 'x64'
             wheel_upload_pool: 'macos-latest-x64'
           - os: macos-latest
@@ -150,7 +150,7 @@ jobs:
           architecture: ${{ matrix.architecture }}
 
       - name: Setup ant on macOS
-        if: (matrix.os == 'macos-latest') || (matrix.os == 'macos-13')
+        if: (matrix.os == 'macos-latest') || (matrix.os == 'macos-15-intel')
         run: |
           brew install ant
 
@@ -163,7 +163,7 @@ jobs:
         run: ant all
 
       - name: Install pyjnius wheel + test prerequisites (Windows, macOS)
-        if: matrix.os == 'windows-latest' || matrix.os == 'macos-latest' || matrix.os == 'macos-13'
+        if: matrix.os == 'windows-latest' || matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel'
         # --find-links=dist --no-index is needed to avoid downloading the pyjnius wheel
         # from the index. We need to test the wheel we just built.
         run: |
@@ -179,7 +179,7 @@ jobs:
           python -m pip install pyjnius[dev,ci]
 
       - name: Test wheel (Linux, macOS)
-        if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'ubuntu-24.04-arm') || (matrix.os == 'macos-latest') || (matrix.os == 'macos-13')
+        if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'ubuntu-24.04-arm') || (matrix.os == 'macos-latest') || (matrix.os == 'macos-15-intel')
         run: |
           cd tests
           CLASSPATH=../build/test-classes:../build/classes python -m pytest -v
