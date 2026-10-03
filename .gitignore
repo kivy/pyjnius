@@ -14,3 +14,5 @@ dist
 pyjnius.egg-info
 jnius.egg-info
 *.pyd
+.coverage*
+coverage.xml

@@ -53,3 +53,8 @@ environment = { ANDROID_API_LEVEL = "24", LDFLAGS = "-Wl,-z,max-page-size=16384"
 # `--managed maxVersion` (API >= 31), where that symbol is a public export.
 # Android can't run shell scripts, so this must be a `python -c`/`-m` command.
 test-command = "python -c 'import jnius; from jnius import autoclass; S = autoclass(\"java.lang.System\"); vm = S.getProperty(\"java.vm.name\"); vendor = S.getProperty(\"java.vendor\"); ver = S.getProperty(\"java.version\"); assert vm, \"no java.vm.name (JNI round-trip failed)\"; print(\"ANDROID_SMOKE_OK vm.name=%s vendor=%s java.version=%s\" % (vm, vendor, ver))'"
+
+# The CI coverage run traces from the repository root (--cov=.) so XML paths
+# distinguish jnius/env.py from jnius_config/env.py. Only report product Python.
+[tool.coverage.report]
+include = ["jnius/*.py", "jnius_config/*.py"]
