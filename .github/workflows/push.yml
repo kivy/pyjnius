@@ -62,10 +62,17 @@ jobs:
           - os: windows-latest
             architecture: x86
             java: '23'
+        include:
+          # Collect coverage once, using an existing Linux test combination.
+          - python: '3.14'
+            java: '11'
+            os: ubuntu-latest
+            architecture: x64
+            coverage: true
           
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v7
 
     - name: Setup Python ${{ matrix.python }}
       uses: actions/setup-python@v7
@@ -89,8 +96,14 @@ jobs:
       run: ant all
 
     - name: Install pyjnius with [dev, ci] extras
-      run: |
-        pip install --timeout=120 .[dev,ci]
+      if: matrix.coverage != true
+      run: pip install --timeout=120 .[dev,ci]
+
+    # A regular install tests files in site-packages. Coveralls needs paths to
+    # checkout files, so this run builds the extension in place and traces there.
+    - name: Install pyjnius in place for coverage
+      if: matrix.coverage == true
+      run: pip install --timeout=120 -e .[dev,ci]
   
     - name: (Windows) Test pyjnius via pytest
       if: runner.os == 'Windows'
@@ -101,12 +114,21 @@ jobs:
         pytest -v
 
     - name: (Linux, macOS) Test pyjnius via pytest
-      if: runner.os != 'Windows'
+      if: runner.os != 'Windows' && matrix.coverage != true
       run: |
         cd tests
         CLASSPATH=../build/test-classes:../build/classes python -m pytest -v
 
-#     - name: coveralls
-#       run: python -m coveralls
-#       env:
-#         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+    # Standard Python tracing covers these modules, not the Cython/JNI extension.
+    - name: Test and collect Python coverage
+      if: matrix.coverage == true
+      run: |
+        CLASSPATH=build/test-classes:build/classes python -m pytest -v tests \
+          --cov=. --cov-report=xml:coverage.xml
+
+    - name: Upload Python coverage to Coveralls
+      if: matrix.coverage == true
+      uses: coverallsapp/github-action@v2
+      with:
+        file: coverage.xml
+        fail-on-error: false
