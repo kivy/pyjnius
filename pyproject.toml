@@ -10,11 +10,12 @@ requires = [
 # Android wheel. All keys are scoped to the `android` subsection so desktop
 # builds are unaffected.
 #
-# Toolchain pins (the inputs that determine the produced wheel):
-#   * cibuildwheel : 4.1.0  -- pins the NDK it installs via sdkmanager.
-#     cibuildwheel has no NDK-version key; the NDK is a function of the
-#     cibuildwheel version, so pin cibuildwheel to pin the NDK.
-#   * NDK          : 27.3.13750724  (installed by cibuildwheel 4.1.0)
+# Toolchain inputs (the inputs that determine the produced wheel):
+#   * cibuildwheel : pinned in .github/workflows/android-wheels.yml; selects
+#     Android Python bundles, which specify the NDK installed via sdkmanager.
+#     There is no cibuildwheel option to select an NDK version directly.
+#   * NDK          : 27.3.13750724  (specified by the current Python bundles;
+#     checked against the selected compiler path before each build below)
 #   * Cython       : ~=3.1.2  (build-only; see [build-system] above)
 #
 # Invocation (ABI is selected per run; only the build-host arch is testable):
@@ -28,6 +29,9 @@ requires = [
 # Android does not support the `pip` build frontend.
 build-frontend = "build"
 
+# The Python bundle selects the NDK; fail if a cibuildwheel upgrade changes it.
+before-build = 'case "$CC" in "$ANDROID_HOME"/ndk/27.3.13750724/toolchains/llvm/prebuilt/*/bin/*-clang) ;; *) echo "Unexpected Android NDK compiler: $CC" >&2; exit 1;; esac'
+
 # The two target ABIs: arm64_v8a ships to devices; x86_64 is the testability ABI
 # (cibuildwheel's emulator testbed only runs the build-host architecture).
 archs = ["arm64_v8a", "x86_64"]
@@ -37,7 +41,7 @@ archs = ["arm64_v8a", "x86_64"]
 #   graft external .so's) and covers ~99% of active devices.
 # LDFLAGS -Wl,-z,max-page-size=16384: force 16 KB-aligned ELF LOAD segments, required
 #   to load on Android 15/16 (16 KB-page) devices. This is deliberate reproducibility
-#   policy, not a workaround: NDK r27 (pinned above) does NOT 16 KB-align by default
+#   policy, not a workaround: NDK r27 (selected above) does NOT 16 KB-align by default
 #   (verified: the same r27 clang emits 4 KB under a bare build); the wheel's 16 KB
 #   today rides on CPython-Android's implicit LDFLAGS. Setting it here makes alignment
 #   independent of the NDK version and of CPython's build flags. NOTE: this aligns only
