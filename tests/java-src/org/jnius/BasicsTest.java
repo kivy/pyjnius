@@ -149,6 +149,14 @@ public class BasicsTest {
 		return true;
 	}
 
+	public int methodOverloaded(Object target) {
+		return -1;
+	}
+
+	public int methodOverloaded(Object target, Integer count) {
+		return count.intValue();
+	}
+
 	public Object methodReturnStrings() {
 		String[] hello_world = new String[2];
 		hello_world[0] = "Hello";
