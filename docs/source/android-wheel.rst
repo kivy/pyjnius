@@ -66,8 +66,11 @@ Building the wheel
 
 Build on a Linux ``x86_64`` (WSL2 counts) or macOS host with an Android SDK;
 `cibuildwheel <https://cibuildwheel.pypa.io/en/stable/platforms/#android>`_
-drives the NDK via ``sdkmanager``. The pinned toolchain lives in
-``[tool.cibuildwheel.android]`` in ``pyproject.toml``.
+drives the NDK via ``sdkmanager``. CI pins the cibuildwheel action in
+``.github/workflows/android-wheels.yml``; the selected Android Python bundles
+specify the NDK version. Android build settings live in
+``[tool.cibuildwheel.android]`` in ``pyproject.toml``; its ``before-build``
+check rejects a compiler from an unexpected NDK version.
 
 .. code:: bash
 

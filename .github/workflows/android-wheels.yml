@@ -66,11 +66,11 @@ jobs:
           printf "DEF JNIUS_PLATFORM = 'android'\n" > jnius/config.pxi
           cython -3 jnius/jnius.pyx -o jnius/jnius.c
 
-      # Pin the cibuildwheel action to the same version pinned in
-      # pyproject.toml's toolchain comment: cibuildwheel selects the NDK, so this
-      # pin (plus the explicit -Wl,-z,max-page-size=16384 in pyproject) fixes the
-      # produced ABI/alignment. ubuntu-latest ships the Android SDK (ANDROID_HOME);
-      # cibuildwheel installs the matching NDK via sdkmanager. A fresh checkout has
+      # Pin cibuildwheel to select known Android Python bundles. Their build
+      # scripts select the NDK via sdkmanager; both v4.1.0 and v4.2.1 bundles
+      # use NDK 27.3.13750724; pyproject.toml checks the compiler path before
+      # each build. Its explicit -Wl,-z,max-page-size=16384 controls alignment.
+      # ubuntu-latest ships the Android SDK (ANDROID_HOME). A fresh checkout has
       # no stale build/ dir, so the Java-free prune in setup.py is reliable here
       # (locally you must `rm -rf build` first -- see docs/source/android-wheel.rst).
       - name: Build Android wheels
