@@ -43,6 +43,15 @@ class BasicsTest(unittest.TestCase):
         self.assertEqual(test.methodD(), 1.23456789)
         self.assertEqual(test.methodString(), 'hello \U0001F30E!')
 
+    def test_overloaded_method_with_boxed_integer(self):
+        Test = autoclass('org.jnius.BasicsTest')
+        Integer = autoclass('java.lang.Integer')
+        test = Test()
+
+        self.assertEqual(test.methodOverloaded('target'), -1)
+        self.assertEqual(test.methodOverloaded('target', Integer(7)), 7)
+        self.assertEqual(test.methodOverloaded('target', 7), 7)
+
     def test_instance_fields(self):
         test = autoclass('org.jnius.BasicsTest')()
         self.assertEqual(test.fieldZ, True)

@@ -371,6 +371,11 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
                 score += 10
                 continue
 
+            # Python ints are boxed as java.lang.Integer by populate_args.
+            if r == 'java/lang/Integer' and isinstance(arg, int):
+                score += 10
+                continue
+
             # if it's a generic object, accept python string, or any java
             # class/object
             if r == 'java/lang/Object':
