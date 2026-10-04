@@ -1,7 +1,7 @@
 name: Android wheels
 
 # Builds redistributable PEP 738 Android wheels (android_*) for pyjnius via
-# cibuildwheel, and (on a GitHub release) publishes them to PyPI using trusted
+# cibuildwheel, and (on a stable tag) publishes them to PyPI using trusted
 # publishing (OIDC). Desktop wheels/sdist are handled by the existing CI; this
 # workflow is additive and Android-only.
 #
@@ -19,15 +19,30 @@ on:
       - "setup_sdist.py"
       - "pyproject.toml"
       - ".github/workflows/android-wheels.yml"
-  release:
-    types: [published]
+  create:
 
 permissions:
   contents: read
 
 jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        if: github.event_name == 'create' && github.event.ref_type == 'tag'
+        with:
+          python-version: '3.14'
+      - name: Check release tag against package version
+        if: github.event_name == 'create' && github.event.ref_type == 'tag'
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python .github/scripts/check_release_version.py "$RELEASE_TAG"
+
   build:
     name: Build + test (${{ matrix.python }})
+    needs: preflight
+    if: github.event_name != 'create' || (github.event.ref_type == 'tag' && !endsWith(github.ref_name, '-test'))
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -89,7 +104,7 @@ jobs:
   publish:
     name: Publish to PyPI
     needs: build
-    if: github.event_name == 'release' && github.event.action == 'published'
+    if: github.event_name == 'create' && github.event.ref_type == 'tag' && !endsWith(github.ref_name, '-test')
     runs-on: ubuntu-latest
     # Requires a PyPI trusted publisher configured for this repo + environment.
     # Maintainer action: https://docs.pypi.org/trusted-publishers/
