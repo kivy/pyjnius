@@ -5,9 +5,25 @@ on:
 
 name: Continuous Delivery
 jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    # Keep the job successful on push/PR; skipping it would skip dependent builds.
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        if: github.event_name == 'create' && github.event.ref_type == 'tag'
+        with:
+          python-version: '3.14'
+      - name: Check release tag against package version
+        if: github.event_name == 'create' && github.event.ref_type == 'tag'
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python .github/scripts/check_release_version.py "$RELEASE_TAG"
+
   build_wheels:
     name: cibuildwheel on ${{ matrix.os }} ${{ matrix.architecture }}
     if: (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel]')
+    needs: preflight
     env:
       CIBW_BEFORE_ALL_LINUX: 'yum install -y java-11-openjdk-devel'
       CIBW_REPAIR_WHEEL_COMMAND_MACOS: ''
@@ -76,6 +92,7 @@ jobs:
   build_sdist:
     name: Build sdist
     if: (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build sdist]') || contains(github.event.pull_request.title, '[build sdist]')
+    needs: preflight
     runs-on: 'ubuntu-latest'
     steps:
       - name: Checkout pyjnius
