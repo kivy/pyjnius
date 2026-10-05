@@ -2,7 +2,7 @@
 requires = [
     "setuptools>=58.0.0",
     "wheel",
-    "Cython~=3.1.2",
+    "Cython>=3.1.2,<3.4",
 ]
 
 # --- Android wheel build -----------------------------------------------------
@@ -16,7 +16,8 @@ requires = [
 #     There is no cibuildwheel option to select an NDK version directly.
 #   * NDK          : 27.3.13750724  (specified by the current Python bundles;
 #     checked against the selected compiler path before each build below)
-#   * Cython       : ~=3.1.2  (build-only; see [build-system] above)
+#   * Cython       : ~=3.1.2  (host-side Android C generation; independently
+#                     pinned in .github/workflows/android-wheels.yml)
 #
 # Invocation (ABI is selected per run; only the build-host arch is testable):
 #   uvx --from "Cython~=3.1.2" cython -3 jnius/jnius.pyx -o jnius/jnius.c

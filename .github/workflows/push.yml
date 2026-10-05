@@ -30,8 +30,8 @@ jobs:
 
   Tests:
     name: base
-    continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
         python:
            - '3.11'
@@ -171,3 +171,63 @@ jobs:
       with:
         file: coverage.xml
         fail-on-error: false
+
+  CythonCompatibility:
+    name: Cython ${{ matrix.cython }} (Linux JVM)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        cython: ['3.1', '3.2', '3.3']
+    env:
+      CYTHON_LINE: ${{ matrix.cython }}
+    steps:
+    - uses: actions/checkout@v7
+
+    - uses: actions/setup-python@v7
+      with:
+        python-version: '3.14'
+
+    - uses: actions/setup-java@v6
+      with:
+        java-version: '17'
+        distribution: temurin
+
+    - name: Build Java test classes
+      run: ant all
+
+    # Build isolation would silently select the newest allowed Cython instead.
+    - name: Build and install with matrix Cython
+      run: |
+        python -m pip install -U setuptools wheel pytest "Cython==$CYTHON_LINE.*"
+        python -m pip install --no-build-isolation .
+        python .github/scripts/check_cython_generated.py "$CYTHON_LINE"
+
+    - name: Test installed extension against JVM
+      run: |
+        cd tests
+        CLASSPATH=../build/test-classes:../build/classes python -m pytest -q
+
+  AndroidCythonTranslation:
+    name: Android C translation (Cython ${{ matrix.cython }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        cython: ['3.1', '3.2', '3.3']
+    env:
+      CYTHON_LINE: ${{ matrix.cython }}
+    steps:
+    - uses: actions/checkout@v7
+
+    - uses: actions/setup-python@v7
+      with:
+        python-version: '3.14'
+
+    # Host-side translation only; the release wheel still uses Cython 3.1.x.
+    - name: Generate Android C on host
+      run: |
+        python -m pip install "Cython==$CYTHON_LINE.*"
+        printf "DEF JNIUS_PLATFORM = 'android'\n" > jnius/config.pxi
+        cython -3 jnius/jnius.pyx -o jnius/jnius.c
+        python .github/scripts/check_cython_generated.py "$CYTHON_LINE"
