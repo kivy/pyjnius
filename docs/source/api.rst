@@ -435,7 +435,7 @@ JVM options need to be set before `import jnius` is called, as they cannot be ch
 To this end, you can::
 
     import jnius_config
-    jnius_config.add_options('-Xrs', '-Xmx4096')
+    jnius_config.add_options('-Xrs', '-Xmx4096m')
     jnius_config.set_classpath('.', '/usr/local/fem/plugins/*')
     import jnius
 
