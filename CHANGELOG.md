@@ -195,6 +195,12 @@
 ## [1.2.0](https://github.com/kivy/pyjnius/tree/1.2.0) (2019-02-04)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.1.4...1.2.0)
 
+- Improve conversion of Python lists and tuples (including empty and nested
+  values) and numeric values passed to Java methods accepting `Object`.
+- Include method signatures in argument-mismatch errors and check for Java
+  exceptions raised by constructors.
+- Improve Python 2/3 string compatibility and JDK/JRE path discovery.
+
 ## [1.1.4](https://github.com/kivy/pyjnius/tree/1.1.4) (2018-12-05)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.1.3...1.1.4)
 
