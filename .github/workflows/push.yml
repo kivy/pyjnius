@@ -1,5 +1,8 @@
 on: [push, pull_request]
 name: Continuous Integration
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ (github.event_name == 'pull_request' || (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/') && github.ref_name != github.event.repository.default_branch)) && github.ref || github.run_id }}
+  cancel-in-progress: true
 jobs:
   Docs:
     name: Documentation
@@ -40,7 +43,7 @@ jobs:
         java:
           - '8'
           - '11'
-          - '23'
+          - '25'
         os:
           # macos-latest (ATM macos-15) runs on Apple Silicon,
           # macos-15-intel runs on Intel
@@ -53,7 +56,6 @@ jobs:
           - 'x86'
           - 'aarch64'
         exclude:
-          - python: '3.13'
           - os: windows-latest
             architecture: aarch64
           - os: ubuntu-latest
@@ -76,16 +78,29 @@ jobs:
             python: 'pypy-3.11'
           - os: windows-latest
             architecture: x86
-            java: '20'
-          - os: windows-latest
-            architecture: x86
-            java: '21'
-          - os: windows-latest
-            architecture: x86
-            java: '22'
-          - os: windows-latest
-            architecture: x86
-            java: '23'
+            java: '25'
+          # Intel: 3.11/8, 3.12/11, 3.13/11, 3.14/11+25,
+          # 3.14t/25 and PyPy 3.11/11.
+          - {os: macos-15-intel, python: '3.11', java: '11'}
+          - {os: macos-15-intel, python: '3.11', java: '25'}
+          - {os: macos-15-intel, python: '3.12', java: '8'}
+          - {os: macos-15-intel, python: '3.12', java: '25'}
+          - {os: macos-15-intel, python: '3.13', java: '8'}
+          - {os: macos-15-intel, python: '3.13', java: '25'}
+          - {os: macos-15-intel, python: '3.14', java: '8'}
+          - {os: macos-15-intel, python: '3.14t', java: '8'}
+          - {os: macos-15-intel, python: '3.14t', java: '11'}
+          - {os: macos-15-intel, python: 'pypy-3.11', java: '8'}
+          - {os: macos-15-intel, python: 'pypy-3.11', java: '25'}
+          # ARM: 3.11/11, 3.13/25, 3.14/11 and 3.14t/25.
+          - {os: macos-latest, python: '3.11', java: '25'}
+          - {os: macos-latest, python: '3.12', java: '11'}
+          - {os: macos-latest, python: '3.12', java: '25'}
+          - {os: macos-latest, python: '3.13', java: '11'}
+          - {os: macos-latest, python: '3.14', java: '25'}
+          - {os: macos-latest, python: '3.14t', java: '11'}
+          - {os: macos-latest, python: 'pypy-3.11', java: '11'}
+          - {os: macos-latest, python: 'pypy-3.11', java: '25'}
         include:
           # Collect coverage once, using an existing Linux test combination.
           - python: '3.14'
