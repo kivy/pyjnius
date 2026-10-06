@@ -47,6 +47,11 @@ class ReflectTest(unittest.TestCase):
         self.assertEqual("java.util.ArrayList", alstClz._class.getName())
         self.assertEqual("java.util.ArrayList", alstClz().getClass().getName())
 
+    def test_field_set_accessible(self):
+        field = autoclass('java.lang.System')._class.getDeclaredField('out')
+        self.assertEqual(field.getName(), 'out')
+        self.assertIsNone(field.setAccessible(False))
+
     def test_stack(self):
         Stack = autoclass('java.util.Stack')
         stack = Stack()
