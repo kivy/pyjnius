@@ -1,9 +1,14 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+import os
+import pytest
+import subprocess
+import sys
+import textwrap
 import unittest
 from jnius.reflect import autoclass
-from jnius import cast
+from jnius import cast, JavaException
 from jnius.reflect import identify_hierarchy
 from jnius import find_javaclass
 
@@ -102,3 +107,47 @@ class ReflectTest(unittest.TestCase):
         words.add('world')
         self.assertEqual(['hello', 'world'], [word for word in words])
 
+    @pytest.mark.skipif(
+        sys.platform == 'android' or 'ANDROID_ARGUMENT' in os.environ,
+        reason='Android does not bundle the desktop Logger helper'
+    )
+    def test_named_logger_from_python(self):
+        Logger = autoclass('java.util.logging.Logger')
+        logger = Logger.getLogger('org.jnius.issue623')
+        self.assertEqual('org.jnius.issue623', logger.getName())
+        self.assertEqual(logger.hashCode(), Logger.getLogger('org.jnius.issue623').hashCode())
+
+        # The two-String overload still reports ordinary Java bundle errors,
+        # rather than failing because the JNI caller has no Java frame.
+        with self.assertRaises(JavaException) as caught:
+            Logger.getLogger('org.jnius.issue623.bundle', 'org.jnius.missing.bundle')
+        self.assertEqual('java.util.MissingResourceException', caught.exception.classname)
+
+    @pytest.mark.skipif(
+        sys.platform == 'android' or 'ANDROID_ARGUMENT' in os.environ,
+        reason='Android does not bundle the desktop Logger helper'
+    )
+    def test_named_logger_without_helper_on_classpath(self):
+        # Run in a fresh JVM without PyJNIus's bundled Java classes. A missing
+        # helper must preserve the old direct JNI call, which can work on JDK 8.
+        script = textwrap.dedent('''\
+            import jnius_config
+            jnius_config.expand_classpath = lambda: ''
+            from jnius import autoclass, JavaException
+
+            try:
+                autoclass('org.jnius.LoggerHelper')
+            except JavaException as exc:
+                assert exc.classname == 'java.lang.NoClassDefFoundError', exc
+            else:
+                raise AssertionError('helper unexpectedly present')
+
+            try:
+                autoclass('java.util.logging.Logger').getLogger('org.jnius.issue623.fallback')
+            except JavaException as exc:
+                assert exc.classname == 'java.lang.NullPointerException', exc
+            ''')
+        process = subprocess.run(
+            [sys.executable, '-c', script], capture_output=True, text=True
+        )
+        self.assertEqual(0, process.returncode, process.stderr)

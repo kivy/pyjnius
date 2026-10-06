@@ -8,6 +8,45 @@ API
 
 This part of the documentation covers all the interfaces of PyJNIus.
 
+Java exceptions
+---------------
+
+.. class:: JavaException
+
+    Python exception raised for Java throwables and for some PyJNIus call errors.
+    When Java throws, ``classname`` holds the Java class name,
+    ``innermessage`` holds its message, and ``stacktrace`` is a list of Java
+    stack frames and causes. For a PyJNIus-side error these attributes may be
+    ``None``.
+
+For example, inspect a Java exception's trace with::
+
+    from jnius import JavaException, autoclass
+
+    try:
+        autoclass('java.util.Stack')().pop()
+    except JavaException as exc:
+        print(exc.classname)
+        print('\n'.join(exc.stacktrace or []))
+
+The Java trace is also included when the exception is printed.
+
+Some Java methods inspect their Java caller. On desktop JVMs,
+``java.util.logging.Logger.getLogger(name)`` is one such method: a direct JNI
+call has no Java caller frame. PyJNIus invokes its public string overloads
+through a bundled Java helper so that named logger creation works without
+changing JVM-wide caller checks::
+
+    Logger = autoclass('java.util.logging.Logger')
+    logger = Logger.getLogger('my.application')
+
+For these desktop calls, the helper is the Java caller (including for resource
+bundle lookup). If the helper is unavailable on the JVM classpath, PyJNIus
+falls back to the original direct call; that call may still raise a Java
+exception on JVMs requiring a caller frame. This is specific to the public
+``Logger.getLogger`` string overloads, not general caller-sensitive method
+support. Android uses its own JVM integration.
+
 Reflection classes
 ------------------
 
