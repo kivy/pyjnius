@@ -113,6 +113,7 @@ class Field(JavaClass, metaclass=MetaJavaClass):
     toString = JavaMethod('()Ljava/lang/String;')
     getType = JavaMethod('()Ljava/lang/Class;')
     getModifiers = JavaMethod('()I')
+    setAccessible = JavaMethod('(Z)V')
 
 
 class Constructor(JavaClass, metaclass=MetaJavaClass):

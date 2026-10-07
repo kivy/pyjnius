@@ -34,7 +34,7 @@ SETUP_KWARGS = {
         'Bug Reports': "https://github.com/kivy/pyjnius/issues",
         },
     'packages': ['jnius'],
-    'py_modules': ['jnius_config', 'setup', 'setup_sdist', 'jnius.env'],
+    'py_modules': ['jnius_config', 'jnius_config.env', 'setup', 'setup_sdist'],
     'ext_package': 'jnius',
     'package_data': {
         'jnius': ['src/org/jnius/*'],
@@ -56,12 +56,10 @@ SETUP_KWARGS = {
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: Linux',
         'Operating System :: Android',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
+        'Programming Language :: Python :: 3.14',
         'Topic :: Software Development :: Libraries :: Application Frameworks'
     ]
 }

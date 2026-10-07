@@ -51,18 +51,18 @@ Reflection classes
     .. attribute:: __javaconstructor__
 
         If not set, we assume the default constructor takes no parameters.
-        Otherwise, it can be a list of all possible signatures of the
-        constructor. For example, a reflection of the String java class would
-        look like::
+        Otherwise, it can be a list of (signature, is_varargs) tuples, one per
+        constructor. For example,
+        a reflection of the String java class would look like::
 
             class String(JavaClass):
                 __javaclass__ = 'java/lang/String'
                 __metaclass__ = MetaJavaClass
                 __javaconstructor__ = (
-                    '()V',
-                    '(Ljava/lang/String;)V',
-                    '([C)V',
-                    '([CII)V',
+                    ('()V', False),
+                    ('(Ljava/lang/String;)V', False),
+                    ('([C)V', False),
+                    ('([CII)V', False),
                     # ...
                 )
 
@@ -120,14 +120,18 @@ Reflection classes
         Create a reflection of a Java field. The signature is in the JNI
         format. For example::
 
-            class System(JavaClass):
+            from jnius import JavaClass, JavaField, MetaJavaClass
+
+            class System(JavaClass, metaclass=MetaJavaClass):
                 __javaclass__ = 'java/lang/System'
-                __metaclass__ = MetaJavaClass
 
-                out = JavaField('()Ljava/io/InputStream;', static=True)
+                out = JavaField('Ljava/io/PrintStream;', static=True)
 
-        The name associated to the method is automatically set from the
-        declaration within the JavaClass itself.
+            System.out.getClass().getName()  # 'java.io.PrintStream'
+
+        Field signatures describe a type, without the ``()`` used for method
+        signatures. The field name is taken from its declaration in the
+        JavaClass.
 
 
 .. class:: JavaStaticField
@@ -152,9 +156,12 @@ Reflection classes
             __metaclass__ = MetaJavaClass
 
             getBytes = JavaMultipleMethod([
-                '(Ljava/lang/String;)[B',
-                '(Ljava/nio/charset/Charset;)[B',
-                '()[B'])
+                ('(Ljava/lang/String;)[B', False, False),
+                ('(Ljava/nio/charset/Charset;)[B', False, False),
+                ('()[B', False, False)])
+
+    Each method should contain three pieces of information: its signature,
+    whether it is static, and whether it accepts varargs.
 
     Then, when you try to access this method, it will choose the best
     method available according to the type of the arguments you're using.
@@ -432,7 +439,7 @@ JVM options need to be set before `import jnius` is called, as they cannot be ch
 To this end, you can::
 
     import jnius_config
-    jnius_config.add_options('-Xrs', '-Xmx4096')
+    jnius_config.add_options('-Xrs', '-Xmx4096m')
     jnius_config.set_classpath('.', '/usr/local/fem/plugins/*')
     import jnius
 

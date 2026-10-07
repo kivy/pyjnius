@@ -30,6 +30,7 @@ documentation.
    installation
    quickstart
    android
+   android-wheel
    api
    packaging
    contact

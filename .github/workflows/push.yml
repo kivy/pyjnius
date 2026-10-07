@@ -1,33 +1,56 @@
 on: [push, pull_request]
 name: Continuous Integration
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ (github.event_name == 'pull_request' || (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/') && github.ref_name != github.event.repository.default_branch)) && github.ref || github.run_id }}
+  cancel-in-progress: true
 jobs:
+  Docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Setup Python
+      uses: actions/setup-python@v7
+      with:
+        python-version: '3.14'
+
+    - name: Install documentation dependencies
+      run: python -m pip install -r docs/requirements.txt
+
+    - name: Build HTML documentation
+      run: python -m sphinx -b html docs/source docs/build/html
+
+    - name: Upload HTML documentation
+      uses: actions/upload-artifact@v7
+      with:
+        name: documentation-html
+        path: docs/build/html
+        if-no-files-found: error
+
   Tests:
     name: base
-    continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
         python:
-           - '3.7'
-           - '3.8'
-           - '3.9'
-           - '3.10'
            - '3.11'
            - '3.12'
-           - 'pypy-3.7'
-           - 'pypy-3.8'
-           - 'pypy-3.9'
+           - '3.13'
+           - '3.14'
+           - '3.14t'
+           - 'pypy-3.11'
         java:
           - '8'
           - '11'
-          - '20'
+          - '25'
         os:
+          # macos-latest (ATM macos-15) runs on Apple Silicon,
+          # macos-15-intel runs on Intel
           - 'ubuntu-latest'
           - 'windows-latest'
           - 'macos-latest'
-          - 'apple-silicon-m1'
-        cython:
-          - '<3'
-          - '>=3'
+          - 'macos-15-intel'
         architecture:
           - 'x64'
           - 'x86'
@@ -39,81 +62,90 @@ jobs:
             architecture: aarch64
           - os: ubuntu-latest
             architecture: x86
+          - os: macos-15-intel
+            architecture: aarch64
+          - os: macos-15-intel
+            architecture: x86
           - os: macos-latest
             architecture: aarch64
+            java: '8'
+          - os: macos-latest
+            architecture: x64
           - os: macos-latest
             architecture: x86
-          - os: apple-silicon-m1
+          - os: windows-latest
             architecture: x86
-          - os: apple-silicon-m1
+            python: 'pypy-3.11'
+          - os: windows-latest
+            architecture: x86
+            java: '25'
+          # Intel: 3.11/8, 3.12/11, 3.13/11, 3.14/11+25,
+          # 3.14t/25 and PyPy 3.11/11.
+          - {os: macos-15-intel, python: '3.11', java: '11'}
+          - {os: macos-15-intel, python: '3.11', java: '25'}
+          - {os: macos-15-intel, python: '3.12', java: '8'}
+          - {os: macos-15-intel, python: '3.12', java: '25'}
+          - {os: macos-15-intel, python: '3.13', java: '8'}
+          - {os: macos-15-intel, python: '3.13', java: '25'}
+          - {os: macos-15-intel, python: '3.14', java: '8'}
+          - {os: macos-15-intel, python: '3.14t', java: '8'}
+          - {os: macos-15-intel, python: '3.14t', java: '11'}
+          - {os: macos-15-intel, python: 'pypy-3.11', java: '8'}
+          - {os: macos-15-intel, python: 'pypy-3.11', java: '25'}
+          # ARM: 3.11/11, 3.13/25, 3.14/11 and 3.14t/25.
+          - {os: macos-latest, python: '3.11', java: '25'}
+          - {os: macos-latest, python: '3.12', java: '11'}
+          - {os: macos-latest, python: '3.12', java: '25'}
+          - {os: macos-latest, python: '3.13', java: '11'}
+          - {os: macos-latest, python: '3.14', java: '25'}
+          - {os: macos-latest, python: '3.14t', java: '11'}
+          - {os: macos-latest, python: 'pypy-3.11', java: '11'}
+          - {os: macos-latest, python: 'pypy-3.11', java: '25'}
+        include:
+          # Collect coverage once, using an existing Linux test combination.
+          - python: '3.14'
+            java: '11'
+            os: ubuntu-latest
             architecture: x64
-          - os: apple-silicon-m1
-            python: '3.7'
-          - os: apple-silicon-m1
-            python: '3.8'
-          - os: apple-silicon-m1
-            python: '3.9'
-          - os: apple-silicon-m1
-            python: 'pypy-3.7'
-          - os: apple-silicon-m1
-            python: 'pypy-3.8'
-          - os: apple-silicon-m1
-            python: 'pypy-3.9'
-          - os: windows-latest
-            architecture: x86
-            python: 'pypy-3.7'
-          - os: windows-latest
-            architecture: x86
-            python: 'pypy-3.8'
-          - os: windows-latest
-            architecture: x86
-            python: 'pypy-3.9'
-          - os: apple-silicon-m1
-            java: '8'
-          - os: windows-latest
-            architecture: x86
-            java: '20'
-
+            coverage: true
+          
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v7
 
-    - name: Setup python
-      uses: actions/setup-python@v4
+    - name: Setup Python ${{ matrix.python }}
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python }}
-        architecture: ${{ (matrix.os == 'apple-silicon-m1' && matrix.architecture == 'aarch64') && 'arm64' ||  matrix.architecture  }}
+        architecture: ${{ matrix.architecture == 'aarch64' && 'arm64' || matrix.architecture }}
+        allow-prereleases: true
 
-    - name: Setup java
-      uses: actions/setup-java@v3
+    - name: Setup Java ${{ matrix.java }}
+      uses: actions/setup-java@v6
       with:
         java-version: ${{ matrix.java }}
         distribution: 'temurin'
         architecture: ${{ matrix.architecture }}
 
     - name: (macOS) Setup test dependencies
-      if: matrix.os == 'macos-latest' || matrix.os == 'apple-silicon-m1'
+      if: runner.os == 'macOS'
       run: brew install ant
 
     - name: Build test classes via ant
       run: ant all
 
-    - name: (Windows) Force Cython version
-      # Windows sed doesnt accept .bak filename extensions
-      if: matrix.os == 'windows-latest'
-      run: sed -i 's/"Cython"/"Cython${{matrix.cython}}"/' pyproject.toml
-    
-    - name: (Linux, macOS) Force Cython version
-      # macOS sed requires .bak filename extensions
-      if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'macos-latest') || (matrix.os == 'apple-silicon-m1')
-      run: sed -i.bak 's/"Cython"/"Cython${{matrix.cython}}"/' pyproject.toml
-
     - name: Install pyjnius with [dev, ci] extras
-      run: |
-        pip install --timeout=120 .[dev,ci]
+      if: matrix.coverage != true
+      run: pip install --timeout=120 .[dev,ci]
+
+    # A regular install tests files in site-packages. Coveralls needs paths to
+    # checkout files, so this run builds the extension in place and traces there.
+    - name: Install pyjnius in place for coverage
+      if: matrix.coverage == true
+      run: pip install --timeout=120 -e .[dev,ci]
   
     - name: (Windows) Test pyjnius via pytest
-      if: matrix.os == 'windows-latest'
+      if: runner.os == 'Windows'
       run: |
         $env:PATH +=";$env:JAVA_HOME\jre\bin\server\;$env:JAVA_HOME\jre\bin\client\;$env:JAVA_HOME\bin\server\"
         $env:CLASSPATH ="../build/test-classes;../build/classes"
@@ -121,12 +153,81 @@ jobs:
         pytest -v
 
     - name: (Linux, macOS) Test pyjnius via pytest
-      if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'macos-latest') || (matrix.os == 'apple-silicon-m1')
+      if: runner.os != 'Windows' && matrix.coverage != true
       run: |
         cd tests
         CLASSPATH=../build/test-classes:../build/classes python -m pytest -v
 
-#     - name: coveralls
-#       run: python -m coveralls
-#       env:
-#         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+    # Standard Python tracing covers these modules, not the Cython/JNI extension.
+    - name: Test and collect Python coverage
+      if: matrix.coverage == true
+      run: |
+        CLASSPATH=build/test-classes:build/classes python -m pytest -v tests \
+          --cov=. --cov-report=xml:coverage.xml
+
+    - name: Upload Python coverage to Coveralls
+      if: matrix.coverage == true
+      uses: coverallsapp/github-action@v2
+      with:
+        file: coverage.xml
+        fail-on-error: false
+
+  CythonCompatibility:
+    name: Cython ${{ matrix.cython }} (Linux JVM)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        cython: ['3.1', '3.2', '3.3']
+    env:
+      CYTHON_LINE: ${{ matrix.cython }}
+    steps:
+    - uses: actions/checkout@v7
+
+    - uses: actions/setup-python@v7
+      with:
+        python-version: '3.14'
+
+    - uses: actions/setup-java@v6
+      with:
+        java-version: '17'
+        distribution: temurin
+
+    - name: Build Java test classes
+      run: ant all
+
+    # Build isolation would silently select the newest allowed Cython instead.
+    - name: Build and install with matrix Cython
+      run: |
+        python -m pip install -U setuptools wheel pytest "Cython==$CYTHON_LINE.*"
+        python -m pip install --no-build-isolation .
+        python .github/scripts/check_cython_generated.py "$CYTHON_LINE"
+
+    - name: Test installed extension against JVM
+      run: |
+        cd tests
+        CLASSPATH=../build/test-classes:../build/classes python -m pytest -q
+
+  AndroidCythonTranslation:
+    name: Android C translation (Cython ${{ matrix.cython }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        cython: ['3.1', '3.2', '3.3']
+    env:
+      CYTHON_LINE: ${{ matrix.cython }}
+    steps:
+    - uses: actions/checkout@v7
+
+    - uses: actions/setup-python@v7
+      with:
+        python-version: '3.14'
+
+    # Host-side translation only; the release wheel still uses Cython 3.1.x.
+    - name: Generate Android C on host
+      run: |
+        python -m pip install "Cython==$CYTHON_LINE.*"
+        printf "DEF JNIUS_PLATFORM = 'android'\n" > jnius/config.pxi
+        cython -3 jnius/jnius.pyx -o jnius/jnius.c
+        python .github/scripts/check_cython_generated.py "$CYTHON_LINE"

@@ -7,13 +7,13 @@ Accessing Java classes from Python.
 All the documentation is available at: http://pyjnius.readthedocs.org
 '''
 
-__version__ = '1.6.1'
+__version__ = '1.8.0'
 
-from .env import get_java_setup
+from jnius_config.env import get_java_setup
 
 import os
 import sys
-if sys.platform == 'win32' and sys.version_info >= (3, 8):
+if sys.platform == 'win32':
     path = os.path.dirname(__file__)
     java = get_java_setup(sys.platform)
     jdk_home = java.get_javahome()

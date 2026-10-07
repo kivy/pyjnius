@@ -1,5 +1,8 @@
 on: [push, pull_request]
 name: Continuous Integration (x86)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ (github.event_name == 'pull_request' || (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/') && github.ref_name != github.event.repository.default_branch)) && github.ref || github.run_id }}
+  cancel-in-progress: true
 jobs:
   Tests:
     name: base
@@ -7,13 +10,9 @@ jobs:
     strategy:
       matrix:
         python:
-           - '3.7'
-           - '3.8'
-           - '3.9'
-           - '3.10'
            - '3.11'
     container:
-      image: i386/python:${{ matrix.python }}-buster
+      image: i386/python:${{ matrix.python }}-bookworm
     steps:
     - name: info
       run: |
@@ -42,7 +41,7 @@ jobs:
       run: |
         linux32 sh -ec '
           apt update
-          apt install -y openjdk-11-jdk-headless ant
+          apt install -y openjdk-17-jdk-headless ant
           java -version
         '
       env:

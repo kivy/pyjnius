@@ -14,6 +14,15 @@ class JavaException(Exception):
         self.stacktrace = stacktrace
         Exception.__init__(self, message)
 
+    def __str__(self):
+        '''
+        Override __str__ so that we can see the Java stacktrace
+        '''
+        rtr = self.args[0]
+        if self.stacktrace is not None:
+            rtr += '\n' + '\n\t'.join(self.stacktrace)
+        return rtr
+
 
 cdef class JavaObject(object):
     '''Can contain any Java object. Used to store instance, or whatever.
@@ -169,19 +178,25 @@ class MetaJavaClass(MetaJavaBase):
 
         cdef JavaClassStorage jcs = JavaClassStorage()
         cdef bytes __javaclass__ = <bytes>classDict['__javaclass__']
-        cdef bytes __javainterfaces__ = <bytes>classDict.get('__javainterfaces__', b'')
+        __javainterfaces__ = classDict.get('__javainterfaces__', None) # List[str]
         cdef bytes __javabaseclass__ = <bytes>classDict.get('__javabaseclass__', b'')
-        cdef jmethodID getProxyClass, getClassLoader
-        cdef jclass *interfaces
-        cdef jobject *jargs
         cdef JNIEnv *j_env = get_jnienv()
 
+        cdef jclass classClass = j_env[0].FindClass(j_env, b"java/lang/Class")
+
+        cdef jmethodID getProxyClass, getClassLoader
+        # cdef jclass *interfaces
+        cdef jvalue *jargs
+
         if __javainterfaces__ and __javabaseclass__:
+
             baseclass = j_env[0].FindClass(j_env, <char*>__javabaseclass__)
-            interfaces = <jclass *>malloc(sizeof(jclass) * len(__javainterfaces__))
+            interfaces = j_env[0].NewObjectArray(j_env, len(__javainterfaces__), classClass, NULL)
+            # interfaces = <jclass *>malloc(sizeof(jclass) * len(__javainterfaces__))
 
             for n, i in enumerate(__javainterfaces__):
-                interfaces[n] = j_env[0].FindClass(j_env, <char*>i)
+                # interfaces[n] = j_env[0].FindClass(j_env, <char*>i)
+                j_env[0].SetObjectArrayElement(j_env, interfaces, n, j_env[0].FindClass(j_env, <char*>i))
 
             getProxyClass = j_env[0].GetStaticMethodID(
                 j_env, baseclass, "getProxyClass",
@@ -190,15 +205,16 @@ class MetaJavaClass(MetaJavaBase):
             getClassLoader = j_env[0].GetStaticMethodID(
                 j_env, baseclass, "getClassLoader", "()Ljava/lang/Class;")
 
+            jargs = <jvalue*>malloc(sizeof(jvalue) * 2)
             with nogil:
                 classLoader = j_env[0].CallStaticObjectMethodA(
                         j_env, baseclass, getClassLoader, NULL)
-                jargs = <jobject *>malloc(sizeof(jobject) * 2)
-                jargs[0] = <jobject *>classLoader
-                jargs[1] = interfaces
-                jcs.j_cls = j_env[0].CallStaticObjectMethod(
+                
+                jargs[0].l = classLoader
+                jargs[1].l = interfaces
+                jcs.j_cls = j_env[0].CallStaticObjectMethodA(
                         j_env, baseclass, getProxyClass, jargs)
-
+            free(jargs)
             j_env[0].DeleteLocalRef(j_env, baseclass)
 
             if jcs.j_cls == NULL:
@@ -283,6 +299,7 @@ cdef class JavaClass(object):
         cdef jmethodID constructor = NULL
         cdef JNIEnv *j_env = get_jnienv()
         cdef list found_definitions = []
+        debug = kwargs.get("debug", False)
 
         # get the constructor definition if exist
         definitions = [('()V', False)]
@@ -348,6 +365,9 @@ cdef class JavaClass(object):
                 )
             scores.sort()
             score, definition, d_ret, d_args, args_ = scores[-1]
+            if debug:
+                print(scores)
+                print("Selected %s for invocation" % definition)
 
         try:
             # convert python arguments to java arguments
@@ -1122,6 +1142,7 @@ cdef class JavaMultipleMethod(object):
         cdef dict methods
         cdef int max_sign_args
         cdef list found_signatures = []
+        debug = kwargs.get("debug", False)
 
         if self.j_self:
             methods = self.instance_methods
@@ -1157,6 +1178,9 @@ cdef class JavaMultipleMethod(object):
             )
         scores.sort()
         score, signature = scores[-1]
+        if debug:
+            print(scores)
+            print("Selected %s for invocation" % signature)
 
         jm = methods[signature]
         jm.j_self = self.j_self

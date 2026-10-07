@@ -54,15 +54,11 @@ class TestSimpleEnum(unittest.TestCase):
 
     def test_value_nested(self):
         '''
-        Test that we cover the circular implementation of java.lang.Enum
-        that on value returns the parent i.e. the Enum class instead of
-        e.g. some Exception or segfault which means we can do Enum.X.X.X...
-
-        Currently does not check anything, ref pyjnius#32:
-        https://github.com/kivy/pyjnius/issues/32.
+        Static enum constants can be read through an enum instance without
+        calling JNI's GetObjectField on a static field (pyjnius#32).
         '''
-        _ = autoclass('org.jnius.SimpleEnum')
-        # self.assertTrue(SimpleEnum.UGLY.UGLY)
+        SimpleEnum = autoclass('org.jnius.SimpleEnum')
+        self.assertEqual(SimpleEnum.UGLY.UGLY.UGLY.toString(), 'UGLY')
 
 
 if __name__ == '__main__':

@@ -1,5 +1,42 @@
 # Change Log
 
+# Unreleased
+
+## Highlights
+- Drop support for Python 3.9 and 3.10; Python 3.11 is now the minimum supported
+  version.
+
+# [1.8.0](https://github.com/kivy/pyjnius/tree/1.8.0) (2026-09-26)
+[Full Changelog](https://github.com/kivy/pyjnius/compare/1.7.0...1.8.0)
+
+## Highlights
+- [#796](https://github.com/kivy/pyjnius/pull/796) Add SDL-agnostic,
+  redistributable PEP 738 Android wheels for CPython 3.13 and 3.14
+- [#710](https://github.com/kivy/pyjnius/pull/710) Add the `get_jni_java_vm`
+  function
+- [#780](https://github.com/kivy/pyjnius/pull/780) Make `jnius_config.env`
+  accessible without starting the JVM
+- [#784](https://github.com/kivy/pyjnius/pull/784) Add Python 3.14 and 3.14t
+  testing
+
+## Maintenance
+- [#772](https://github.com/kivy/pyjnius/pull/772) Update the Android test app
+  to Python 3 syntax
+- Update GitHub Actions dependencies
+
+# [1.7.0](https://github.com/kivy/pyjnius/tree/1.7.0) (2025-09-08)
+[Full Changelog](https://github.com/kivy/pyjnius/compare/1.6.1...1.7.0)
+
+# Highlights
+- [\#713](https://github.com/kivy/pyjnius/pull/713) Remove support for Python 3.7 as reached EOL
+- [\#696](https://github.com/kivy/pyjnius/pull/696) Display Java stacktrace by default in JavaException
+- [\#753](https://github.com/kivy/pyjnius/pull/753) fixes for Cython 3.1 support
+- [\#762](https://github.com/kivy/pyjnius/pull/762) Remove support for Python 3.8 which reached EOL on 2024-10-07
+- [\#756](https://github.com/kivy/pyjnius/pull/756) Remove python long to support Cython >= 3.1.x
+- [\#766](https://github.com/kivy/pyjnius/pull/766) Remove support for Cython versions prior to 3.x.x
+- [\#764](https://github.com/kivy/pyjnius/pull/764) Add support for Python 3.13, fix incompatible pointers
+
+
 # [1.6.1](https://github.com/kivy/pyjnius/tree/1.6.1) (2023-11-05)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.6.0...1.6.1)
 
@@ -157,6 +194,12 @@
 
 ## [1.2.0](https://github.com/kivy/pyjnius/tree/1.2.0) (2019-02-04)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.1.4...1.2.0)
+
+- Improve conversion of Python lists and tuples (including empty and nested
+  values) and numeric values passed to Java methods accepting `Object`.
+- Include method signatures in argument-mismatch errors and check for Java
+  exceptions raised by constructors.
+- Improve Python 2/3 string compatibility and JDK/JRE path discovery.
 
 ## [1.1.4](https://github.com/kivy/pyjnius/tree/1.1.4) (2018-12-05)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.1.3...1.1.4)

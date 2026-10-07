@@ -22,6 +22,17 @@ cannot find Java, set the `JAVA_HOME` environment variable (this is often needed
 `on Windows <https://www.baeldung.com/java-home-on-windows-7-8-10-mac-os-x-linux#windows>`_).
 NB: Building pyjnius requires a Java JDK rather than a JRE.
 
+Installation from source
+------------------------
+
+To install PyJNIus from the `GitHub repository <https://github.com/kivy/pyjnius>`_::
+
+    git clone https://github.com/kivy/pyjnius.git
+    cd pyjnius
+    pip install .
+
+See :ref:`building` for build requirements and development instructions.
+
 Installation for Android
 ------------------------
 
