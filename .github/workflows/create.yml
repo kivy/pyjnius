@@ -27,6 +27,9 @@ jobs:
     env:
       CIBW_BEFORE_ALL_LINUX: 'yum install -y java-11-openjdk-devel'
       CIBW_REPAIR_WHEEL_COMMAND_MACOS: ''
+      # The JVM is supplied by the user's JDK at runtime, not bundled in the wheel.
+      CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: 'delvewheel repair --exclude jvm.dll -w {dest_dir} -v {wheel}'
+      CIBW_BUILD: 'cp3{11,12,13,14}-*'
       CIBW_SKIP: '*musllinux*'
     strategy:
       matrix:
@@ -72,7 +75,7 @@ jobs:
         env:
           CIBW_ARCHS: '${{ matrix.cibw_archs }}'
         run: |
-          python -m pip install cibuildwheel~=3.1.1
+          python -m pip install 'cibuildwheel==4.3.0'
           python -m cibuildwheel --output-dir dist
 
       - name: Install cibuildwheel & build wheels (Linux, macOS Intel)
@@ -80,7 +83,7 @@ jobs:
         env:
           CIBW_ARCHS: '${{ matrix.cibw_archs }}'
         run: |
-          python -m pip install cibuildwheel~=3.1.1
+          python -m pip install 'cibuildwheel==4.3.0'
           python -m cibuildwheel --output-dir dist
 
       - name: upload wheels
@@ -209,6 +212,52 @@ jobs:
           python -m pytest -v
   
 
+  test_wheel_windows_x86:
+    name: Test win32 wheel on Python 3.14
+    if: (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel]')
+    needs: build_wheels
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: wheels-windows-latest-x86
+          path: dist
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+          architecture: x86
+
+      - uses: actions/setup-java@v6
+        with:
+          java-version: '17'
+          distribution: temurin
+          architecture: x86
+
+      - name: Confirm 32-bit Python
+        run: python -c "import struct; assert struct.calcsize('P') == 4"
+
+      - name: Build test classes via ant
+        run: ant all
+
+      - name: Install win32 wheel from artifact
+        run: python -m pip install --find-links=dist --no-index pyjnius
+
+      - name: Install test prerequisites
+        run: python -m pip install pyjnius[dev,ci]
+
+      - name: Show installed pyjnius provenance
+        run: python -m pip show pyjnius
+
+      - name: Test win32 wheel with JVM
+        run: |
+          $env:PATH += ";$env:JAVA_HOME\jre\bin\server\;$env:JAVA_HOME\jre\bin\client\;$env:JAVA_HOME\bin\server\"
+          $env:CLASSPATH = "../build/test-classes;../build/classes"
+          cd tests
+          python -m pytest -v
+
   release:
     if: (github.event_name == 'create' && github.event.ref_type == 'tag')
     name: release
@@ -216,6 +265,7 @@ jobs:
       - build_wheels
       - build_sdist
       - test_wheels
+      - test_wheel_windows_x86
     runs-on: 'ubuntu-latest'
     steps:
     - uses: actions/download-artifact@v8
