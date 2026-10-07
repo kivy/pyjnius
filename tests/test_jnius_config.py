@@ -1,5 +1,22 @@
+from importlib import resources
+import os
+
 import pytest
 import jnius_config
+
+
+@pytest.fixture
+def packaged_java_src(monkeypatch, tmp_path):
+    package = tmp_path / "jnius"
+    source = package / "src"
+    source.mkdir(parents=True)
+
+    def files(name):
+        assert name == "jnius"
+        return package
+
+    monkeypatch.setattr(resources, "files", files)
+    return source
 
 
 class TestJniusConfig:
@@ -63,3 +80,54 @@ class TestJniusConfig:
         assert jnius_config.classpath == ["."]
         jnius_config.add_classpath("/usr/local/fem/plugins/*")
         assert jnius_config.classpath == [".", "/usr/local/fem/plugins/*"]
+
+    def test_get_classpath_explicit_overrides_environment(
+        self, monkeypatch, tmp_path, packaged_java_src
+    ):
+        monkeypatch.setenv("CLASSPATH", str(tmp_path / "from-env"))
+        explicit = [str(tmp_path / "first"), str(tmp_path / "second")]
+        jnius_config.set_classpath(*explicit)
+
+        result = jnius_config.get_classpath()
+        assert result[:-1] == explicit
+        assert result[-1] == str(packaged_java_src)
+
+    def test_get_classpath_from_environment(
+        self, monkeypatch, tmp_path, packaged_java_src
+    ):
+        entries = [str(tmp_path / "first"), str(tmp_path / "second")]
+        monkeypatch.setenv("CLASSPATH", jnius_config.split_char.join(entries))
+
+        result = jnius_config.get_classpath()
+        assert result[:-1] == entries
+        assert result[-1] == str(packaged_java_src)
+
+    def test_get_classpath_defaults_to_working_directory(
+        self, monkeypatch, tmp_path, packaged_java_src
+    ):
+        monkeypatch.delenv("CLASSPATH", raising=False)
+        monkeypatch.chdir(tmp_path)
+
+        result = jnius_config.get_classpath()
+        assert result[:-1] == [os.path.realpath(".")]
+        assert result[-1] == str(packaged_java_src)
+
+    def test_expand_classpath_matches_jars(
+        self, monkeypatch, tmp_path, packaged_java_src
+    ):
+        monkeypatch.delenv("CLASSPATH", raising=False)
+        jars = tmp_path / "plugins"
+        jars.mkdir()
+        first = jars / "first.jar"
+        second = jars / "second.JAR"
+        first.touch()
+        second.touch()
+        (jars / "ignore.txt").touch()
+        literal = str(tmp_path / "literal")
+        jnius_config.set_classpath(literal, str(jars / "*"))
+
+        entries = jnius_config.expand_classpath().split(jnius_config.split_char)
+        assert entries[0] == literal
+        assert len(entries) == 4
+        assert set(entries[1:-1]) == {str(first), str(second)}
+        assert entries[-1] == str(packaged_java_src)
