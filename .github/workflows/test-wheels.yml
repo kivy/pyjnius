@@ -10,7 +10,7 @@ jobs:
     steps:
 
       - name: Checkout pyjnius
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
 
       - name: Setup java
         # There's no need to setup java on ubuntu-latest, as build is done into a manylinux
