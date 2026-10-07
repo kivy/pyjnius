@@ -66,7 +66,7 @@ jobs:
         if: ${{ matrix.os  != 'ubuntu-latest' }}
         uses: actions/setup-java@v6
         with:
-          java-version: '17'
+          java-version: '25'
           distribution: 'temurin'
           architecture: ${{ matrix.architecture }}
 
@@ -165,7 +165,7 @@ jobs:
       - name: Setup java
         uses: actions/setup-java@v6
         with:
-          java-version: '17'
+          java-version: '25'
           distribution: 'temurin'
           architecture: ${{ matrix.architecture }}
 
@@ -232,7 +232,7 @@ jobs:
 
       - uses: actions/setup-java@v6
         with:
-          java-version: '17'
+          java-version: '25'
           distribution: temurin
           architecture: x86
 
