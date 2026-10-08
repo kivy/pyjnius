@@ -65,3 +65,37 @@ def test_missing_jvm_library_reports_candidates(monkeypatch, tmp_path):
         "jre/lib/amd64/server/libjvm.so",
     ):
         assert repr(join(str(home), relative)) in message
+
+
+def test_windows_java_location_build_paths(monkeypatch, tmp_path):
+    home = tmp_path / "windows-java"
+    monkeypatch.setenv("JAVA_HOME", str(home))
+
+    location = env.get_java_setup("win32")
+    assert isinstance(location, env.WindowsJavaLocation)
+    assert location.get_javahome() == str(home)
+    assert location.get_java() == join(str(home), "bin", "java") + ".exe"
+    assert location.get_javac() == join(str(home), "bin", "javac") + ".exe"
+    assert not location.is_jdk()
+    (home / "bin").mkdir(parents=True)
+    (home / "bin" / "javac.exe").touch()
+    assert location.is_jdk()
+    assert location.get_include_dirs() == [
+        join(str(home), "include"), join(str(home), "include", "win32")
+    ]
+    assert location.get_libraries() == ["jvm"]
+    assert location.get_library_dirs() == [
+        join(str(home), "lib"), join(str(home), "bin", "server")
+    ]
+
+
+def test_android_java_location_build_paths(monkeypatch, tmp_path):
+    home = tmp_path / "android-java"
+    monkeypatch.setenv("JAVA_HOME", str(home))
+
+    location = env.get_java_setup("android")
+    assert isinstance(location, env.AndroidJavaLocation)
+    assert location.get_javahome() == str(home)
+    assert location.get_libraries() == ["log"]
+    assert location.get_include_dirs() == []
+    assert location.get_library_dirs() == []
