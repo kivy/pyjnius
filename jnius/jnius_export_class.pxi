@@ -991,6 +991,40 @@ cdef class JavaMethod(object):
         check_exception(j_env)
         return ret
 
+    cdef bint needs_logger_caller(self):
+        # Reflection stores class/method names as bytes, but the signature as str.
+        return (self.classname == b'java/util/logging/Logger' and
+                self.name == b'getLogger' and self.definition in (
+                    '(Ljava/lang/String;)Ljava/util/logging/Logger;',
+                    '(Ljava/lang/String;Ljava/lang/String;)Ljava/util/logging/Logger;'))
+
+    cdef jobject call_logger_with_java_caller(self, JNIEnv *j_env,
+                                              jvalue *j_args) except *:
+        # Logger.getLogger needs a Java caller frame; JNI alone provides none.
+        cdef jclass helper = j_env[0].FindClass(j_env, b'org/jnius/LoggerHelper')
+        cdef jobject result
+        if helper == NULL:
+            # A host JVM may not have our helper on its classpath. Preserve
+            # the original direct-call behavior (which works on some JVMs).
+            j_env[0].ExceptionClear(j_env)
+            with nogil:
+                result = j_env[0].CallStaticObjectMethodA(
+                    j_env, self.j_cls, self.j_method, j_args)
+            return result
+        check_exception(j_env)
+        cdef jmethodID method
+        try:
+            method = j_env[0].GetStaticMethodID(
+                j_env, helper, b'getLogger', str_for_c(self.definition))
+            check_exception(j_env)
+            with nogil:
+                result = j_env[0].CallStaticObjectMethodA(
+                    j_env, helper, method, j_args)
+        finally:
+            j_env[0].DeleteLocalRef(j_env, helper)
+        check_exception(j_env)
+        return result
+
     cdef call_staticmethod(self, JNIEnv *j_env, jvalue *j_args):
         cdef jboolean j_boolean
         cdef jbyte j_byte
@@ -1056,8 +1090,11 @@ cdef class JavaMethod(object):
                         j_env, self.j_cls, self.j_method, j_args)
             ret = <double>j_double
         elif r == 'L':
-            with nogil:
-                j_object = j_env[0].CallStaticObjectMethodA(
+            if JNIUS_PLATFORM != "android" and self.needs_logger_caller():
+                j_object = self.call_logger_with_java_caller(j_env, j_args)
+            else:
+                with nogil:
+                    j_object = j_env[0].CallStaticObjectMethodA(
                         j_env, self.j_cls, self.j_method, j_args)
             check_exception(j_env)
             if j_object != NULL:
