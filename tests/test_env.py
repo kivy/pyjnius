@@ -99,3 +99,37 @@ def test_android_java_location_build_paths(monkeypatch, tmp_path):
     assert location.get_libraries() == ["log"]
     assert location.get_include_dirs() == []
     assert location.get_library_dirs() == []
+
+
+def test_bsd_java_location_include_and_library(monkeypatch, tmp_path):
+    home = tmp_path / "bsd-java"
+    monkeypatch.setenv("JAVA_HOME", str(home))
+    monkeypatch.delenv("JVM_PATH", raising=False)
+    library = home / "lib" / "server" / "libjvm.so"
+    library.parent.mkdir(parents=True)
+    library.touch()
+
+    location = env.get_java_setup("freebsd14")
+    assert isinstance(location, env.BSDJavaLocation)
+    assert location.get_javahome() == str(home)
+    assert location.get_include_dirs() == [
+        join(str(home), "include"), join(str(home), "include", "freebsd")
+    ]
+    assert Path(location.get_jnius_lib_location()) == library
+
+
+def test_modern_macos_java_location_include_and_library(monkeypatch, tmp_path):
+    home = tmp_path / "modern-macos-java"
+    monkeypatch.setenv("JAVA_HOME", str(home))
+    monkeypatch.delenv("JVM_PATH", raising=False)
+    library = home / "lib" / "jli" / "libjli.dylib"
+    library.parent.mkdir(parents=True)
+    library.touch()
+
+    location = env.get_java_setup("darwin")
+    assert isinstance(location, env.MacOsXJavaLocation)
+    assert location.get_javahome() == str(home)
+    assert location.get_include_dirs() == [
+        join(str(home), "include"), join(str(home), "include", "darwin")
+    ]
+    assert Path(location.get_jnius_lib_location()) == library
