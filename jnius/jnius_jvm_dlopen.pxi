@@ -51,6 +51,17 @@ cdef void create_jnienv() except *:
     cdef void *handle
     import jnius_config
 
+    cdef void *jnienv_pyjnius
+    handle = dlopen(b"libtermux-pyjnius.so", RTLD_LAZY)
+    if handle != NULL:
+        jnienv_pyjnius = dlsym(handle, b"get_platform_jnienv_pyjnius")
+        if jnienv_pyjnius == NULL:
+            raise SystemError("Error calling dlfcn for get_platform_jnienv_pyjnius: {0}".format(dlerror()))
+        (<void (*)(void **penv)> jnienv_pyjnius)(<void **>&_platform_default_env)
+        if _platform_default_env != NULL:
+            return
+        dlclose(handle)
+
     JAVA_LOCATION = get_java_setup()
     cdef str java_lib = JAVA_LOCATION.get_jnius_lib_location()
 
