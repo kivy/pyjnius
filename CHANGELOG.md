@@ -2,9 +2,24 @@
 
 # Unreleased
 
+# [1.9.0](https://github.com/kivy/pyjnius/tree/1.9.0) (2026-10-09)
+[Full Changelog](https://github.com/kivy/pyjnius/compare/1.8.0...1.9.0)
+
 ## Highlights
 - Drop support for Python 3.9 and 3.10; Python 3.11 is now the minimum supported
   version.
+- Fix caller-sensitive `Logger.getLogger` calls on desktop
+  ([#823](https://github.com/kivy/pyjnius/pull/823)).
+- Match Python integers to Java `Integer` overloads.
+- Expose `Field.setAccessible` for reflective access
+  ([#820](https://github.com/kivy/pyjnius/pull/820)).
+
+## Packaging and CI
+- Upgrade desktop wheel builds to cibuildwheel 4 and refresh source-build CI.
+- Validate release tags against the packaged version before building.
+- Check the Android NDK version before building Android wheels.
+- Expand JVM and Python coverage, including Java collection protocols, classpath
+  selection, Java discovery, and reflection.
 
 # [1.8.0](https://github.com/kivy/pyjnius/tree/1.8.0) (2026-09-26)
 [Full Changelog](https://github.com/kivy/pyjnius/compare/1.7.0...1.8.0)
