@@ -51,5 +51,22 @@ class TestCollections(unittest.TestCase):
             del(hmap[k])
             self.assertFalse(k in hmap)
 
+    def test_hashmap_missing_key_raises_key_error(self):
+        hmap = autoclass('java.util.HashMap')()
+        hmap[1] = 'present'
+
+        with self.assertRaises(KeyError):
+            hmap[2]
+
+    def test_map_entry_supports_pair_indices(self):
+        hmap = autoclass('java.util.HashMap')()
+        hmap[1] = 'present'
+        entry = next(iter(hmap.entrySet()))
+
+        self.assertEqual(1, entry[0])
+        self.assertEqual('present', entry[1])
+        with self.assertRaises(IndexError):
+            entry[2]
+
 if __name__ == '__main__':
     unittest.main()

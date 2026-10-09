@@ -30,6 +30,14 @@ class ArrayListTest(unittest.TestCase):
                 self.assertEqual(str(alist[idx]), str(arg))
         self.assertEqual(len(args), len(alist))
 
+    def test_out_of_bounds_get_raises_index_error(self):
+        alist = autoclass('java.util.ArrayList')()
+        alist.add(1)
+        self.assertEqual('1', str(alist[0]))
+
+        with self.assertRaises(IndexError):
+            alist[len(alist)]
+
 
 if __name__ == '__main__':
     unittest.main()
