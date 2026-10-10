@@ -13,7 +13,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v7
       with:
-        python-version: '3.14'
+        python-version: '3.15'
 
     - name: Install documentation dependencies
       run: python -m pip install -r docs/requirements.txt
@@ -186,7 +186,7 @@ jobs:
 
     - uses: actions/setup-python@v7
       with:
-        python-version: '3.14'
+        python-version: '3.15'
 
     - uses: actions/setup-java@v6
       with:
@@ -222,7 +222,7 @@ jobs:
 
     - uses: actions/setup-python@v7
       with:
-        python-version: '3.14'
+        python-version: '3.15'
 
     # Host-side translation only; the release wheel still uses Cython 3.1.x.
     - name: Generate Android C on host
