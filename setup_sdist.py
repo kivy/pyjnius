@@ -6,7 +6,6 @@ distribution and the ordinary setup.py for binary distribution. Running this
 instead of the default setup.py will create a GitHub-like archive with setup.py
 meant for installing via pip.
 '''
-from io import open
 
 # pylint: disable=import-error,no-name-in-module
 from setuptools import setup

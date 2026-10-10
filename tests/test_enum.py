@@ -13,8 +13,6 @@ is of class instance SimpleEnum.
             ...
 '''
 
-from __future__ import absolute_import
-
 import unittest
 from jnius.reflect import autoclass
 

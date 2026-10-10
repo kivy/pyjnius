@@ -1,7 +1,3 @@
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-
 import gc
 
 from jnius import autoclass, java_method, PythonJavaClass, cast
@@ -60,7 +56,7 @@ class _TestImplem(PythonJavaClass):
     __javainterfaces__ = ['java/util/List']
 
     def __init__(self, *args):
-        super(_TestImplem, self).__init__(*args)
+        super().__init__(*args)
         self.data = list(args)
         # The Java proxy stores a pointer, not an owning reference, to its
         # Python callback. Keep iterators alive while this collection is used.
