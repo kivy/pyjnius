@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
 import unittest
 from jnius.reflect import autoclass
 
@@ -21,11 +18,11 @@ class ImplementationTest(unittest.TestCase):
 
     def test_unicode(self):
         System = autoclass('java.lang.System')
-        System.out.printf(u'é')
+        System.out.printf('é')
 
         Stack = autoclass('java.util.Stack')
         stack = Stack()
-        emoji = u'\U0001F602'
+        emoji = '\U0001F602'
         stack.push(emoji)
         popped = stack.pop()
         self.assertEqual(emoji, popped)

@@ -1,7 +1,3 @@
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-
 from jnius import autoclass, java_method, PythonJavaClass, cast
 
 print('1: declare a TestImplem that implement Collection')
@@ -57,7 +53,7 @@ class _TestImplem(PythonJavaClass):
     __javainterfaces__ = ['java/util/List']
 
     def __init__(self, *args):
-        super(_TestImplem, self).__init__(*args)
+        super().__init__(*args)
         self.data = list(args)
 
     @java_method('()Ljava/util/Iterator;')

@@ -20,8 +20,7 @@ Java::
 
 Python::
 
-    class Hardware(JavaClass):
-        __metaclass__ = MetaJavaClass
+    class Hardware(JavaClass, metaclass=MetaJavaClass):
         __javaclass__ = 'org/test/Hardware'
         getDPI = JavaStaticMethod('()I')
 
@@ -42,13 +41,12 @@ Java::
 
 Python::
 
-    class Action(JavaClass):
-        __metaclass__ = MetaJavaClass
+    class Action(JavaClass, metaclass=MetaJavaClass):
         __javaclass__ = 'org/test/Action'
         getName = JavaMethod('()Ljava/lang/String;')
 
     action = Action()
-    print action.getName()
+    print(action.getName())
     # will output Hello World
 
 
@@ -69,19 +67,18 @@ Java::
 
 Python::
 
-    class Test(JavaClass):
-        __metaclass__ = MetaJavaClass
+    class Test(JavaClass, metaclass=MetaJavaClass):
         __javaclass__ = 'org/test/Test'
 
         field1 = JavaStaticField('Ljava/lang/String;')
         field2 = JavaField('Ljava/lang/String;')
 
     # access directly to the static field
-    print Test.field1
+    print(Test.field1)
 
     # create the instance, and access to the instance field
     test = Test()
-    print test.field2
+    print(test.field2)
 
 '''
 

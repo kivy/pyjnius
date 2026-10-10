@@ -57,30 +57,23 @@ Reflection classes
     :class:`JavaStaticMethod`, :class:`JavaField`, :class:`JavaStaticField`, and 
     you're done.
 
-    You need to define at minimum the :data:`__javaclass__` attribute, and set
-    the :data:`__metaclass__` to :class:`MetaJavaClass`.
+    You need to define at minimum the :data:`__javaclass__` attribute, and use
+    :class:`MetaJavaClass` as the metaclass.
 
     So the minimum class definition would look like::
 
         from jnius import JavaClass, MetaJavaClass
 
-        class Stack(JavaClass):
+        class Stack(JavaClass, metaclass=MetaJavaClass):
             __javaclass__ = 'java/util/Stack'
-            __metaclass__ = MetaJavaClass
 
-    .. attribute:: __metaclass__
+    .. note::
 
-        Must be set to :class:`MetaJavaClass`, otherwise, all the
-        methods/fields declared will be not linked to the JavaClass.
+        The ``metaclass=MetaJavaClass`` keyword is required to link the
+        declared methods and fields to the Java class.
 
-        .. note::
-
-            Make sure to choose the right metaclass specifier. In Python 2
-            there is ``__metaclass__`` class attribute, in Python 3 there is
-            a new syntax ``class Stack(JavaClass, metaclass=MetaJavaClass)``.
-
-            For more info see `PEP 3115
-            <https://www.python.org/dev/peps/pep-3115/>`_.
+        For more info see `PEP 3115
+        <https://www.python.org/dev/peps/pep-3115/>`_.
 
     .. attribute:: __javaclass__
 
@@ -94,9 +87,8 @@ Reflection classes
         constructor. For example,
         a reflection of the String java class would look like::
 
-            class String(JavaClass):
+            class String(JavaClass, metaclass=MetaJavaClass):
                 __javaclass__ = 'java/lang/String'
-                __metaclass__ = MetaJavaClass
                 __javaconstructor__ = (
                     ('()V', False),
                     ('(Ljava/lang/String;)V', False),
@@ -114,9 +106,8 @@ Reflection classes
         Create a reflection of a Java method. The signature is in the JNI
         format. For example::
 
-            class Stack(JavaClass):
+            class Stack(JavaClass, metaclass=MetaJavaClass):
                 __javaclass__ = 'java/util/Stack'
-                __metaclass__ = MetaJavaClass
 
                 peek = JavaMethod('()Ljava/lang/Object;')
                 empty = JavaMethod('()Z')
@@ -190,9 +181,8 @@ Reflection classes
 
     Let's see how you could declare that method::
 
-        class String(JavaClass):
+        class String(JavaClass, metaclass=MetaJavaClass):
             __javaclass__ = 'java/lang/String'
-            __metaclass__ = MetaJavaClass
 
             getBytes = JavaMultipleMethod([
                 ('(Ljava/lang/String;)[B', False, False),
@@ -296,7 +286,7 @@ Java class implementation in Python
             __javainterfaces__ = ['java/util/ListIterator']
 
             def __init__(self, collection, index=0):
-                super(PythonListIterator, self).__init__()
+                super().__init__()
                 self.collection = collection
                 self.index = index
 
