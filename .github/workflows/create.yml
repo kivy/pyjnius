@@ -4,6 +4,9 @@ on:
   create:
 
 name: Continuous Delivery
+permissions:
+  contents: read
+
 jobs:
   preflight:
     runs-on: ubuntu-latest
@@ -267,6 +270,8 @@ jobs:
       - test_wheels
       - test_wheel_windows_x86
     runs-on: 'ubuntu-latest'
+    permissions:
+      contents: write
     steps:
     - uses: actions/download-artifact@v8
       with:
@@ -305,11 +310,23 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.PYPI_TOKEN_TEST }}
-        repository_url: https://test.pypi.org/legacy/
+        repository-url: https://test.pypi.org/legacy/
 
-    - name: Publish package
-      if: startsWith(github.ref, 'refs/tags/') && ! endsWith(github.ref, '-test')
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_TOKEN }}
+  publish:
+    name: Publish to PyPI
+    needs: release
+    if: github.event_name == 'create' && github.event.ref_type == 'tag' && !endsWith(github.ref_name, '-test')
+    runs-on: ubuntu-latest
+    # Matches the PyPI publisher for kivy/pyjnius, create.yml, environment pypi.
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: wheels-*
+          path: dist
+          merge-multiple: true
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
