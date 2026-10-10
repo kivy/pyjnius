@@ -2,7 +2,6 @@
 Test calling non-static methods on classes.
 '''
 
-from __future__ import absolute_import
 import unittest
 from jnius import (autoclass, JavaClass, JavaException, JavaField, JavaMethod,
                    JavaMultipleMethod, MetaJavaClass)

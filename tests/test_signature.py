@@ -13,7 +13,7 @@ class _TestImplemIterator(PythonJavaClass):
         'java/util/ListIterator', ]
 
     def __init__(self, collection, index=0):
-        super(_TestImplemIterator, self).__init__()
+        super().__init__()
         self.collection = collection
         self.index = index
 
@@ -58,7 +58,7 @@ class _TestImplem(PythonJavaClass):
     __javainterfaces__ = ['java/util/List']
 
     def __init__(self, *args):
-        super(_TestImplem, self).__init__(*args)
+        super().__init__(*args)
         self.data = list(args)
 
     @with_signature(autoclass("java.util.Iterator"), [])

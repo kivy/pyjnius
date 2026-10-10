@@ -644,7 +644,7 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
             bytes: 'B',
             str: 'Ljava/lang/String;',
         }
-        for _type, override in conversions.iteritems():
+        for _type, override in conversions.items():
             if isinstance(pyarray[0], _type):
                 definition = override
                 break

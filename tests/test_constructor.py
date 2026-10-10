@@ -2,7 +2,6 @@
 Test creating an instance of a Java class and fetching its values.
 '''
 
-from __future__ import absolute_import
 import unittest
 from jnius import autoclass, JavaException
 

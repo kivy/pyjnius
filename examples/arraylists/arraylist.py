@@ -3,7 +3,6 @@
 Example of nested ArrayList and passing empty tuple/list to Java functions.
 '''
 
-from __future__ import unicode_literals, print_function
 from jnius import autoclass, cast  # pylint: disable=import-error
 
 String = autoclass('java.lang.String')

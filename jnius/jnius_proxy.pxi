@@ -1,6 +1,6 @@
-class java_method(object):
+class java_method:
     def __init__(self, signature, name=None):
-        super(java_method, self).__init__()
+        super().__init__()
         self.signature = signature
         self.name = name
 
@@ -13,7 +13,7 @@ class java_method(object):
         return f
 
 
-cdef class PythonJavaClass(object):
+cdef class PythonJavaClass:
     '''
     Base class to create a java class from python
     '''
