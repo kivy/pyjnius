@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-python@v7
         if: github.event_name == 'create' && github.event.ref_type == 'tag'
         with:
-          python-version: '3.14'
+          python-version: '3.15'
       - name: Check release tag against package version
         if: github.event_name == 'create' && github.event.ref_type == 'tag'
         env:
@@ -227,7 +227,7 @@ jobs:
 
       - uses: actions/setup-python@v7
         with:
-          python-version: '3.14'
+          python-version: '3.15'
           architecture: x86
 
       - uses: actions/setup-java@v6
