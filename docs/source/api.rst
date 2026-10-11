@@ -109,6 +109,36 @@ Reflection classes
 
     Reflection of a Java method.
 
+    An instance method obtained from a Java object stays bound to that object
+    when saved locally, on a Python instance, or on an unrelated Python class.
+    Access through the Python class or its instances does not add a Python
+    receiver argument. Later method lookups on other Java objects do not change
+    the saved callable's receiver, and the callable keeps that receiver alive::
+
+        from jnius import autoclass
+
+        String = autoclass('java.lang.String')
+        original = String('original')
+
+        class Holder:
+            replace = original.replaceAll
+            substring = original.substring
+
+        assert Holder.replace('original', 'changed') == 'changed'
+        assert Holder().replace('original', 'changed') == 'changed'
+        assert Holder.substring(0, 4) == 'orig'
+        assert Holder().substring(0, 4) == 'orig'
+
+        other_replace = String('other').replaceAll
+        assert other_replace('other', 'second') == 'second'
+        assert Holder.replace('original', 'changed') == 'changed'
+
+    Saved callables also provide ``.signatures()``. Access through the Java
+    class itself still returns the method descriptor: calling a non-static
+    method without a Java receiver raises :class:`JavaException`. Static
+    methods obtained from a Java class remain callable when stored on a Python
+    class and accessed through that class or its instances.
+
     .. method:: __init__(signature, static=False)
 
         Create a reflection of a Java method. The signature is in the JNI
@@ -181,6 +211,8 @@ Reflection classes
 .. class:: JavaMultipleMethod
 
     Reflection of a Java method that can be called from multiple signatures.
+    Saved instance methods retain their receiver as described for
+    :class:`JavaMethod`, including when stored on a Python class.
     For example, the method `getBytes` in the `String` class can be called
     from::
 
