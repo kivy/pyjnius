@@ -118,15 +118,28 @@ class ReflectTest(unittest.TestCase):
     )
     def test_named_logger_from_python(self):
         Logger = autoclass('java.util.logging.Logger')
-        logger = Logger.getLogger('org.jnius.issue623')
-        self.assertEqual('org.jnius.issue623', logger.getName())
-        self.assertEqual(logger.hashCode(), Logger.getLogger('org.jnius.issue623').hashCode())
+        for _ in range(2):
+            logger = Logger.getLogger('org.jnius.issue623')
+            self.assertEqual('org.jnius.issue623', logger.getName())
+            self.assertEqual(
+                logger.hashCode(),
+                Logger.getLogger('org.jnius.issue623').hashCode()
+            )
 
         # The two-String overload still reports ordinary Java bundle errors,
         # rather than failing because the JNI caller has no Java frame.
-        with self.assertRaises(JavaException) as caught:
-            Logger.getLogger('org.jnius.issue623.bundle', 'org.jnius.missing.bundle')
-        self.assertEqual('java.util.MissingResourceException', caught.exception.classname)
+        for _ in range(2):
+            with self.assertRaises(JavaException) as caught:
+                Logger.getLogger(
+                    'org.jnius.issue623.bundle', 'org.jnius.missing.bundle'
+                )
+            self.assertEqual(
+                'java.util.MissingResourceException', caught.exception.classname
+            )
+
+        String = autoclass('java.lang.String')
+        for _ in range(2):
+            self.assertEqual('42', String.valueOf(42))
 
     @pytest.mark.skipif(
         sys.platform == 'android' or 'ANDROID_ARGUMENT' in os.environ,

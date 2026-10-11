@@ -785,6 +785,7 @@ cdef class JavaMethod(object):
     cdef definition
     cdef object is_static
     cdef bint is_varargs
+    cdef bint use_logger_caller
     cdef object definition_return
     cdef object definition_args
 
@@ -792,6 +793,7 @@ cdef class JavaMethod(object):
         self.j_method = NULL
         self.j_cls = NULL
         self.j_self = None
+        self.use_logger_caller = False
 
     def signatures(self):
         return list([readable_sig(self.definition, self.is_varargs)])
@@ -834,6 +836,12 @@ cdef class JavaMethod(object):
         self.name = name
         self.classname = classname
         self.j_cls = j_cls
+        self.use_logger_caller = (
+            JNIUS_PLATFORM != "android" and
+            classname == b'java/util/logging/Logger' and
+            name == b'getLogger' and self.definition in (
+                '(Ljava/lang/String;)Ljava/util/logging/Logger;',
+                '(Ljava/lang/String;Ljava/lang/String;)Ljava/util/logging/Logger;'))
 
     def __get__(self, obj, objtype):
         if obj is None:
@@ -991,13 +999,6 @@ cdef class JavaMethod(object):
         check_exception(j_env)
         return ret
 
-    cdef bint needs_logger_caller(self):
-        # Reflection stores class/method names as bytes, but the signature as str.
-        return (self.classname == b'java/util/logging/Logger' and
-                self.name == b'getLogger' and self.definition in (
-                    '(Ljava/lang/String;)Ljava/util/logging/Logger;',
-                    '(Ljava/lang/String;Ljava/lang/String;)Ljava/util/logging/Logger;'))
-
     cdef jobject call_logger_with_java_caller(self, JNIEnv *j_env,
                                               jvalue *j_args) except *:
         # Logger.getLogger needs a Java caller frame; JNI alone provides none.
@@ -1090,7 +1091,7 @@ cdef class JavaMethod(object):
                         j_env, self.j_cls, self.j_method, j_args)
             ret = <double>j_double
         elif r == 'L':
-            if JNIUS_PLATFORM != "android" and self.needs_logger_caller():
+            if self.use_logger_caller:
                 j_object = self.call_logger_with_java_caller(j_env, j_args)
             else:
                 with nogil:
