@@ -774,12 +774,32 @@ cdef class JavaField(object):
         return ret
 
 
+cdef class BoundJavaMethod:
+    # Keep both the proxy's class storage and the captured JNI reference alive.
+    # No __get__: storing this callable on a Python class must not rebind it.
+    cdef object method
+    cdef JavaClass owner
+    cdef LocalRef receiver
+
+    def __init__(self, method, JavaClass owner):
+        self.method = method
+        self.owner = owner
+        self.receiver = owner.j_self
+
+    def signatures(self):
+        return self.method.signatures()
+
+    def __call__(self, *args, **kwargs):
+        if isinstance(self.method, JavaMethod):
+            return (<JavaMethod>self.method).invoke(self.receiver, args, kwargs)
+        return (<JavaMultipleMethod>self.method).invoke(self.receiver, args, kwargs)
+
+
 cdef class JavaMethod(object):
     '''Used to resolve a Java method, and do the call
     '''
     cdef jmethodID j_method
     cdef jclass j_cls
-    cdef LocalRef j_self
     cdef name
     cdef classname
     cdef definition
@@ -792,7 +812,6 @@ cdef class JavaMethod(object):
     def __cinit__(self, definition, **kwargs):
         self.j_method = NULL
         self.j_cls = NULL
-        self.j_self = None
         self.use_logger_caller = False
 
     def signatures(self):
@@ -844,23 +863,23 @@ cdef class JavaMethod(object):
                 '(Ljava/lang/String;Ljava/lang/String;)Ljava/util/logging/Logger;'))
 
     def __get__(self, obj, objtype):
-        if obj is None:
-            self.j_self = None
+        if obj is None or self.is_static:
             return self
-        # XXX FIXME we MUST not change our own j_self, but return a "bound"
-        # method here, as python does!
+        # Each bound callable owns its receiver independently of the descriptor.
         cdef JavaClass jc = obj
-        self.j_self = jc.j_self
-        return self
+        return BoundJavaMethod(self, jc)
 
     def __call__(self, *args, **kwargs):
+        return self.invoke(None, args, kwargs)
+
+    cdef invoke(self, LocalRef receiver, tuple args, dict kwargs):
         # argument array to pass to the method
         cdef jvalue *j_args = NULL
         cdef tuple d_args = self.definition_args
         cdef int d_args_len = len(d_args)
         cdef JNIEnv *j_env = get_jnienv()
 
-        if not self.is_static and self.j_self is None:
+        if not self.is_static and receiver is None:
             raise JavaException(
                 'Cannot call instance method {} on class {}'.format(
                     self.name, self.classname
@@ -902,7 +921,7 @@ cdef class JavaMethod(object):
                 # do the call
                 if self.is_static:
                     return self.call_staticmethod(j_env, j_args)
-                return self.call_method(j_env, j_args)
+                return self.call_method(j_env, receiver, j_args)
             finally:
                 release_args(j_env, self.definition_args, pass_by_reference, j_args, args)
 
@@ -910,7 +929,7 @@ cdef class JavaMethod(object):
             if j_args != NULL:
                 free(j_args)
 
-    cdef call_method(self, JNIEnv *j_env, jvalue *j_args):
+    cdef call_method(self, JNIEnv *j_env, LocalRef receiver, jvalue *j_args):
         cdef jboolean j_boolean
         cdef jbyte j_byte
         cdef jchar j_char
@@ -925,7 +944,7 @@ cdef class JavaMethod(object):
         cdef object ret = None
         cdef JavaObject ret_jobject
         cdef JavaClass ret_jc
-        cdef jobject j_self = self.j_self.obj
+        cdef jobject j_self = receiver.obj
 
         # return type of the java method
         r = self.definition_return[0]
@@ -1120,7 +1139,6 @@ cdef class JavaMethod(object):
 
 cdef class JavaMultipleMethod(object):
 
-    cdef LocalRef j_self
     cdef list definitions
     cdef dict static_methods
     cdef dict instance_methods
@@ -1129,9 +1147,6 @@ cdef class JavaMultipleMethod(object):
 
     def signatures(self):
         return [readable_sig(args, is_varargs) for args, static, is_varargs in self.definitions]
-
-    def __cinit__(self, definition, **kwargs):
-        self.j_self = None
 
     def __init__(self, definitions, **kwargs):
         super(JavaMultipleMethod, self).__init__()
@@ -1142,13 +1157,13 @@ cdef class JavaMultipleMethod(object):
 
     def __get__(self, obj, objtype):
         if obj is None:
-            self.j_self = None
             return self
-        # XXX FIXME we MUST not change our own j_self, but return a "bound"
-        # method here, as python does!
+        # Reused static descriptors keep class-call semantics on Python objects.
+        # Cython checks the extension type, not MetaJavaBase.__instancecheck__.
+        if not isinstance(obj, JavaClass) and self.static_methods:
+            return self
         cdef JavaClass jc = obj
-        self.j_self = jc.j_self
-        return self
+        return BoundJavaMethod(self, jc)
 
     cdef void set_resolve_info(self, JNIEnv *j_env, jclass j_cls,
             jboolean resolve_static, bytes name, bytes classname):
@@ -1174,6 +1189,9 @@ cdef class JavaMultipleMethod(object):
                 self.instance_methods[signature] = jm
 
     def __call__(self, *args, **kwargs):
+        return self.invoke(None, args, kwargs)
+
+    cdef invoke(self, LocalRef receiver, tuple args, dict kwargs):
         # try to match our args to a signature
         cdef JavaMethod jm
         cdef list scores = []
@@ -1182,7 +1200,7 @@ cdef class JavaMultipleMethod(object):
         cdef list found_signatures = []
         debug = kwargs.get("debug", False)
 
-        if self.j_self:
+        if receiver is not None:
             methods = self.instance_methods
         else:
             methods = self.static_methods
@@ -1207,7 +1225,7 @@ cdef class JavaMultipleMethod(object):
         if not scores:
             raise JavaException(
                 'No {}methods called {} in {} matching your arguments, requested: {}, available: {}'.format(
-                    '' if self.j_self else 'static ',
+                    '' if receiver is not None else 'static ',
                     self.name.decode("utf-8"),
                     self.classname.decode("utf-8"),
                     args,
@@ -1221,8 +1239,7 @@ cdef class JavaMultipleMethod(object):
             print("Selected %s for invocation" % signature)
 
         jm = methods[signature]
-        jm.j_self = self.j_self
-        return jm.__call__(*args, **kwargs)
+        return jm.invoke(receiver, args, kwargs)
 
 
 class JavaStaticMethod(JavaMethod):
