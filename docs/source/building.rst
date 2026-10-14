@@ -8,7 +8,7 @@ pre-built binary for your particular platform.
 
 Building PyJNIus requires a  `Java Development Kit
 <https://www.oracle.com/java/technologies/downloads/>`_  (JDK)
-to be installed (NB: installing pre-built wheels required only a JRE).
+to be installed (NB: installing pre-built wheels require only a JRE).
 
 Apart from the JDK, the build requirements for each platform are as follows:
 

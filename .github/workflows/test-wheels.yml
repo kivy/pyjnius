@@ -3,7 +3,7 @@ on:
     pull_request:
     create:
   
-name: Continuous Integration - Testing Wheels on JREs
+name: Continuous Integration - Testing Wheels on JRE
 jobs:
   build_test_jar:
     runs-on: 'ubuntu-latest'
