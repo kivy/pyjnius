@@ -71,24 +71,26 @@ if PLATFORM != 'android':
     assert JAVA.is_jdk(), "You need a JDK, we only found a JRE. Try setting JAVA_HOME"
 
 
-def compile_native_invocation_handler(java):
-    '''Find javac and compile NativeInvocationHandler.java.'''
+def compile_java_helpers(java):
+    '''Find javac and compile the desktop Java bridge classes.'''
     javac = java.get_javac()
     source_level = '8'
+    sources = [join('jnius', 'src', 'org', 'jnius', filename) for filename in (
+        'NativeInvocationHandler.java', 'LoggerHelper.java')]
     try:
         subprocess.check_call([
             javac, '-target', source_level, '-source', source_level,
-            join('jnius', 'src', 'org', 'jnius', 'NativeInvocationHandler.java')
+            *sources
         ])
     except FileNotFoundError:
         subprocess.check_call([
             javac.replace('"', ''), '-target', source_level, '-source', source_level,
-            join('jnius', 'src', 'org', 'jnius', 'NativeInvocationHandler.java')
+            *sources
         ])
 
 
 if PLATFORM != 'android':
-    compile_native_invocation_handler(JAVA)
+    compile_java_helpers(JAVA)
 
 
 # generate the config.pxi

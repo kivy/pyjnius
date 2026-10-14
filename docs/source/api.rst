@@ -8,6 +8,45 @@ API
 
 This part of the documentation covers all the interfaces of PyJNIus.
 
+Java exceptions
+---------------
+
+.. class:: JavaException
+
+    Python exception raised for Java throwables and for some PyJNIus call errors.
+    When Java throws, ``classname`` holds the Java class name,
+    ``innermessage`` holds its message, and ``stacktrace`` is a list of Java
+    stack frames and causes. For a PyJNIus-side error these attributes may be
+    ``None``.
+
+For example, inspect a Java exception's trace with::
+
+    from jnius import JavaException, autoclass
+
+    try:
+        autoclass('java.util.Stack')().pop()
+    except JavaException as exc:
+        print(exc.classname)
+        print('\n'.join(exc.stacktrace or []))
+
+The Java trace is also included when the exception is printed.
+
+Some Java methods inspect their Java caller. On desktop JVMs,
+``java.util.logging.Logger.getLogger(name)`` is one such method: a direct JNI
+call has no Java caller frame. PyJNIus invokes its public string overloads
+through a bundled Java helper so that named logger creation works without
+changing JVM-wide caller checks::
+
+    Logger = autoclass('java.util.logging.Logger')
+    logger = Logger.getLogger('my.application')
+
+For these desktop calls, the helper is the Java caller (including for resource
+bundle lookup). If the helper is unavailable on the JVM classpath, PyJNIus
+falls back to the original direct call; that call may still raise a Java
+exception on JVMs requiring a caller frame. This is specific to the public
+``Logger.getLogger`` string overloads, not general caller-sensitive method
+support. Android uses its own JVM integration.
+
 Reflection classes
 ------------------
 
@@ -69,6 +108,36 @@ Reflection classes
 .. class:: JavaMethod
 
     Reflection of a Java method.
+
+    An instance method obtained from a Java object stays bound to that object
+    when saved locally, on a Python instance, or on an unrelated Python class.
+    Access through the Python class or its instances does not add a Python
+    receiver argument. Later method lookups on other Java objects do not change
+    the saved callable's receiver, and the callable keeps that receiver alive::
+
+        from jnius import autoclass
+
+        String = autoclass('java.lang.String')
+        original = String('original')
+
+        class Holder:
+            replace = original.replaceAll
+            substring = original.substring
+
+        assert Holder.replace('original', 'changed') == 'changed'
+        assert Holder().replace('original', 'changed') == 'changed'
+        assert Holder.substring(0, 4) == 'orig'
+        assert Holder().substring(0, 4) == 'orig'
+
+        other_replace = String('other').replaceAll
+        assert other_replace('other', 'second') == 'second'
+        assert Holder.replace('original', 'changed') == 'changed'
+
+    Saved callables also provide ``.signatures()``. Access through the Java
+    class itself still returns the method descriptor: calling a non-static
+    method without a Java receiver raises :class:`JavaException`. Static
+    methods obtained from a Java class remain callable when stored on a Python
+    class and accessed through that class or its instances.
 
     .. method:: __init__(signature, static=False)
 
@@ -142,6 +211,8 @@ Reflection classes
 .. class:: JavaMultipleMethod
 
     Reflection of a Java method that can be called from multiple signatures.
+    Saved instance methods retain their receiver as described for
+    :class:`JavaMethod`, including when stored on a Python class.
     For example, the method `getBytes` in the `String` class can be called
     from::
 

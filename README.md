@@ -27,6 +27,7 @@ It can also be used independently of Kivy, on desktop and mobile platforms.
 [![Tests](https://github.com/kivy/pyjnius/workflows/Continuous%20Integration/badge.svg)](https://github.com/kivy/pyjnius/actions)
 [![Tests (x86)](https://github.com/kivy/pyjnius/workflows/Continuous%20Integration%20(x86)/badge.svg)](https://github.com/kivy/pyjnius/actions)
 [![Builds](https://github.com/kivy/pyjnius/workflows/Continuous%20Delivery/badge.svg)](https://github.com/kivy/pyjnius/actions)
+[![Coverage Status](https://coveralls.io/repos/github/kivy/pyjnius/badge.svg?branch=master)](https://coveralls.io/github/kivy/pyjnius?branch=master)
 
 
 Installation
@@ -114,8 +115,7 @@ need. The previous example can be done manually as follows:
 from time import sleep
 from jnius import MetaJavaClass, JavaClass, JavaMethod, JavaStaticMethod
 
-class Hardware(JavaClass):
-    __metaclass__ = MetaJavaClass
+class Hardware(JavaClass, metaclass=MetaJavaClass):
     __javaclass__ = 'org/renpy/android/Hardware'
     vibrate = JavaStaticMethod('(D)V')
     accelerometerEnable = JavaStaticMethod('(Z)V')
@@ -125,7 +125,7 @@ class Hardware(JavaClass):
 # use that new class!
 print('DPI is', Hardware.getDPI())
 
-Hardware.accelerometerEnable()
+Hardware.accelerometerEnable(True)
 for x in range(20):
     print(Hardware.accelerometerReading())
     sleep(0.1)
