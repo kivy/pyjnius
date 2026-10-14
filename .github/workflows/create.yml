@@ -164,7 +164,6 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          java-package: 'jre'
           architecture: ${{ matrix.architecture }}
 
       - name: Setup ant on macOS
