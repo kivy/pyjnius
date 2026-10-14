@@ -92,8 +92,6 @@ jobs:
         env:
           CIBW_ARCHS: 'x86_64' # '${{ matrix.cibw_archs }}'
         run: |
-          source .ci/utils.sh
-          ensure_python_version 3.11
           python -m pip install cibuildwheel~=2.16.2
           python -m cibuildwheel --output-dir dist
 
@@ -156,16 +154,12 @@ jobs:
         # --find-links=dist --no-index is needed to avoid downloading the pyjnius wheel
         # from the index. We need to test the wheel we just built.
         run: |
-          source .ci/utils.sh
-          ensure_python_version 3.11
           python -m pip install --find-links=dist --no-index pyjnius
           python -m pip install pyjnius[dev,ci]
 
       - name: Test wheel (Linux, macOS)
         #if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'kivy-ubuntu-arm64') || (matrix.os == 'macos-latest') || (matrix.os == 'apple-silicon-m1')
         run: |
-          source .ci/utils.sh
-          ensure_python_version 3.11
           cd tests
           CLASSPATH=../build/test-classes:../build/classes python -m pytest -v
 
