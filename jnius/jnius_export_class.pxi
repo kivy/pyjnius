@@ -24,7 +24,7 @@ class JavaException(Exception):
         return rtr
 
 
-cdef class JavaObject(object):
+cdef class JavaObject:
     '''Can contain any Java object. Used to store instance, or whatever.
     '''
 
@@ -112,7 +112,7 @@ class MetaJavaBase(type):
                                 return True
 
         # All else fails, defer to python.
-        return super(MetaJavaBase, cls).__instancecheck__(value)
+        return super().__instancecheck__(value)
 
 
 cdef dict jclass_register = {}
@@ -136,7 +136,7 @@ class MetaJavaClass(MetaJavaBase):
         if isinstance(self.__dict__.get(name), JavaStaticField):
             self.__dict__[name].__set__(self, value)
         else:
-            super(MetaJavaClass, self).__setattr__(name, value)
+            super().__setattr__(name, value)
 
     def __subclasscheck__(cls, value):
         cdef JNIEnv *j_env = get_jnienv()
@@ -164,7 +164,7 @@ class MetaJavaClass(MetaJavaBase):
             if 0 != j_env[0].IsAssignableFrom(j_env, obj, me.j_cls):
                 return True
 
-        return super(MetaJavaClass, cls).__subclasscheck__(value)
+        return super().__subclasscheck__(value)
 
     @staticmethod
     def get_javaclass(name, classparams=(False, False)):
@@ -263,7 +263,7 @@ class MetaJavaClass(MetaJavaBase):
                 str_for_c(name), str_for_c(__javaclass__))
 
 
-cdef class JavaClass(object):
+cdef class JavaClass:
     '''Main class to do introspection.
     '''
 
@@ -276,7 +276,7 @@ cdef class JavaClass(object):
         self.j_self = None
 
     def __init__(self, *args, **kwargs):
-        super(JavaClass, self).__init__()
+        super().__init__()
         # copy the current attribute in the storage to our class
         cdef JavaClassStorage jcs = getattr(self, CLS_STORAGE_NAME, None)
         self.j_cls = jcs.j_cls
@@ -454,7 +454,7 @@ cdef class JavaClass(object):
                 self.j_self)
 
 
-cdef class JavaField(object):
+cdef class JavaField:
     cdef jfieldID j_field
     cdef JNIEnv *j_env
     cdef jclass j_cls
@@ -468,7 +468,7 @@ cdef class JavaField(object):
         self.j_cls = NULL
 
     def __init__(self, definition, **kwargs):
-        super(JavaField, self).__init__()
+        super().__init__()
         self.definition = definition
         self.is_static = kwargs.get('static', False)
 
@@ -795,7 +795,7 @@ cdef class BoundJavaMethod:
         return (<JavaMultipleMethod>self.method).invoke(self.receiver, args, kwargs)
 
 
-cdef class JavaMethod(object):
+cdef class JavaMethod:
     '''Used to resolve a Java method, and do the call
     '''
     cdef jmethodID j_method
@@ -818,7 +818,7 @@ cdef class JavaMethod(object):
         return list([readable_sig(self.definition, self.is_varargs)])
 
     def __init__(self, definition, **kwargs):
-        super(JavaMethod, self).__init__()
+        super().__init__()
         self.definition = definition
         self.definition_return, self.definition_args = parse_definition(
             definition
@@ -1137,7 +1137,7 @@ cdef class JavaMethod(object):
         return ret
 
 
-cdef class JavaMultipleMethod(object):
+cdef class JavaMultipleMethod:
 
     cdef list definitions
     cdef dict static_methods
@@ -1149,7 +1149,7 @@ cdef class JavaMultipleMethod(object):
         return [readable_sig(args, is_varargs) for args, static, is_varargs in self.definitions]
 
     def __init__(self, definitions, **kwargs):
-        super(JavaMultipleMethod, self).__init__()
+        super().__init__()
         self.definitions = definitions
         self.static_methods = {}
         self.instance_methods = {}
@@ -1245,10 +1245,10 @@ cdef class JavaMultipleMethod(object):
 class JavaStaticMethod(JavaMethod):
     def __init__(self, definition, **kwargs):
         kwargs['static'] = True
-        super(JavaStaticMethod, self).__init__(definition, **kwargs)
+        super().__init__(definition, **kwargs)
 
 
 class JavaStaticField(JavaField):
     def __init__(self, definition, **kwargs):
         kwargs['static'] = True
-        super(JavaStaticField, self).__init__(definition, **kwargs)
+        super().__init__(definition, **kwargs)

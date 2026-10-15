@@ -1,10 +1,9 @@
-from __future__ import absolute_import
 import unittest
 from jnius import autoclass, protocol_map
 
 class ComparableTest(unittest.TestCase):
     def __init__(self, *args, **kwargs):
-        super(ComparableTest, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
     
     def test_compare_integer(self):
         five = autoclass('java.lang.Integer')(5)

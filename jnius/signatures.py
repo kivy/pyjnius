@@ -41,7 +41,7 @@ from . import java_method
 ''' Type specifiers for primitives '''
 
 
-class _JavaSignaturePrimitive(object):
+class _JavaSignaturePrimitive:
     _spec = ""
 
 

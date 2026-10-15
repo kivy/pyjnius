@@ -2,7 +2,6 @@
 Test creating for java.io.Closeable dunder
 '''
 
-from __future__ import absolute_import
 import unittest
 from jnius import autoclass, JavaException, protocol_map
 
