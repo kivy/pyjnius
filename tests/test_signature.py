@@ -1,3 +1,4 @@
+import gc
 import unittest
 
 from jnius import autoclass, java_method, PythonJavaClass, cast
@@ -60,10 +61,12 @@ class _TestImplem(PythonJavaClass):
     def __init__(self, *args):
         super(_TestImplem, self).__init__(*args)
         self.data = list(args)
+        self._iterators = []
 
     @with_signature(autoclass("java.util.Iterator"), [])
     def iterator(self):
         it = _TestImplemIterator(self)
+        self._iterators.append(it)
         return it
 
     @with_signature(JString, [])
@@ -91,19 +94,28 @@ class _TestImplem(PythonJavaClass):
     @with_signature(JListIterator, [])
     def listIterator(self):
         it = _TestImplemIterator(self)
+        self._iterators.append(it)
         return it
 
-    # TODO cover this case of listIterator.
     @java_method(signature(JListIterator, [jint]),
-                         name='ListIterator')
+                         name='listIterator')
     def listIteratorI(self, index):
         it = _TestImplemIterator(self, index)
+        self._iterators.append(it)
         return it
 
 
 from jnius.reflect import autoclass
 
 class SignaturesTest(unittest.TestCase):
+
+    def test_indexed_list_iterator_survives_python_gc(self):
+        collection = _TestImplem(*range(10))
+        java_list = cast('java/util/List', collection.j_self)
+        iterator = java_list.listIterator(3)
+        gc.collect()
+        self.assertTrue(iterator.hasNext())
+        self.assertEqual(iterator.next(), 3)
 
     def test_construct_stack_from_testimplem(self):
         Stack = autoclass("java.util.Stack")
