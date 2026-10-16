@@ -57,7 +57,7 @@ jobs:
           CIBW_ARCHS: 'x86_64'
           CIBW_BUILD: 'cp${{ env.PYTHON_VERSION_CIBUILDWHEELS }}-*'
           CIBW_BEFORE_ALL_LINUX: 'yum install -y java-${{ env.JAVA_VERSION }}-openjdk-devel'
-          CIBW_SKIP: 'cp36-* *musllinux*'
+          CIBW_SKIP: '*musllinux*'
         run: |
           python -m pip install cibuildwheel~=${{ env.CIBUILDWHEEL_VERSION }}
           python -m cibuildwheel --output-dir dist
