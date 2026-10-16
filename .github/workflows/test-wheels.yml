@@ -79,12 +79,12 @@ jobs:
       - name: Checkout pyjnius
         uses: actions/checkout@v7
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: test-classes
           path: build/test-classes
