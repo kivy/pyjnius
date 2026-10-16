@@ -186,6 +186,11 @@ cdef create_proxy_instance(JNIEnv *j_env, py_obj, j_interfaces, javacontext):
         j_obj = Proxy.newProxyInstance(
                 classLoader, j_interfaces, nih)
 
+    elif javacontext == 'dex':
+        classLoader = get_dex_class_loader_python()
+        j_obj = Proxy.newProxyInstance(
+                classLoader, j_interfaces, nih)
+
     else:
         raise Exception(
                 'Invalid __javacontext__ {}, must be app or system.'.format(
