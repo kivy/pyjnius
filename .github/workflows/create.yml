@@ -121,11 +121,10 @@ jobs:
           path: dist
 
   test_wheels:
-    name: Test wheel on ${{ matrix.os }} (${{ matrix.architecture }}) Python ${{ matrix.python }}
+    name: Test wheel on ${{ matrix.os }} (${{ matrix.architecture }}) Python ${{ matrix.python }} Java ${{ matrix.runtime_java || '17' }}
     if: (github.event_name == 'create' && github.event.ref_type == 'tag') || contains(github.event.head_commit.message, '[build wheel]') || contains(github.event.pull_request.title, '[build wheel]')
     needs:
       - build_wheels
-    continue-on-error: true
     strategy:
       matrix:
         os: ['ubuntu-latest', 'macos-latest', 'windows-latest', 'ubuntu-24.04-arm', 'macos-15-intel']
@@ -149,6 +148,12 @@ jobs:
           - os: macos-latest
             architecture: 'aarch64'
             wheel_upload_pool: 'macos-latest-x64'
+          # One independent old-runtime check of the Linux release wheel.
+          - os: ubuntu-latest
+            python: '3.14'
+            architecture: 'x64'
+            wheel_upload_pool: 'ubuntu-latest-x64'
+            runtime_java: '8'
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -168,7 +173,7 @@ jobs:
       - name: Setup java
         uses: actions/setup-java@v6
         with:
-          java-version: '17'
+          java-version: ${{ matrix.runtime_java || '17' }}
           distribution: 'temurin'
           architecture: ${{ matrix.architecture }}
 
@@ -183,7 +188,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -y ant
 
       - name: Build test-classes via ant
-        run: ant all
+        run: ant test-compile
 
       - name: Install pyjnius wheel + test prerequisites (Windows, macOS)
         if: matrix.os == 'windows-latest' || matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel'
@@ -205,13 +210,13 @@ jobs:
         if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'ubuntu-24.04-arm') || (matrix.os == 'macos-latest') || (matrix.os == 'macos-15-intel')
         run: |
           cd tests
-          CLASSPATH=../build/test-classes:../build/classes python -m pytest -v
+          CLASSPATH=../build/test-classes python -m pytest -v
 
       - name: Test wheel (Windows)
         if: matrix.os == 'windows-latest'
         run: |
           cd tests
-          $env:CLASSPATH ="../build/test-classes;../build/classes"
+          $env:CLASSPATH ="../build/test-classes"
           python -m pytest -v
   
 
@@ -243,7 +248,7 @@ jobs:
         run: python -c "import struct; assert struct.calcsize('P') == 4"
 
       - name: Build test classes via ant
-        run: ant all
+        run: ant test-compile
 
       - name: Install win32 wheel from artifact
         run: python -m pip install --find-links=dist --no-index pyjnius
@@ -257,7 +262,7 @@ jobs:
       - name: Test win32 wheel with JVM
         run: |
           $env:PATH += ";$env:JAVA_HOME\jre\bin\server\;$env:JAVA_HOME\jre\bin\client\;$env:JAVA_HOME\bin\server\"
-          $env:CLASSPATH = "../build/test-classes;../build/classes"
+          $env:CLASSPATH = "../build/test-classes"
           cd tests
           python -m pytest -v
 
