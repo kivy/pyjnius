@@ -73,6 +73,7 @@ jobs:
     name: Test wheel
     needs:
       - build_wheels
+      - build_test_jar
     runs-on: 'ubuntu-latest'
     steps:
 
@@ -103,7 +104,8 @@ jobs:
 
       - name: Install pyjnius wheel + test prerequisites
         run: |
-          python -m pip install --find-links=dist --no-index pyjnius[dev,ci]
+          python -m pip install --find-links=dist --no-index pyjnius
+          python -m pip install pyjnius[dev,ci]
 
       - name: Test wheel
         run: |
