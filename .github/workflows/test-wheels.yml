@@ -44,7 +44,7 @@ jobs:
       - name: Checkout pyjnius
         uses: actions/checkout@v7
 
-      - name: Setup Python (Ubuntu x86_64, macOS Intel, Windows x86_64)
+      - name: Setup Python
         uses: actions/setup-python@v7
         with:
           python-version: '3.x'
