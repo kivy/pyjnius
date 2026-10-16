@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-from __future__ import division
 from collections import defaultdict
 import logging
 
@@ -182,12 +179,10 @@ def log_method(method, name, signature):
 def identify_hierarchy(cls, level, concrete=True):
     supercls = cls.getSuperclass()
     if supercls is not None:
-         for sup, lvl in identify_hierarchy(supercls, level + 1, concrete=concrete):
-             yield sup, lvl # we could use yield from when we drop python2
+        yield from identify_hierarchy(supercls, level + 1, concrete=concrete)
     interfaces = cls.getInterfaces()
     for interface in interfaces or []:
-        for sup, lvl in identify_hierarchy(interface, level + 1, concrete=concrete):
-            yield sup, lvl
+        yield from identify_hierarchy(interface, level + 1, concrete=concrete)
     # all object extends Object, so if this top interface in a hierarchy, yield Object
     if not concrete and cls.isInterface() and not interfaces:
         yield find_javaclass('java.lang.Object'), level +1
@@ -209,15 +204,15 @@ def autoclass(clsname, include_protected=True, include_private=True):
     # c = Class.forName(clsname)
     c = find_javaclass(clsname)
     if c is None:
-        raise Exception('Java class {0} not found'.format(c))
+        raise Exception(f'Java class {c} not found')
         return None
 
     classDict['_class'] = c
 
     constructors = []
     for constructor in c.getConstructors():
-        sig = '({0})V'.format(
-            ''.join([get_signature(x) for x in constructor.getParameterTypes()]))
+        param_sig = ''.join(get_signature(x) for x in constructor.getParameterTypes())
+        sig = f'({param_sig})V'
         constructors.append((sig, constructor.isVarArgs()))
     classDict['__javaconstructor__'] = constructors
 
@@ -296,9 +291,8 @@ def autoclass(clsname, include_protected=True, include_private=True):
             owningCls, method, level = cls_methods[name][0]
             static = Modifier.isStatic(method.getModifiers())
             varargs = method.isVarArgs()
-            sig = '({0}){1}'.format(
-                ''.join([get_signature(x) for x in method.getParameterTypes()]),
-                get_signature(method.getReturnType()))
+            param_sig = ''.join(get_signature(x) for x in method.getParameterTypes())
+            sig = f'({param_sig}){get_signature(method.getReturnType())}'
             if log.isEnabledFor(logging.DEBUG):
                 log_method(method, name, sig)
             classDict[name] = (JavaStaticMethod if static else JavaMethod)(sig, varargs=varargs)
@@ -319,20 +313,20 @@ def autoclass(clsname, include_protected=True, include_private=True):
             # we now identify if any have the same signature, as we will call the _lowest_ in the hierarchy,
             # as reflected in min level
             for owningCls, method, level in cls_methods[name]:
-                param_sig = ''.join([get_signature(x) for x in method.getParameterTypes()])
+                param_sig = ''.join(get_signature(x) for x in method.getParameterTypes())
                 log.debug("\t owner %s level %d param_sig %s" % (str(owningCls), level, param_sig))
                 if level < paramsig_to_level[param_sig]:
                     paramsig_to_level[param_sig] = level
 
             for owningCls, method, level in cls_methods[name]:
-                param_sig = ''.join([get_signature(x) for x in method.getParameterTypes()])
+                param_sig = ''.join(get_signature(x) for x in method.getParameterTypes())
                 # only accept the parameter signature at the deepest level of hierarchy (i.e. min level)
                 if level > paramsig_to_level[param_sig]:
                     log.debug("discarding %s name from %s at level %d" % (name, str(owningCls), level))
                     continue
 
                 return_sig = get_signature(method.getReturnType())
-                sig = '({0}){1}'.format(param_sig, return_sig)
+                sig = f'({param_sig}){return_sig}'
 
                 if log.isEnabledFor(logging.DEBUG):
                     log_method(method, name, sig)

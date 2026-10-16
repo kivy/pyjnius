@@ -58,7 +58,7 @@ class PythonJavaClass_(PythonJavaClass, metaclass=MetaJavaBase):
 
     @java_method('()Ljava/lang/String;', name='hashCode')
     def hashCode_(self):
-        return '{}'.format(self.hashCode())
+        return str(self.hashCode())
 
     @java_method('()Ljava/lang/String;', name='toString')
     def toString(self):

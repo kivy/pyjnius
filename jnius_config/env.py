@@ -236,8 +236,8 @@ class UnixJavaLocation(JavaLocation):
 
         return [
             'lib/server/libjvm.so',
-            'jre/lib/{}/default/libjvm.so'.format(cpu),
-            'jre/lib/{}/server/libjvm.so'.format(cpu),
+            f'jre/lib/{cpu}/default/libjvm.so',
+            f'jre/lib/{cpu}/server/libjvm.so',
         ]
 
 
@@ -259,8 +259,8 @@ class BSDJavaLocation(JavaLocation):
 
         return [
             'lib/server/libjvm.so',
-            'jre/lib/{}/default/libjvm.so'.format(cpu),
-            'jre/lib/{}/server/libjvm.so'.format(cpu),
+            f'jre/lib/{cpu}/default/libjvm.so',
+            f'jre/lib/{cpu}/server/libjvm.so',
         ]
 
 

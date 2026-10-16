@@ -57,30 +57,23 @@ Reflection classes
     :class:`JavaStaticMethod`, :class:`JavaField`, :class:`JavaStaticField`, and 
     you're done.
 
-    You need to define at minimum the :data:`__javaclass__` attribute, and set
-    the :data:`__metaclass__` to :class:`MetaJavaClass`.
+    You need to define at minimum the :data:`__javaclass__` attribute, and use
+    :class:`MetaJavaClass` as the metaclass.
 
     So the minimum class definition would look like::
 
         from jnius import JavaClass, MetaJavaClass
 
-        class Stack(JavaClass):
+        class Stack(JavaClass, metaclass=MetaJavaClass):
             __javaclass__ = 'java/util/Stack'
-            __metaclass__ = MetaJavaClass
 
-    .. attribute:: __metaclass__
+    .. note::
 
-        Must be set to :class:`MetaJavaClass`, otherwise, all the
-        methods/fields declared will be not linked to the JavaClass.
+        The ``metaclass=MetaJavaClass`` keyword is required to link the
+        declared methods and fields to the Java class.
 
-        .. note::
-
-            Make sure to choose the right metaclass specifier. In Python 2
-            there is ``__metaclass__`` class attribute, in Python 3 there is
-            a new syntax ``class Stack(JavaClass, metaclass=MetaJavaClass)``.
-
-            For more info see `PEP 3115
-            <https://www.python.org/dev/peps/pep-3115/>`_.
+        For more info see `PEP 3115
+        <https://www.python.org/dev/peps/pep-3115/>`_.
 
     .. attribute:: __javaclass__
 
@@ -94,9 +87,8 @@ Reflection classes
         constructor. For example,
         a reflection of the String java class would look like::
 
-            class String(JavaClass):
+            class String(JavaClass, metaclass=MetaJavaClass):
                 __javaclass__ = 'java/lang/String'
-                __metaclass__ = MetaJavaClass
                 __javaconstructor__ = (
                     ('()V', False),
                     ('(Ljava/lang/String;)V', False),
@@ -144,9 +136,8 @@ Reflection classes
         Create a reflection of a Java method. The signature is in the JNI
         format. For example::
 
-            class Stack(JavaClass):
+            class Stack(JavaClass, metaclass=MetaJavaClass):
                 __javaclass__ = 'java/util/Stack'
-                __metaclass__ = MetaJavaClass
 
                 peek = JavaMethod('()Ljava/lang/Object;')
                 empty = JavaMethod('()Z')
@@ -222,9 +213,8 @@ Reflection classes
 
     Let's see how you could declare that method::
 
-        class String(JavaClass):
+        class String(JavaClass, metaclass=MetaJavaClass):
             __javaclass__ = 'java/lang/String'
-            __metaclass__ = MetaJavaClass
 
             getBytes = JavaMultipleMethod([
                 ('(Ljava/lang/String;)[B', False, False),
@@ -316,8 +306,19 @@ Java class implementation in Python
         You can only implement Java interfaces. You cannot sub-class a java 
         object.
         
-        You must retain a reference to the Python object for the entire liftime
-        that your object is in-use within java.
+        You must retain a strong Python reference to the object for the entire
+        lifetime that Java can use it. The Java proxy stores a pointer to the
+        Python object, not an owning reference: neither a Java reference nor a
+        Python wrapper around the Java proxy keeps the Python implementation
+        alive.
+
+        This applies both to objects passed to Java and to objects returned from
+        Python callbacks, such as iterators or listeners. Returning a newly
+        created :class:`PythonJavaClass` instance without retaining it can leave
+        Java with a proxy whose Python implementation has been garbage
+        collected. Later callbacks can fail with errors such as a missing
+        ``__javamethods__`` attribute, or crash. Weak references do not prevent
+        this problem.
 
     For example, you could implement the `java/util/ListIterator` interface in
     Python like this::
@@ -328,13 +329,13 @@ Java class implementation in Python
             __javainterfaces__ = ['java/util/ListIterator']
 
             def __init__(self, collection, index=0):
-                super(PythonListIterator, self).__init__()
+                super().__init__()
                 self.collection = collection
                 self.index = index
 
             @java_method('()Z')
             def hasNext(self):
-                return self.index < len(self.collection.data) - 1
+                return self.index < len(self.collection.data)
 
             @java_method('()Ljava/lang/Object;')
             def next(self):
@@ -381,19 +382,62 @@ Java class implementation in Python
                 self.index += 1
                 return obj
 
-    Another example with the same Java method name, but 2 differents signatures::
+    Another example with the same Java method name, but two different signatures.
+    It retains the Python iterators so Java can safely call them::
     
         class TestImplem(PythonJavaClass):
             __javainterfaces__ = ['java/util/List']
 
+            def __init__(self, data):
+                super().__init__()
+                self.data = list(data)
+                self._iterators = []
+
+            def _retain_iterator(self, index=0):
+                iterator = PythonListIterator(self, index)
+                self._iterators.append(iterator)
+                return iterator
+
+            @java_method('()Ljava/util/Iterator;')
+            def iterator(self):
+                return self._retain_iterator()
+
             @java_method('()Ljava/util/ListIterator;')
             def listIterator(self):
-                return PythonListIterator(self)
+                return self._retain_iterator()
 
             @java_method('(I)Ljava/util/ListIterator;',
-                                 name='ListIterator')
+                                 name='listIterator')
             def listIteratorWithIndex(self, index):
-                return PythonListIterator(self, index)
+                return self._retain_iterator(index)
+
+            def release_iterators(self):
+                # Only call when Java can no longer use these iterators.
+                self._iterators.clear()
+
+            # Other java.util.List methods omitted.
+
+    Retention also needs a cleanup policy: this list grows with every iterator
+    created, even after Java has finished with earlier iterators. For a
+    synchronous operation that does not retain its iterators, references can be
+    released after the operation finishes. For example, assuming no other Java
+    code is using this collection's iterators::
+
+        from jnius import autoclass
+
+        collection = TestImplem(range(10))
+        Collections = autoclass('java.util.Collections')
+        try:
+            maximum = Collections.max(collection)
+        finally:
+            collection.release_iterators()
+
+    If Java stores an iterator or listener for later use, keep its Python
+    implementation alive until that use ends, for example until a listener is
+    unregistered and any callbacks in progress have completed. Do not clear
+    retained references while Java can still call them. Reaching the end of an
+    iterator is not generally a cleanup signal: a ``ListIterator`` can also move
+    backwards.
 
 Java signature format
 ---------------------

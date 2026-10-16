@@ -1,4 +1,3 @@
-from __future__ import absolute_import, unicode_literals
 import unittest
 from jnius import autoclass, cast, PythonJavaClass, java_method
 
@@ -11,7 +10,7 @@ class _TestImplem(PythonJavaClass):
     __javainterfaces__ = ['java/util/List']
 
     def __init__(self, *args):
-        super(_TestImplem, self).__init__(*args)
+        super().__init__(*args)
         self.data = list(args)
 
     @java_method('()I')

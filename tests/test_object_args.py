@@ -3,10 +3,6 @@ Check various function arguments to be properly passed to Java function
 as an Object that is not `null` except `None` itself.
 '''
 
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import unittest
 from jnius import autoclass, JavaException
 
@@ -65,7 +61,7 @@ class ArgumentsTest(unittest.TestCase):
         '''
         Converts Python unicode to java.lang.Object.
         '''
-        self.assertEqual(ObjectArgument.checkObject(u''), 0)
+        self.assertEqual(ObjectArgument.checkObject(''), 0)
 
     def test_argument_emptybytes(self):
         '''
