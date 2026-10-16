@@ -35,6 +35,7 @@ jobs:
   build_wheels:
     name: cibuildwheel
     env:
+      CIBW_BUILD: 'cp311-*'
       CIBW_BEFORE_ALL_LINUX: 'yum install -y java-11-openjdk-devel'
       CIBW_REPAIR_WHEEL_COMMAND_MACOS: ''
       CIBW_SKIP: 'cp36-* *musllinux*'
