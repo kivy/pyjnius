@@ -7,7 +7,7 @@ env:
   JAVA_VERSION: '17'
   PYTHON_VERSION: '3.11'
   PYTHON_VERSION_CIBUILDWHEELS: '311'
-  CIBUILDWHEEL_VERSION: '3.1.1'
+  CIBUILDWHEEL_VERSION: '4.3.0'
 
 
 name: Continuous Integration - Testing Wheels on JRE
