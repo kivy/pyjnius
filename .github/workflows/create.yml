@@ -205,13 +205,13 @@ jobs:
         if: (matrix.os == 'ubuntu-latest') || (matrix.os == 'ubuntu-24.04-arm') || (matrix.os == 'macos-latest') || (matrix.os == 'macos-15-intel')
         run: |
           cd tests
-          CLASSPATH=../build/test-classes:../build/classes python -m pytest -v
+          CLASSPATH=../build/test-classes python -m pytest -v
 
       - name: Test wheel (Windows)
         if: matrix.os == 'windows-latest'
         run: |
           cd tests
-          $env:CLASSPATH ="../build/test-classes;../build/classes"
+          $env:CLASSPATH ="../build/test-classes"
           python -m pytest -v
   
 
@@ -257,7 +257,7 @@ jobs:
       - name: Test win32 wheel with JVM
         run: |
           $env:PATH += ";$env:JAVA_HOME\jre\bin\server\;$env:JAVA_HOME\jre\bin\client\;$env:JAVA_HOME\bin\server\"
-          $env:CLASSPATH = "../build/test-classes;../build/classes"
+          $env:CLASSPATH = "../build/test-classes"
           cd tests
           python -m pytest -v
 

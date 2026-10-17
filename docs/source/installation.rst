@@ -20,7 +20,7 @@ You will need the Java JRE installed (`OpenJDK <https://openjdk.org/>`_ is fine)
 PyJNIus searches for Java in the usual places on each operating system. If PyJNIus 
 cannot find Java, set the `JAVA_HOME` environment variable (this is often needed 
 `on Windows <https://www.baeldung.com/java-home-on-windows-7-8-10-mac-os-x-linux#windows>`_).
-NB: Building pyjnius requires a Java JDK rather than a JRE.
+NB: Building PyJNIus requires a Java JDK rather than a JRE.
 
 Installation from source
 ------------------------
