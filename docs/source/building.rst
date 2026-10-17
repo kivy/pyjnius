@@ -40,3 +40,18 @@ You can run the tests suite to make sure everything is running right::
 
 In these cases, you may need to have `Cython <https://pypi.org/project/Cython/>`_ 
 and `pytest <https://pypi.org/project/pytest/>`_ installed in the current Python environment.
+
+Desktop wheel CI
+----------------
+
+For build-tool changes, include ``[build wheel]`` in the PR title before opening
+the PR or pushing another commit to exercise the release-shaped builds and tests.
+The existing pytest suite runs against the installed wheel, with only Java test
+fixtures compiled separately so the packaged helpers are used. Wheel-test
+failures block tag releases.
+
+One Linux x86_64 / Python 3.14 job runs the built wheel on Java 8, independently
+of the build JDK; the other wheel jobs use Java 17. This is a representative
+backwards-compatibility check for toolchain bumps, rather than an exhaustive
+Python/JVM/platform guarantee. User-reported incompatibilities can be covered
+by targeted regression tests.
