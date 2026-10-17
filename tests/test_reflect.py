@@ -129,6 +129,18 @@ class ReflectTest(unittest.TestCase):
         sys.platform == 'android' or 'ANDROID_ARGUMENT' in os.environ,
         reason='Android does not bundle the desktop Logger helper'
     )
+    def test_logger_helper_factories(self):
+        # A direct call cannot hide a missing helper behind the Java 8 fallback.
+        LoggerHelper = autoclass('org.jnius.LoggerHelper')
+        name = 'org.jnius.issue623.helper'
+        logger = LoggerHelper.getLogger(name)
+        self.assertEqual(name, logger.getName())
+        self.assertTrue(logger.equals(LoggerHelper.getLogger(name, None)))
+
+    @pytest.mark.skipif(
+        sys.platform == 'android' or 'ANDROID_ARGUMENT' in os.environ,
+        reason='Android does not bundle the desktop Logger helper'
+    )
     def test_named_logger_without_helper_on_classpath(self):
         # Run in a fresh JVM without PyJNIus's bundled Java classes. A missing
         # helper must preserve the old direct JNI call, which can work on JDK 8.
