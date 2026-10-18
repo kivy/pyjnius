@@ -3,11 +3,12 @@ This module determine and expose various information about the java
 environment.
 '''
 
+import re
 import sys
 from os.path import join, exists, dirname, realpath
 from os import getenv
 from platform import machine
-from subprocess import Popen, check_output, PIPE
+from subprocess import Popen, check_output, PIPE, STDOUT
 from shlex import split
 import logging
 from textwrap import dedent
@@ -35,6 +36,27 @@ DEFAULT_PLATFORM = sys.platform
 
 def is_set(string):
     return string is not None and len(string) > 0
+
+
+def get_javac_options(javac):
+    """Return compiler options for the Java 8 helper target."""
+    version = check_output(
+        [javac, '-version'], stderr=STDOUT, text=True,
+    )
+    match = re.search(
+        r'(?m)^\s*javac\s+(?:1\.)?(\d+)(?=[.\s+_-]|$)', version,
+    )
+    if match is None:
+        raise RuntimeError(
+            f'Could not determine Java compiler version for {javac!r}: '
+            f'{version!r}'
+        )
+    major = int(match.group(1))
+    if major < 8:
+        raise RuntimeError('Java helper compilation requires JDK 8 or newer')
+    if major == 8:
+        return ['-source', '8', '-target', '8']
+    return ['--release', '8']
 
 
 def get_java_setup(platform=DEFAULT_PLATFORM):

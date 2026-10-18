@@ -15,7 +15,7 @@ from setuptools.command.build_ext import build_ext
 # import jnius_config.env withough having build
 syspath = sys.path[:]
 sys.path.insert(0, 'jnius_config')
-from env import get_java_setup
+from env import get_java_setup, get_javac_options
 sys.path = syspath
 
 def getenv(key):
@@ -73,20 +73,18 @@ if PLATFORM != 'android':
 
 def compile_java_helpers(java):
     '''Find javac and compile the desktop Java bridge classes.'''
-    javac = java.get_javac()
-    source_level = '8'
     sources = [join('jnius', 'src', 'org', 'jnius', filename) for filename in (
         'NativeInvocationHandler.java', 'LoggerHelper.java')]
+
+    def compile_with(javac):
+        options = get_javac_options(javac)
+        subprocess.check_call([javac, *options, *sources])
+
+    javac = java.get_javac()
     try:
-        subprocess.check_call([
-            javac, '-target', source_level, '-source', source_level,
-            *sources
-        ])
+        compile_with(javac)
     except FileNotFoundError:
-        subprocess.check_call([
-            javac.replace('"', ''), '-target', source_level, '-source', source_level,
-            *sources
-        ])
+        compile_with(javac.replace('"', ''))
 
 
 if PLATFORM != 'android':
