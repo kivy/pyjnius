@@ -41,6 +41,18 @@ You can run the tests suite to make sure everything is running right::
 In these cases, you may need to have `Cython <https://pypi.org/project/Cython/>`_ 
 and `pytest <https://pypi.org/project/pytest/>`_ installed in the current Python environment.
 
+When building for Android, the host application's build system compiles the
+Java bridge code into the app. The PyJNIus wheel itself contains no Java code
+(see :ref:`android-wheel`).
+
+For all other platforms, the Java bridge classes target Java 8 language
+features, platform APIs, and class-file format. Builds with JDK 9 or newer use
+``javac --release 8``; JDK 8 builds use ``-source 8 -target 8`` against that
+JDK's APIs.
+
+The Ant-based developer build requires Ant 1.9.8 or newer so both helper and
+test-fixture compilation apply the corresponding release constraint.
+
 Desktop wheel CI
 ----------------
 
@@ -48,7 +60,8 @@ For build-tool changes, include ``[build wheel]`` in the PR title before opening
 the PR or pushing another commit to exercise the release-shaped builds and tests.
 The existing pytest suite runs against the installed wheel, with only Java test
 fixtures compiled separately so the packaged helpers are used. Wheel-test
-failures block tag releases.
+failures block tag releases. Java 8 compilation targeting complements this
+installed-wheel runtime check.
 
 One Linux x86_64 / Python 3.14 job runs the built wheel on Java 8, independently
 of the build JDK; the other wheel jobs use Java 17. This is a representative

@@ -1,6 +1,7 @@
 <project>
     <property name="ant.build.javac.source" value="8" />
     <property name="ant.build.javac.target" value="8" />
+    <property name="ant.build.javac.release" value="8" />
 
     <target name="clean">
       <delete dir="build/classes"/>
@@ -10,6 +11,7 @@
     <target name="compile">
         <mkdir dir="build/classes"/>
         <javac srcdir="jnius/src" destdir="build/classes"
+               release="${ant.build.javac.release}"
                includeantruntime='false'
                encoding="UTF-8"/>
     </target>
@@ -17,6 +19,7 @@
     <target name="test-compile">
         <mkdir dir="build/test-classes"/>
         <javac srcdir="tests/java-src" destdir="build/test-classes"
+               release="${ant.build.javac.release}"
                includeantruntime='false'
                encoding="UTF-8"/>
     </target>
