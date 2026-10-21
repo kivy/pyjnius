@@ -97,6 +97,12 @@ Reflection classes
                     # ...
                 )
 
+.. class:: MetaJavaClass
+
+    Metaclass for :class:`JavaClass` subclasses. It resolves the Java class named
+    by ``__javaclass__`` and binds the declared methods and fields.
+
+
 .. class:: JavaMethod
 
     Reflection of a Java method.
@@ -232,7 +238,7 @@ Reflection classes
 
     * a direct type match is +10
     * a indirect type match (like using a `float` for an `int` argument) is +5
-    * object with unknown type (:class:`JavaObject`) is +1
+    * object with unknown type (``JavaObject``) is +1
     * otherwise, it's considered as an error case, and returns -1
 
 
