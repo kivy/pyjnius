@@ -17,10 +17,21 @@ a binary on your operating system. For more information see the :ref:`building`
 documentation.
 
 You will need the Java JRE installed (`OpenJDK <https://openjdk.org/>`_ is fine).
-PyJNIus searches for Java in the usual places on each operating system. If PyJNIus 
-cannot find Java, set the ``JAVA_HOME`` environment variable (this is often needed
-`on Windows <https://www.baeldung.com/java-home-on-windows-7-8-10-mac-os-x-linux#windows>`_).
-NB: Building PyJNIus requires a Java JDK rather than a JRE.
+
+PyJNIus first uses a nonempty ``JAVA_HOME``, ``JDK_HOME``, or ``JRE_HOME``,
+in that order.
+
+On Windows, one of these variables must be set; PyJNIus does not search
+``PATH`` for Java. See the `Windows JAVA_HOME configuration guide
+<https://www.baeldung.com/java-home-on-windows-7-8-10-mac-os-x-linux#windows>`_.
+
+If no home is selected, macOS uses the system ``java_home`` helper. On
+other Unix-like systems, automatic discovery prefers ``javac`` on
+``PATH``, then ``java``, then the usual default Java directories. If
+PyJNIus cannot find Java, set the ``JAVA_HOME`` environment variable.
+
+A runtime-only installation is sufficient to use a prebuilt wheel;
+building PyJNIus from source requires a JDK.
 
 Installation from source
 ------------------------
