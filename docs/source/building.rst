@@ -13,7 +13,7 @@ to be installed (NB: installing pre-built wheels requires only a JRE).
 Apart from the JDK, the build requirements for each platform are as follows:
 
  - Linux: the `GNU Compiler Collection <https://gcc.gnu.org/>`_ (GCC), e.g. using 
-   `apt-get install build-essentials` on Debian-based distributions.
+   ``apt-get install build-essential`` on Debian-based distributions.
  - Windows: `Microsoft Visual C++ Build Tools <https://visualstudio.microsoft.com/downloads/>`_ 
    (the command-line tools subset of Visual Studio). 
    For more information or options, see Python's `Windows Compilers wiki
@@ -34,7 +34,7 @@ just type::
 
     make
 
-You can run the tests suite to make sure everything is running right::
+You can run the test suite to make sure everything is running correctly::
 
     make tests
 

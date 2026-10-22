@@ -3,7 +3,7 @@
 Installation
 ============
 
-PyJNIus has pre-compiled binaries on PyPi for recent Python versions on Linux,
+PyJNIus has pre-compiled binaries on PyPI for recent Python versions on Linux,
 macOS and Windows.
 
 On each platform::
@@ -18,7 +18,7 @@ documentation.
 
 You will need the Java JRE installed (`OpenJDK <https://openjdk.org/>`_ is fine).
 PyJNIus searches for Java in the usual places on each operating system. If PyJNIus 
-cannot find Java, set the `JAVA_HOME` environment variable (this is often needed 
+cannot find Java, set the ``JAVA_HOME`` environment variable (this is often needed
 `on Windows <https://www.baeldung.com/java-home-on-windows-7-8-10-mac-os-x-linux#windows>`_).
 NB: Building PyJNIus requires a Java JDK rather than a JRE.
 
@@ -48,7 +48,7 @@ requirements in buildozer.spec::
   requirements = pyjnius
 
 If you use `python-for-android
-<http://python-for-android.readthedocs.io/en/latest/>`__ directly, add
+<https://python-for-android.readthedocs.io/en/latest/>`__ directly, add
 pyjnius to the requirements argument when creating a dist or apk::
 
   p4a apk --requirements=pyjnius
@@ -57,10 +57,9 @@ pyjnius to the requirements argument when creating a dist or apk::
 Installation for Conda
 ----------------------
 
-Similar to PIP there is a package manager for
-`Anaconda <https://www.anaconda.com/what-is-anaconda/>` called Conda.
-An unofficial compiled distributions of PyJNIus for Conda supported
-platforms you can find at https://anaconda.org/conda-forge/pyjnius.
+An unofficial pre-compiled distribution of PyJNIus is available for
+`Conda <https://docs.conda.io/en/latest/>`_ on supported platforms through
+`conda-forge <https://anaconda.org/conda-forge/pyjnius>`_.
 
 You can install ``pyjnius`` with this command::
 

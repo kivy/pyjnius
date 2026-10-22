@@ -3,10 +3,10 @@
 Quickstart
 ==========
 
-Eager to get started? This page will give you a good introduction to Pyjnius. It assumes
-you have already PyJNIus installed. If you do not, ensure you have a Java JDK installed, 
-then try `pip install pyjnius` - you can head over to the :ref:`installation` section 
-for more information.
+Eager to get started? This page will give you a good introduction to PyJNIus. It
+assumes you already have PyJNIus installed. If you do not, install a Java Runtime
+Environment (JRE), then try ``pip install pyjnius``. Building PyJNIus from source
+requires a Java Development Kit (JDK). See :ref:`installation` for more information.
 
 A minimal example
 -----------------

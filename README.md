@@ -19,13 +19,14 @@ It can also be used independently of Kivy, on desktop and mobile platforms.
 [![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers)
 [![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors)
 [![GitHub contributors](https://img.shields.io/github/contributors-anon/kivy/pyjnius)](https://github.com/kivy/pyjnius/graphs/contributors)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](code_of_conduct.md)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
 ![PyPI - Version](https://img.shields.io/pypi/v/pyjnius)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyjnius)
 
 [![Tests](https://github.com/kivy/pyjnius/workflows/Continuous%20Integration/badge.svg)](https://github.com/kivy/pyjnius/actions)
 [![Tests (x86)](https://github.com/kivy/pyjnius/workflows/Continuous%20Integration%20(x86)/badge.svg)](https://github.com/kivy/pyjnius/actions)
+[![Tests (JRE)](https://github.com/kivy/pyjnius/workflows/Continuous%20Integration%20-%20Testing%20Wheels%20on%20JRE/badge.svg)](https://github.com/kivy/pyjnius/actions)
 [![Builds](https://github.com/kivy/pyjnius/workflows/Continuous%20Delivery/badge.svg)](https://github.com/kivy/pyjnius/actions)
 [![Coverage Status](https://coveralls.io/repos/github/kivy/pyjnius/badge.svg?branch=master)](https://coveralls.io/github/kivy/pyjnius?branch=master)
 
@@ -145,9 +146,11 @@ Each pair contains the list of accepted arguments types, and the returned type.
 Troubleshooting
 ---------------
 
-Make sure a Java Development Kit (JDK) is installed on your operating system if
-you want to use PyJNIus on desktop. OpenJDK is known to work, and the Oracle
-Java JDK should work as well.
+Make sure a Java Runtime Environment (JRE) is installed if you want to use
+PyJNIus on desktop. A Java Development Kit (JDK) is required when building
+PyJNIus from source. OpenJDK is known to work, and Oracle Java should
+work as well. See the [installation documentation](https://pyjnius.readthedocs.io/en/latest/installation.html)
+for details.
 
 On Windows, make sure `JAVA_HOME` points to your Java installation, so PyJNIus
 can locate the `jvm.dll` file allowing it to start Java. This shouldn't be

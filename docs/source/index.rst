@@ -13,14 +13,14 @@ PyJNIus is managed by the `Kivy Team <https://kivy.org/about.html>`_ and can be
 used with `python-for-android <https://github.com/kivy/python-for-android>`_.
 
 PyJNIus is released and distributed under the terms of the MIT license. You should have received a
-copy of the MIT license alongside your Kivy distribution. Our
-`latest license <https://github.com/kivy/kivy/blob/master/LICENSE>`_
+copy of the MIT license alongside your PyJNIus distribution. Our
+`latest license <https://github.com/kivy/pyjnius/blob/master/LICENSE>`_
 is also available.
 
 
-This documentation is divided into differents parts. We recommend you to start
-with :ref:`installation`, and then head over to the :ref:`quickstart`. You can
-also check :ref:`android` for specific example for the Android platform.  If
+This documentation is divided into different parts. We recommend starting
+with :ref:`installation` and then reading the :ref:`quickstart`. You can
+also check :ref:`android` for examples specific to the Android platform. If
 you'd rather dive into the internals of PyJNIus, check out the :ref:`api`
 documentation.
 
@@ -28,6 +28,7 @@ documentation.
    :maxdepth: 2
 
    installation
+   building
    quickstart
    android
    android-wheel
@@ -43,4 +44,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

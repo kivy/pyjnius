@@ -103,7 +103,7 @@ PyJNIus's ``.so`` -- the packager is responsible for aligning the bootstrap libs
 
 
 Verifying a built wheel
-----------------------
+-----------------------
 
 .. code:: bash
 
