@@ -84,8 +84,11 @@ def get_java_setup(platform=DEFAULT_PLATFORM):
     if not is_set(JAVA_HOME):
         JAVA_HOME = get_jre_home(platform)
 
-    if JAVA_HOME is None:
-        raise RuntimeError("Could not find your Java installed. Please set the JAVA_HOME env var.")
+    if not is_set(JAVA_HOME):
+        raise RuntimeError(
+            "Could not find your Java installed. "
+            "Please set the JAVA_HOME env var."
+        )
 
     if isinstance(JAVA_HOME, bytes):
         JAVA_HOME = JAVA_HOME.decode('utf-8')
@@ -260,6 +263,7 @@ class UnixJavaLocation(JavaLocation):
             'lib/server/libjvm.so',
             f'jre/lib/{cpu}/default/libjvm.so',
             f'jre/lib/{cpu}/server/libjvm.so',
+            f'lib/{cpu}/server/libjvm.so',
         ]
 
 
@@ -283,6 +287,7 @@ class BSDJavaLocation(JavaLocation):
             'lib/server/libjvm.so',
             f'jre/lib/{cpu}/default/libjvm.so',
             f'jre/lib/{cpu}/server/libjvm.so',
+            f'lib/{cpu}/server/libjvm.so',
         ]
 
 
@@ -336,54 +341,60 @@ class AndroidJavaLocation(UnixJavaLocation):
 
 
 def get_jre_home(platform):
-    jre_home = None
-    if JAVA_HOME and exists(join(JAVA_HOME, 'jre')):
-        jre_home = join(JAVA_HOME, 'jre')
+    """Return a discovered JRE home, or None if none is found.
 
-    if platform != 'win32' and not jre_home:
-        try:
-            jre_home = realpath(
-                which('java')
-            ).replace('bin/java', '')
-        except TypeError:
-            raise Exception('Unable to find java')
+    Direct callers may select a nested JAVA_HOME/jre. The public selector
+    selects explicit homes before calling this helper.
 
-        if is_set(jre_home):
-            return jre_home
+    Unexpected probe failures propagate.
+    """
+    java_home = getenv('JAVA_HOME')
+    if java_home and exists(join(java_home, 'jre')):
+        return join(java_home, 'jre')
 
-        # didnt find java command on the path, we can
-        # fallback to hunting in some default unix locations
-        for loc in ["/usr/java/latest/", "/usr/java/default/", "/usr/lib/jvm/default-java/"]: 
-            if exists(loc + "bin/java"):
-                jre_home = loc
-                break
+    if platform != 'win32':
+        java = which('java')
+        if java is not None:
+            jre_home = realpath(java).replace('bin/java', '')
+            if is_set(jre_home):
+                return jre_home
 
-    return jre_home
+        # Fall back to the usual Unix locations after a PATH miss.
+        for home in (
+            '/usr/java/latest/',
+            '/usr/java/default/',
+            '/usr/lib/jvm/default-java/',
+        ):
+            if exists(join(home, 'bin', 'java')):
+                return home
+
+    return None
 
 
 def get_jdk_home(platform):
+    """Return a discovered JDK home, or None if none is found.
+
+    Unexpected probe failures propagate.
+    """
     jdk_home = getenv('JDK_HOME')
     if not jdk_home:
         if platform == 'win32':
-            TMP_JDK_HOME = getenv('JAVA_HOME')
-            if not TMP_JDK_HOME:
-                raise Exception('Unable to find JAVA_HOME')
+            java_home = getenv('JAVA_HOME')
+            if not java_home:
+                return None
 
             # Remove /bin if it's appended to JAVA_HOME
-            if TMP_JDK_HOME[-3:] == 'bin':
-                TMP_JDK_HOME = TMP_JDK_HOME[:-4]
+            if java_home[-3:] == 'bin':
+                java_home = java_home[:-4]
 
             # Check whether it's JDK
-            if exists(join(TMP_JDK_HOME, 'bin', 'javac.exe')):
-                jdk_home = TMP_JDK_HOME
-
+            if exists(join(java_home, 'bin', 'javac.exe')):
+                jdk_home = java_home
         else:
-            try:
-                jdk_home = realpath(
-                    which('javac')
-                ).replace('bin/javac', '')
-            except TypeError:
-                raise Exception('Unable to find javac')
+            javac = which('javac')
+            if javac is None:
+                return None
+            jdk_home = realpath(javac).replace('bin/javac', '')
 
     if not jdk_home or not exists(jdk_home):
         return None
