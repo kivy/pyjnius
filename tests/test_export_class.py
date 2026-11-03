@@ -1,3 +1,4 @@
+import gc
 import unittest
 from jnius import autoclass, java_method, PythonJavaClass
 
@@ -39,7 +40,10 @@ class ExportClassTest(unittest.TestCase):
 
     def test_subclasses_work_for_arg_matching(self):
         array_list = ArrayList()
-        array_list.add(SampleIterable())
+        # Java retains the proxy, not its Python implementation.
+        sample_iterable = SampleIterable()
+        array_list.add(sample_iterable)
+        gc.collect()
         self.assertIsInstance(array_list.get(0), Iterable)
         self.assertIsInstance(array_list.get(0), SampleIterable)
 
