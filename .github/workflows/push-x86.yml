@@ -6,7 +6,10 @@ concurrency:
 jobs:
   Tests:
     name: base
-    runs-on: ubuntu-latest
+    # Ubuntu 26.04's Docker 29.4.2 blocks i386 socketcall networking.
+    # Drop this pin once ubuntu-26.04 ships Docker >= 29.4.3.
+    # https://github.com/actions/runner-images/issues/14790
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         python:
