@@ -287,7 +287,7 @@ jobs:
     - name: Upload Test Release Asset
       id: create_test_release
       if: startsWith(github.ref, 'refs/tags/') && endsWith(github.ref, '-test')
-      uses: softprops/action-gh-release@v3.0.3
+      uses: softprops/action-gh-release@v3.0.4
       with:
         prerelease: true
         files: |
@@ -300,7 +300,7 @@ jobs:
     - name: Upload Release Asset
       id: upload-release-asset
       if: startsWith(github.ref, 'refs/tags/') && ! endsWith(github.ref, '-test')
-      uses: softprops/action-gh-release@v3.0.3
+      uses: softprops/action-gh-release@v3.0.4
       with:
         files: |
           dist/*.whl
